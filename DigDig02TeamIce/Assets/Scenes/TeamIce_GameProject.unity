@@ -122,6 +122,213 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &1183584335 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4804014977240423186, guid: 0be8f096bef66d64c90c62e6755132ef, type: 3}
+  m_PrefabInstance: {fileID: 3085044186132794797}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1183584336
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1183584335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Actions: {fileID: -944628639613478452, guid: d53d6d1c60e228b42984048e9e5a57bf, type: 3}
+  m_NotificationBehavior: 2
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents:
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1183584337}
+        m_TargetAssemblyTypeName: Player, Assembly-CSharp
+        m_MethodName: Move
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 12a7a1c2-2423-46c5-8041-c62f5a5a8f52
+    m_ActionName: Gameplay/Move[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1183584337}
+        m_TargetAssemblyTypeName: Player, Assembly-CSharp
+        m_MethodName: Jump
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 0d72839b-0960-48c3-af8a-c72f3837ee71
+    m_ActionName: Gameplay/Jump[/Keyboard/space]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1183584337}
+        m_TargetAssemblyTypeName: Player, Assembly-CSharp
+        m_MethodName: Sprint
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 864559f8-2773-42e4-9832-4054b2ea7b49
+    m_ActionName: Gameplay/Sprint[/Keyboard/shift]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 59603d3f-bc8c-487b-9b3d-ceb573870480
+    m_ActionName: Gameplay/Parry[/Keyboard/alt]
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: Gameplay
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
+--- !u!114 &1183584337 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7113094758777896580, guid: 0be8f096bef66d64c90c62e6755132ef, type: 3}
+  m_PrefabInstance: {fileID: 3085044186132794797}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1183584335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1183584339 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7948930826786686778, guid: 0be8f096bef66d64c90c62e6755132ef, type: 3}
+  m_PrefabInstance: {fileID: 3085044186132794797}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1526999271
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1526999272}
+  - component: {fileID: 1526999274}
+  - component: {fileID: 1526999273}
+  m_Layer: 0
+  m_Name: Parry
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1526999272
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1526999271}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1183584339}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1526999273
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1526999271}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02139cf3c491ea345a19c29f54ac51ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ParryAnimation: {fileID: 3948149851726289611, guid: f83e4f8127a43a94890c81805deb4b7e, type: 3}
+--- !u!114 &1526999274
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1526999271}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Actions: {fileID: -944628639613478452, guid: d53d6d1c60e228b42984048e9e5a57bf, type: 3}
+  m_NotificationBehavior: 2
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents:
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 12a7a1c2-2423-46c5-8041-c62f5a5a8f52
+    m_ActionName: Gameplay/Move[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 0d72839b-0960-48c3-af8a-c72f3837ee71
+    m_ActionName: Gameplay/Jump[/Keyboard/space]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 864559f8-2773-42e4-9832-4054b2ea7b49
+    m_ActionName: Gameplay/Sprint[/Keyboard/shift]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1526999273}
+        m_TargetAssemblyTypeName: ParryManager, Assembly-CSharp
+        m_MethodName: Parry
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 59603d3f-bc8c-487b-9b3d-ceb573870480
+    m_ActionName: Gameplay/Parry[/Keyboard/alt]
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: Gameplay
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
 --- !u!1 &1550489356
 GameObject:
   m_ObjectHideFlags: 0
@@ -227,6 +434,7 @@ GameObject:
   - component: {fileID: 1876778500}
   - component: {fileID: 1876778502}
   - component: {fileID: 1876778501}
+  - component: {fileID: 1876778503}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -308,6 +516,18 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!114 &1876778503
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1876778499}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e662c47f017f4f4ea472bb5142e65ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1981602567
 GameObject:
   m_ObjectHideFlags: 0
@@ -334,7 +554,7 @@ Transform:
   m_GameObject: {fileID: 1981602567}
   serializedVersion: 2
   m_LocalRotation: {x: 0.31598538, y: 0.3596048, z: -0.13088542, w: 0.8681629}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -350,9 +570,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1981602567}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c9701f9227f3bf74493723bd56e3c5f8, type: 3}
+  m_Script: {fileID: 11500000, guid: 7febbc60f1be9c44395f82d71f73c040, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxDistance: 4
+  moveSmoothSpeed: 2
+  recenterSmoothSpeed: 2
 --- !u!1 &2101085909
 GameObject:
   m_ObjectHideFlags: 0
@@ -475,6 +698,14 @@ PrefabInstance:
       propertyPath: camera1
       value: 
       objectReference: {fileID: 1876778500}
+    - target: {fileID: 7113094758777896580, guid: 0be8f096bef66d64c90c62e6755132ef, type: 3}
+      propertyPath: turnSpeed
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 7113094758777896580, guid: 0be8f096bef66d64c90c62e6755132ef, type: 3}
+      propertyPath: jumpHeight
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 7948930826786686778, guid: 0be8f096bef66d64c90c62e6755132ef, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -517,8 +748,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 7948930826786686778, guid: 0be8f096bef66d64c90c62e6755132ef, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1526999272}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4804014977240423186, guid: 0be8f096bef66d64c90c62e6755132ef, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1183584336}
   m_SourcePrefab: {fileID: 100100000, guid: 0be8f096bef66d64c90c62e6755132ef, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

@@ -1,25 +1,26 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using static UnityEditor.Timeline.TimelinePlaybackControls;
 
 public class Player : Entity
 {
     CharacterController controller;
-    public Transform camera1;
+    private Transform camera1;
 
-    float moveX;
-    float moveY;
+    public bool Sprinting = false;
+
     public float Speed;
     public float walkSpeed = 5f;
     public float sprintSpeed = 10f;
     public float turnSpeed = 8f;
     public float jumpHeight = 1f;
 
-    float verticalVelocity;
-    public float gravity = 9.82f;
+    private Vector2 verticalVelocity;
+    public const float gravity = 9.82f;
 
     private Vector3 moveDir;
-
-    public bool Sprinting => Input.GetKey(KeyCode.LeftShift);
+    private Vector3 moveInput;
 
     protected override void OnEntityEnable()
     {
@@ -41,23 +42,28 @@ public class Player : Entity
 
     protected override void OnUpdate()
     {
-        base.OnUpdate();
+        //base.OnUpdate();
 
-        InputManagement();
-        BeforeMovement();
-        Move();
+        //BeforeMovement();
+        MovementHandler();
         Turn();
     }
 
-    void InputManagement()
+    public void Sprint(InputAction.CallbackContext context)
     {
-        moveX = Input.GetAxis("Horizontal");
-        moveY = Input.GetAxis("Vertical");
+        if (context.ReadValue<float>() > 0)
+        {
+            Sprinting = true;
+        }
+        else
+        {
+            Sprinting = false;
+        }
     }
 
-    void BeforeMovement()
+    void MovementHandler()
     {
-        if (Sprinting)
+        if (Sprinting && controller.isGrounded)
         {
             Speed = sprintSpeed;
         }
@@ -65,40 +71,43 @@ public class Player : Entity
         {
             Speed = walkSpeed;
         }
+
+        moveDir = camera1.forward * moveInput.y + camera1.right * moveInput.x;
+
+        moveDir *= Speed;
+        moveDir.y = verticalVelocity.y;
+
+        controller.Move(moveDir * Time.deltaTime);
+
+        if (controller.isGrounded)
+        {
+            verticalVelocity.y = -1f;
+        }
+        else
+        {
+            verticalVelocity.y -= gravity * Time.deltaTime;
+        }
     }
 
-    void Move()
+    public void Move(InputAction.CallbackContext context)
     {
-        moveDir = camera1.forward * moveY + camera1.right * moveX;
-
-        moveDir.y = VerticalForce();
-        moveDir *= Speed;
-        controller.Move(moveDir * Time.deltaTime);
+        moveInput = context.ReadValue<Vector2>();
     }
 
     void Turn()
     {
-        if (Mathf.Abs(moveX) > 0 || Mathf.Abs(moveY) > 0)
+        if (Mathf.Abs(moveInput.x) > 0 || Mathf.Abs(moveInput.y) > 0)
         {
             Quaternion targetRotation = Quaternion.LookRotation(new Vector3(moveDir.x, 0, moveDir.z));
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * turnSpeed);
         }
     }
 
-    float VerticalForce()
+    public void Jump(InputAction.CallbackContext context)
     {
-        if (controller.isGrounded)
+        if (controller.isGrounded && context.performed)
         {
-            verticalVelocity = -1f;
-            if (Input.GetButtonDown("Jump"))
-            {
-                verticalVelocity = Mathf.Sqrt(jumpHeight * gravity * 2);
-            }
+            verticalVelocity.y = Mathf.Sqrt(jumpHeight * gravity * 2);
         }
-        else
-        {
-            verticalVelocity -= gravity * Time.deltaTime;
-        }
-        return verticalVelocity;
     }
 }

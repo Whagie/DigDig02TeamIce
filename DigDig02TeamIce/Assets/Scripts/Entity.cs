@@ -7,9 +7,10 @@ public abstract class Entity : MonoBehaviour
     public string EntityName { get; set; }
     public bool Active { get; set; } = true;
 
-    // Unity lifecycle forwards
     protected virtual void Awake() => OnAwake();
     protected virtual void Start() => OnStart();
+
+    // Update hooks, runs if Entity is Active
     protected virtual void Update() { if (Active) OnUpdate(); }
     protected virtual void FixedUpdate() { if (Active) OnFixedUpdate(); }
     protected virtual void OnEnable() => OnEntityEnable();
@@ -21,7 +22,7 @@ public abstract class Entity : MonoBehaviour
     protected virtual void OnPostRender() => PostRender();
     protected virtual void OnRenderObject() => RenderObject();
 
-    // Overridable hooks (Monocle-style)
+    // Overridable hooks
     protected virtual void OnAwake() { }
     protected virtual void OnStart() { }
     protected virtual void OnUpdate() { }

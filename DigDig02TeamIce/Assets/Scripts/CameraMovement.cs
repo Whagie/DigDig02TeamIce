@@ -1,8 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
 
 public class CameraMovement : MonoBehaviour
 {
@@ -26,20 +24,20 @@ public class CameraMovement : MonoBehaviour
         target = player.transform != null ? player.transform : null;
         if (target == null) return;
 
-        Vector3 desiredPosition = target.position;
+        Vector3 desiredPosition = new Vector3(target.position.x, 0f, target.position.z);
         Vector3 offset = desiredPosition - transform.position;
 
         float distance = offset.magnitude;
 
-        // If player leaves dead zone -> start recentering
         if (distance > maxDistance)
         {
             recentering = true;
         }
 
-        // If camera has basically reached the player -> stop recentering
-        if (distance < 0.05f)
+        if (distance < 0.1f)
+        {
             recentering = false;
+        }
 
         if (recentering)
         {

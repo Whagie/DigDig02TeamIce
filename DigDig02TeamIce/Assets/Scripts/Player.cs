@@ -22,6 +22,11 @@ public class Player : Entity
     private Vector3 moveDir;
     private Vector3 moveInput;
 
+    [SerializeField] private ParryManager parryManager;
+
+    private Material material;
+    public GameObject body;
+
     protected override void OnEntityEnable()
     {
         Player existing = TrackerHost.Current.Get<Player>();
@@ -38,6 +43,12 @@ public class Player : Entity
     {
         controller = GetComponent<CharacterController>();
         camera1 = Camera.main.transform;
+
+        material = body.GetComponent<MeshRenderer>().material;
+
+        parryManager.OnParryStart += HandleParryStart;
+        parryManager.OnParryEnd += HandleParryEnd;
+        parryManager.OnParryCooldownEnd += HandleParryCooldownEnd;
     }
 
     protected override void OnUpdate()
@@ -109,5 +120,21 @@ public class Player : Entity
         {
             verticalVelocity.y = Mathf.Sqrt(jumpHeight * gravity * 2);
         }
+    }
+
+    private void HandleParryStart()
+    {
+        material.SetColor("_BaseColor", Color.red);
+        Debug.Log("Parry Start!");
+    }
+    private void HandleParryEnd()
+    {
+        material.SetColor("_BaseColor", Color.green);
+        Debug.Log("Parry End!");
+    }
+    private void HandleParryCooldownEnd()
+    {
+        material.SetColor("_BaseColor", Color.blue);
+        Debug.Log("Parry Cooldown End!");
     }
 }

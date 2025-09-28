@@ -1,11 +1,15 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class Entity : MonoBehaviour
 {
+    public int ID { get; set; }
     public string EntityName { get; set; }
     public bool Active { get; set; } = true;
+
+    private float intervalTimer = 0f;
 
     protected virtual void Awake() => OnAwake();
     protected virtual void Start() => OnStart();
@@ -39,4 +43,27 @@ public abstract class Entity : MonoBehaviour
     protected virtual void PreRender() { }
     protected virtual void PostRender() { }
     protected virtual void RenderObject() { }
+
+    public static void RotateTowardsY(Transform obj, Vector3 targetPosition, float rotationSpeed)
+    {
+        // direction to target, flattened
+        Vector3 direction = targetPosition - obj.position;
+        direction.y = 0;
+
+        if (direction.sqrMagnitude < 0.001f) return; // avoid zero-length
+
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        obj.rotation = Quaternion.RotateTowards(obj.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+    }
+
+    protected void OnInterval(float interval, Action action)
+    {
+        intervalTimer += Time.deltaTime;
+
+        if (intervalTimer >= interval)
+        {
+            intervalTimer -= interval; // keep leftover time
+            action?.Invoke();
+        }
+    }
 }

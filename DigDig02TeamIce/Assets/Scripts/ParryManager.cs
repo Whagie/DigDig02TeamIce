@@ -3,34 +3,38 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class ParryManager : MonoBehaviour
+public class ParryManager : Entity
 {
     public GameObject ParryAnimation;
-
+    public Collider ParryCollider;
     private Coroutine parryRoutine;
 
-    public const float parryLength = 0.2f;
-    public const float parryCooldown = 1f;
+    private Player player;
 
-    public float parryLengthTimer = 0f;
-    public float parryCooldownTimer = 0f;
-    public bool Parrying { get; private set; }
+    public float parryLength = 0.2f;
+    public float parryCooldown = 0.5f;
+
+    private float parryLengthTimer = 0f;
+    private float parryCooldownTimer = 0f;    
     public bool CanParry { get; private set; }
 
     public event System.Action OnParryStart;
     public event System.Action OnParryEnd;
     public event System.Action OnParryCooldownEnd;
+    public event System.Action OnParried;
 
+    protected override void OnAwake()
+    {
+        ParryCollider = GetComponent<Collider>();
+        player = TrackerHost.Current.Get<Player>();
+    }
     public void Parry(InputAction.CallbackContext context)
     {
-        if (context.performed && !Parrying && parryCooldownTimer <= 0f)
+        if (context.performed && parryCooldownTimer <= 0f)
         {            
             ParryBegin();
 
             Instantiate(ParryAnimation, transform.position, Quaternion.identity);
-            ParticleSpawner.Spawn(Particles.P_spark, transform.position);
-
-            CameraActions.Main.Punch(-0.8f, 0.15f);
         }
     }
 
@@ -49,8 +53,9 @@ public class ParryManager : MonoBehaviour
 
     private IEnumerator ParryRoutine()
     {
-        Parrying = true;
         CanParry = false;
+        ParryCollider.enabled = true;
+        player.Parrying = true;
 
         while (parryLengthTimer > 0f)
         {
@@ -58,7 +63,8 @@ public class ParryManager : MonoBehaviour
             yield return null;
         }
 
-        Parrying = false;
+        ParryCollider.enabled = false;
+        player.Parrying = false;
         OnParryEnd?.Invoke();
 
         while (parryCooldownTimer > 0f)
@@ -70,5 +76,13 @@ public class ParryManager : MonoBehaviour
         CanParry = true;
         OnParryCooldownEnd?.Invoke();
         parryRoutine = null;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.layer == LayerMask.NameToLayer("Attack"))
+        {
+            OnParried?.Invoke();
+        }
     }
 }

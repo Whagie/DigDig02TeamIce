@@ -24,6 +24,7 @@ public static class Particles
         }
     }
 
+    // Currently unused
     public static GameObject Get(string name) =>
         lookup.TryGetValue(name, out var prefab) ? prefab : null;
 }

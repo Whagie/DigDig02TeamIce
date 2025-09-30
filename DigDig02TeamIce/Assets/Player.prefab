@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6493286998354012962}
   - component: {fileID: 7119627501738233021}
+  - component: {fileID: 8594084823750310326}
   m_Layer: 8
   m_Name: Parry
   m_TagString: Untagged
@@ -45,8 +46,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ParryAnimation: {fileID: 3948149851726289611, guid: f83e4f8127a43a94890c81805deb4b7e, type: 3}
-  parryLengthTimer: 0
-  parryCooldownTimer: 0
+  ParryCollider: {fileID: 0}
+  parryLength: 0.2
+  parryCooldown: 0.5
+--- !u!135 &8594084823750310326
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1786953785548886187}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Radius: 1.15
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &4804014977240423186
 GameObject:
   m_ObjectHideFlags: 0
@@ -122,17 +145,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  parryManager: {fileID: 7119627501738233021}
   layermask:
     serializedVersion: 2
     m_Bits: 256
-  DetectionCollider: {fileID: 7725255344262600602}
+  DetectionCollider: {fileID: 7461212859721267105}
   Sprinting: 0
   Speed: 0
   walkSpeed: 5
   sprintSpeed: 10
   turnSpeed: 16
   jumpHeight: 3
+  Health: 7
+  InvisibilityLength: 0.6
+  debugInvisible: 0
+  Parrying: 0
   body: {fileID: 7643953190918355345}
 --- !u!114 &8716261745318826142
 MonoBehaviour:
@@ -320,7 +346,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6863914726926288023}
-  - component: {fileID: 7725255344262600602}
+  - component: {fileID: 7461212859721267105}
   m_Layer: 8
   m_Name: DetectionCollider
   m_TagString: Untagged
@@ -343,8 +369,8 @@ Transform:
   m_Children: []
   m_Father: {fileID: 8118220031223014368}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &7725255344262600602
-SphereCollider:
+--- !u!136 &7461212859721267105
+CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -361,8 +387,10 @@ SphereCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &7747701339272304873
 GameObject:

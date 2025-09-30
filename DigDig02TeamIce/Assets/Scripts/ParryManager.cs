@@ -7,30 +7,38 @@ public class ParryManager : Entity
 {
     public GameObject ParryAnimation;
     public Collider ParryCollider;
-    private Coroutine parryRoutine;
 
-    private Player player;
+    [SerializeField] private Player player;
+
+    private enum ParryState
+    {
+        Ready,
+        Active,
+        Cooldown
+    }
+
+    private ParryState state = ParryState.Ready;
 
     public float parryLength = 0.2f;
     public float parryCooldown = 0.5f;
 
     private float parryLengthTimer = 0f;
-    private float parryCooldownTimer = 0f;    
-    public bool CanParry { get; private set; }
+    private float parryCooldownTimer = 0f;
+    public bool CanParry { get; private set; } = true;
 
     public event System.Action OnParryStart;
     public event System.Action OnParryEnd;
     public event System.Action OnParryCooldownEnd;
     public event System.Action OnParried;
 
-    protected override void OnAwake()
+    protected override void OnStart()
     {
         ParryCollider = GetComponent<Collider>();
         player = TrackerHost.Current.Get<Player>();
     }
     public void Parry(InputAction.CallbackContext context)
     {
-        if (context.performed && parryCooldownTimer <= 0f)
+        if (context.performed && CanParry)
         {            
             ParryBegin();
 
@@ -38,51 +46,64 @@ public class ParryManager : Entity
         }
     }
 
-    private void ParryBegin()
+    protected override void OnUpdate()
     {
-        parryLengthTimer = parryLength;
-        parryCooldownTimer = parryCooldown;
+        switch (state)
+        {
+            case ParryState.Active:
+                parryLengthTimer -= Time.deltaTime;
+                if (parryLengthTimer <= 0f)
+                {
+                    // End parry
+                    ParryCollider.enabled = false;
+                    player.Parrying = false;
+                    OnParryEnd?.Invoke();
 
-        if (parryRoutine != null)
-            StopCoroutine(parryRoutine);
+                    // Start cooldown
+                    state = ParryState.Cooldown;
+                    parryCooldownTimer = parryCooldown;
+                }
+                break;
 
-        parryRoutine = StartCoroutine(ParryRoutine());
-
-        OnParryStart?.Invoke();
+            case ParryState.Cooldown:
+                parryCooldownTimer -= Time.deltaTime;
+                if (parryCooldownTimer <= 0f)
+                {
+                    CanParry = true;
+                    state = ParryState.Ready;
+                    OnParryCooldownEnd?.Invoke();
+                }
+                break;
+        }
     }
 
-    private IEnumerator ParryRoutine()
+    private void ParryBegin()
     {
+        if (state != ParryState.Ready) return;
+
+        parryLengthTimer = parryLength;
         CanParry = false;
+
         ParryCollider.enabled = true;
         player.Parrying = true;
+        OnParryStart?.Invoke();
 
-        while (parryLengthTimer > 0f)
-        {
-            parryLengthTimer -= Time.deltaTime;            
-            yield return null;
-        }
-
-        ParryCollider.enabled = false;
-        player.Parrying = false;
-        OnParryEnd?.Invoke();
-
-        while (parryCooldownTimer > 0f)
-        {
-            parryCooldownTimer -= Time.deltaTime;
-            yield return null;
-        }
-
-        CanParry = true;
-        OnParryCooldownEnd?.Invoke();
-        parryRoutine = null;
+        state = ParryState.Active;
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.layer == LayerMask.NameToLayer("Attack"))
+        if (ParryCollider.enabled && other.gameObject.layer == LayerMask.NameToLayer("Attack"))
         {
             OnParried?.Invoke();
         }
     }
+
+    protected override void OnEntityDisable()
+    {
+        ParryCollider.enabled = false;
+        player.Parrying = false;
+        CanParry = true;
+    }
+
 }

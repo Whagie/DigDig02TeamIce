@@ -118,3 +118,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b40bb7977ada02848bfb0cb3f1f685f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  VisionCones: []
+  ProjectileDamage: 1
+  projectilePrefab: {fileID: 1782397548072673728, guid: 8f5c11f31697bf6448f90bcf5316b539, type: 3}
+  alertRadius: 2
+  visionLength: 8
+  visionAngle: 90
+  visionRotation: {x: 0, y: 0, z: 0}

@@ -21,7 +21,14 @@ public class CameraMovement : MonoBehaviour
 
     void LateUpdate()
     {
-        target = player.transform != null ? player.transform : null;
+        if (player == null)
+        {
+            target = null;
+        }
+        else
+        {
+            target = player.transform;
+        }
         if (target == null) return;
 
         Vector3 desiredPosition = new Vector3(target.position.x, 0f, target.position.z);

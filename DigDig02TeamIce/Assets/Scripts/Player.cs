@@ -2,7 +2,6 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using static UnityEditor.Timeline.TimelinePlaybackControls;
 
 public class Player : Entity
 {
@@ -32,11 +31,13 @@ public class Player : Entity
 
     public int Health = 15;
 
-    private Coroutine invisibilityRoutine;
-    public float InvisibilityLength = 0.6f;
-    public float InvisibilityTimer = 0f;
-    public bool Invisible;
+    private float invisibilityTimer = 0f;
+    public bool Invisible => invisibilityTimer > 0f;
 
+    public float InvisibilityLength = 0.6f;
+    private bool invisibilityColorActive = false;
+
+    [SerializeField] private bool debugInvisible;
     public bool Parrying;
 
     private Material material;
@@ -74,6 +75,9 @@ public class Player : Entity
     {
         MovementHandler();
         Turn();
+
+        UpdateInvisibility();
+        debugInvisible = Invisible;
     }
 
     public void Sprint(InputAction.CallbackContext context)
@@ -138,12 +142,10 @@ public class Player : Entity
         }
     }
 
-    public virtual void TakeDamage(int amount)
+    public void TakeDamage(int amount)
     {
         if (Invisible || Parrying)
-        {
             return;
-        }
 
         Health -= amount;
         if (Health <= 0)
@@ -153,41 +155,34 @@ public class Player : Entity
         }
 
         StartInvisible(InvisibilityLength, true);
-
         CameraActions.Main.Shake(0.15f, 0.3f, 0.2f);
     }
 
     public void StartInvisible(float length = 0.6f, bool changeColor = false)
     {
-        InvisibilityTimer = length;
-
-        if (invisibilityRoutine != null)
-            StopCoroutine(invisibilityRoutine);
-
-        invisibilityRoutine = StartCoroutine(InvisibilityRoutine(changeColor));
-    }
-    private IEnumerator InvisibilityRoutine(bool changeColor)
-    {
-        Invisible = true;
+        invisibilityTimer = length;
+        invisibilityColorActive = changeColor;
 
         if (changeColor)
-        {
             material.SetColor("_BaseColor", new Color(0.5f, 0.5f, 1f, 0.25f));
-        }
+    }
 
-        while (InvisibilityTimer > 0f)
+    private void UpdateInvisibility()
+    {
+        if (invisibilityTimer > 0f)
         {
-            InvisibilityTimer -= Time.deltaTime;
-            yield return null;
-        }
+            invisibilityTimer -= Time.deltaTime;
+            if (invisibilityTimer <= 0f)
+            {
+                invisibilityTimer = 0f;
 
-        Invisible = false;
-        if (changeColor)
-        {
-            material.SetColor("_BaseColor", Color.blue);
+                if (invisibilityColorActive)
+                {
+                    material.SetColor("_BaseColor", Color.blue);
+                    invisibilityColorActive = false;
+                }
+            }
         }
-
-        invisibilityRoutine = null;
     }
 
     protected virtual void Die()
@@ -200,7 +195,7 @@ public class Player : Entity
         StartInvisible(parryManager.parryLength);
 
         ParticleSpawner.Spawn(Particles.P_spark, transform.position);
-        CameraActions.Main.Punch(-2f, 0.15f);
+        CameraActions.Main.Punch(-0.75f, 0.1f);
     }
     private void HandleParryStart()
     {

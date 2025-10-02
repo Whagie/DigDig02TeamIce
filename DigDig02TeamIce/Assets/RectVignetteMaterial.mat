@@ -31,7 +31,7 @@ Material:
     - _FadeAmount: 0.075
     - _Falloff: 1.2
     - _HeightRatio: 2
-    - _Intensity: 1
+    - _Intensity: 0
     - _Sharpness: 1
     - _WidthRatio: 2
     m_Colors:

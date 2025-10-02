@@ -122,8 +122,30 @@
                 },
                 {
                     "name": "",
+                    "id": "7e4e0bc5-b38e-4da5-9451-d867963bdb2f",
+                    "path": "<Gamepad>/buttonSouth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "2c429d79-872e-4edc-b380-3f0859d85b1f",
                     "path": "<Keyboard>/shift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Sprint",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3069dfae-0fa6-44fb-8b9e-e659a020c363",
+                    "path": "<Gamepad>/leftTrigger",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -144,8 +166,8 @@
                 },
                 {
                     "name": "",
-                    "id": "fe76c67a-8382-4ff8-9d4d-716b550c7a95",
-                    "path": "<Gamepad>/rightTrigger",
+                    "id": "95540a12-f96a-437a-a047-85ec7ea8c5b0",
+                    "path": "<Gamepad>/buttonWest",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

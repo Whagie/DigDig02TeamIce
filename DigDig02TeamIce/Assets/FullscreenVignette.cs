@@ -43,7 +43,10 @@ public class FullscreenVignette : MonoBehaviour
     {
         if (!vignetteMaterial) return;
 
-        vignetteMaterial.SetFloat("_Intensity", intensity);
+        // Only show vignette during play mode
+        float renderIntensity = Application.isPlaying ? intensity : 0f;
+
+        vignetteMaterial.SetFloat("_Intensity", renderIntensity);
         vignetteMaterial.SetFloat("_EdgeWidth", edgeWidth);
         vignetteMaterial.SetFloat("_FadeAmount", fadeAmount);
         vignetteMaterial.SetFloat("_Falloff", falloff);

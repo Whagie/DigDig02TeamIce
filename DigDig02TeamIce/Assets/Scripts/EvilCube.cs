@@ -21,11 +21,6 @@ public class EvilCube : Enemy
         VisionCones.Add(new VisionCone(Vector3.zero, Vector3.zero, visionAngle, visionLength));
     }
 
-    protected override void OnStart()
-    {
-
-    }
-
     protected override void OnUpdate()
     {
         VisionCones[0].angle = visionAngle;
@@ -33,7 +28,7 @@ public class EvilCube : Enemy
         VisionCones[0].rotation = visionRotation;
 
         Player player = TrackerHost.Current.Get<Player>();
-        if (Physics.OverlapSphere(transform.position, AlertRadius, player.layermask).Length > 0)
+        if (Physics.OverlapSphere(transform.position, AlertRadius, LayerMask.NameToLayer("Player")).Length > 0)
         {
             sphereColor = Color.red;
         }

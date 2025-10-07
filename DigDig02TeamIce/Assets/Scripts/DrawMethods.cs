@@ -20,6 +20,18 @@ public static class DrawMethods
         }
     }
 
+    public static void WireCircle(Vector3 center, float radius, Quaternion rotation, Color color, int segments = 32, float duration = 0)
+    {
+        Vector3 lastPoint = center + rotation * (Vector3.right * radius);
+        for (int i = 1; i <= segments; i++)
+        {
+            float angle = (i * 360f / segments) * Mathf.Deg2Rad;
+            Vector3 nextPoint = center + rotation * new Vector3(Mathf.Cos(angle) * radius, 0, Mathf.Sin(angle) * radius);
+            Debug.DrawLine(lastPoint, nextPoint, color, duration);
+            lastPoint = nextPoint;
+        }
+    }
+
     public static void WireCube(Vector3 center, Vector3 size, Color color, float duration = 0)
     {
         Vector3 half = size * 0.5f;

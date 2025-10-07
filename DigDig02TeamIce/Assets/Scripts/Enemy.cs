@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.VFX;
 
 public abstract class Enemy : Entity
 {
@@ -14,6 +15,10 @@ public abstract class Enemy : Entity
 
     public int ProjectileDamage = 1;
     public GameObject projectilePrefab;
+
+    [Header("VFX Settings")]
+    [SerializeField] private string vfxResourcePath = "EnergyEffect";
+    private static GameObject defaultVFXAsset;
 
     public bool IsTargetInVision(Collider target)
     {
@@ -91,7 +96,8 @@ public abstract class Enemy : Entity
     {
         GameObject projObj = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
         Projectile proj = projObj.GetComponent<Projectile>();
-        
+
+        proj.Parent = gameObject;
         proj.Damage = ProjectileDamage;
 
         if (seeking)
@@ -105,6 +111,61 @@ public abstract class Enemy : Entity
             Vector3 direction = (target.position - transform.position).normalized;
             proj.Direction = direction;
         }
+    }
+
+    /// <summary>
+    /// Triggers a one-time burst VFX that emits gradually over burstDuration.
+    /// </summary>
+    // Returns the VFX prefab, loading it if necessary
+    private GameObject GetVFXPrefab()
+    {
+        if (defaultVFXAsset == null)
+        {
+            defaultVFXAsset = Resources.Load<GameObject>(vfxResourcePath);
+            if (defaultVFXAsset == null)
+                Debug.LogWarning($"Failed to load VFX prefab at Resources/{vfxResourcePath}");
+        }
+        return defaultVFXAsset;
+    }
+
+    // Call this to spawn the VFX
+    public void SpawnVFX()
+    {
+        var prefab = GetVFXPrefab();
+        if (prefab == null) return;
+
+        var instance = Instantiate(prefab, transform);
+        EnergyParticleManager particleManager = instance.GetComponent<EnergyParticleManager>();
+        Companion companion = TrackerHost.Current.Get<Companion>();
+        if (companion == null)
+        {
+            Debug.Log("Companion is null!");
+        }
+
+        Vector3 enemyPos = transform.position;
+        Vector3 playerPos = companion.player.transform.position;
+
+        // Direction *away* from the companion (so the curve bends back)
+        Vector3 direction = (enemyPos - playerPos).normalized;
+
+        // Midpoint halfway in Y between the two
+        float midY = enemyPos.y + (playerPos.y - enemyPos.y) / 2f;
+
+        // Final middle position = enemy position + offset backward along the direction
+        Vector3 middlePos = enemyPos + direction * 4f;
+        middlePos.y = midY;
+
+        GameObject empty = new GameObject("EnergyCurveMidpoint");
+        empty.transform.position = middlePos;
+
+        particleManager.StartPos = transform;
+        particleManager.EndPos = companion.transform;
+        particleManager.MiddlePos = empty.transform;
+
+        // Optional: destroy the VFX prefab after its lifetime
+        float maxLifetime = 3; // match your particle lifetime
+        Destroy(empty, maxLifetime);
+        Destroy(instance, maxLifetime);
     }
 }
 

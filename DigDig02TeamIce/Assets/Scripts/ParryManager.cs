@@ -25,6 +25,7 @@ public class ParryManager : Entity
     private float parryLengthTimer = 0f;
     private float parryCooldownTimer = 0f;
     public bool CanParry { get; private set; } = true;
+    private bool parried = false;
 
     public event System.Action OnParryStart;
     public event System.Action OnParryEnd;
@@ -38,7 +39,7 @@ public class ParryManager : Entity
     }
     public void Parry(InputAction.CallbackContext context)
     {
-        if (context.performed && CanParry)
+        if (context.performed && CanParry && !player.Invisible)
         {            
             ParryBegin();
 
@@ -70,6 +71,7 @@ public class ParryManager : Entity
                 if (parryCooldownTimer <= 0f)
                 {
                     CanParry = true;
+                    parried = false;
                     state = ParryState.Ready;
                     OnParryCooldownEnd?.Invoke();
                 }
@@ -93,9 +95,34 @@ public class ParryManager : Entity
 
     private void OnTriggerEnter(Collider other)
     {
-        if (ParryCollider.enabled && other.gameObject.layer == LayerMask.NameToLayer("Attack"))
+        TryParry(other);
+    }
+    private void OnTriggerStay(Collider other)
+    {
+        TryParry(other);
+    }
+
+    private void TryParry(Collider other)
+    {
+        if (!ParryCollider.enabled)
+            return;
+
+        if (other.gameObject.layer == LayerMask.NameToLayer("Attack"))
         {
-            OnParried?.Invoke();
+            if (!parried)
+            {
+                OnParried?.Invoke();
+                parried = true;
+            }
+
+            if (other.CompareTag("Projectile"))
+            {
+                Projectile proj = other.GetComponent<Projectile>();
+                if (!proj.Rebound) // prevent double parry
+                {
+                    proj.Reflect(-proj.Direction);
+                }
+            }
         }
     }
 

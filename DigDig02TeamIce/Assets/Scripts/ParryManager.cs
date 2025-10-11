@@ -1,29 +1,34 @@
-using System.Collections;
+using Game.Core;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class ParryManager : Entity
+public class ParryManager : Entity, IHurtbox
 {
+    public GameObject Owner => gameObject;
+    public Collider Collider => ParryCollider;
+
+    [SerializeField] private LayerMask layers;
+    public LayerMask LayerMask => layers;
+
+    private Collider[] overlapBuffer = new Collider[24]; // Adjust size based on max expected hits
+    private readonly HashSet<IHitbox> parriedThisSession = new();
+
     public GameObject ParryAnimation;
     public Collider ParryCollider;
 
     [SerializeField] private Player player;
 
-    private enum ParryState
-    {
-        Ready,
-        Active,
-        Cooldown
-    }
-
+    private enum ParryState { Ready, Active, Cooldown }
     private ParryState state = ParryState.Ready;
 
     public float parryLength = 0.2f;
     public float parryCooldown = 0.5f;
 
-    private float parryLengthTimer = 0f;
-    private float parryCooldownTimer = 0f;
+    private float parryLengthTimer;
+    private float parryCooldownTimer;
+
     public bool CanParry { get; private set; } = true;
     private bool parried = false;
 
@@ -36,13 +41,14 @@ public class ParryManager : Entity
     {
         ParryCollider = GetComponent<Collider>();
         player = TrackerHost.Current.Get<Player>();
+        ParryCollider.enabled = false;
     }
+
     public void Parry(InputAction.CallbackContext context)
     {
         if (context.performed && CanParry && !player.Invisible)
-        {            
+        {
             ParryBegin();
-
             Instantiate(ParryAnimation, transform.position, Quaternion.identity);
         }
     }
@@ -55,14 +61,11 @@ public class ParryManager : Entity
                 parryLengthTimer -= Time.deltaTime;
                 if (parryLengthTimer <= 0f)
                 {
-                    // End parry
-                    ParryCollider.enabled = false;
-                    player.Parrying = false;
-                    OnParryEnd?.Invoke();
-
-                    // Start cooldown
-                    state = ParryState.Cooldown;
-                    parryCooldownTimer = parryCooldown;
+                    EndParry();
+                }
+                else
+                {
+                    CheckOverlaps(); // check for hits each frame
                 }
                 break;
 
@@ -79,48 +82,89 @@ public class ParryManager : Entity
         }
     }
 
+    public void OnHit(IHitbox source)
+    {
+        if (!source.CanBeParried)
+            return;
+
+        if (!parried)
+        {
+            parried = true;
+            source.OnParried(this);
+        }
+    }
+
     private void ParryBegin()
     {
         if (state != ParryState.Ready) return;
 
+        parriedThisSession.Clear();
+        state = ParryState.Active;
         parryLengthTimer = parryLength;
         CanParry = false;
-
         ParryCollider.enabled = true;
         player.Parrying = true;
         OnParryStart?.Invoke();
-
-        state = ParryState.Active;
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void EndParry()
     {
-        TryParry(other);
-    }
-    private void OnTriggerStay(Collider other)
+        ParryCollider.enabled = false;
+        player.Parrying = false;
+        OnParryEnd?.Invoke();
+
+        parriedThisSession.Clear(); // reset per parry session
+        parried = false;
+
+        state = ParryState.Cooldown;
+        parryCooldownTimer = parryCooldown;
+    }    
+
+    public void TakeDamage(int dmg)
     {
-        TryParry(other);
+        // not used here, but needed for IHurtbox
     }
 
-    private void TryParry(Collider other)
+    /// <summary>
+    /// Actively checks for overlapping IHitboxes — catches melee colliders spawning inside.
+    /// </summary>
+    private void CheckOverlaps()
     {
-        if (!ParryCollider.enabled)
-            return;
+        int hitCount = 0;
 
-        if (other.gameObject.layer == LayerMask.NameToLayer("Attack"))
+        if (ParryCollider is BoxCollider box)
         {
-            if (!parried)
-            {
-                OnParried?.Invoke();
-                parried = true;
-            }
+            hitCount = Physics.OverlapBoxNonAlloc(
+                box.bounds.center,
+                box.bounds.extents,
+                overlapBuffer,
+                box.transform.rotation,
+                LayerMask.GetMask("Attack")
+            );
+        }
+        else
+        {
+            return;
+        }
 
-            if (other.CompareTag("Projectile"))
+        for (int i = 0; i < hitCount; i++)
+        {
+            var hit = overlapBuffer[i];
+            if (hit == null) continue;
+
+            if (hit.TryGetComponent<IHitbox>(out var hitbox))
             {
-                Projectile proj = other.GetComponent<Projectile>();
-                if (!proj.Rebound) // prevent double parry
+                if (!hitbox.CanBeParried || !hitbox.Collider.enabled)
+                    continue;
+
+                if (!parriedThisSession.Contains(hitbox))
                 {
-                    proj.Reflect(-proj.Direction);
+                    parriedThisSession.Add(hitbox);
+
+                    parried = true;
+                    OnParried?.Invoke();
+
+                    hitbox.OnParried(this);
                 }
             }
         }
@@ -132,5 +176,4 @@ public class ParryManager : Entity
         player.Parrying = false;
         CanParry = true;
     }
-
 }

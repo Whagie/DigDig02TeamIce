@@ -1,29 +1,125 @@
+using Game.Core;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.VFX;
+using static UnityEngine.GraphicsBuffer;
 
-public abstract class Enemy : Entity
+public abstract class Enemy : Entity, IHurtbox
 {
-    public int Health { get; set; } = 1;
+    public Collider Collider { get; protected set; }
+    public LayerMask LayerMask { get; protected set; }
+    public GameObject Owner => gameObject;
 
+    public int Health { get; set; } = 10;
     public float AlertRadius { get; set; } = 5;
     public bool DetectedPlayer { get; set; } = false;
+    public bool SeeingPlayer { get; set; } = false;
+    public bool FacingPlayer { get; set; } = false;
+    public float MarginDegrees { get; set; } = 4f;
+    public bool Dead { get; set; } = false;
+
+    public List<HitFlash> ChildrenWithFlashEffect;
+
+    [Serializable]
+    public class EnemyAction
+    {
+        public string TriggerName;
+        public float Weight = 1f;
+        public Func<bool> CanUse; // optional condition
+    }
+
+    public EnemyAction[] Actions;
+    public float ActionInterval = 3f;
+
+    public Animator _animator;
+    private float _timer;
+
 
     public List<VisionCone> VisionCones = new();
 
     public int ProjectileDamage = 1;
     public GameObject projectilePrefab;
 
-    [Header("VFX Settings")]
     [SerializeField] private string vfxResourcePath = "EnergyEffect";
     private static GameObject defaultVFXAsset;
+
+    private Color sphereColor = Color.blue;
+    private Color visionConeColor = Color.blue;
+
+
+    protected override void OnAwake()
+    {
+        _animator = GetComponent<Animator>();
+        if (_animator != null)
+        {
+            InitializeActions();
+        }
+    }
+
+    protected override void OnUpdate()
+    {
+        if (Dead)
+            return;
+
+        Player player = TrackerHost.Current.Get<Player>();
+        int playerMask = LayerMask.GetMask("Player");
+
+        // --- Check alert radius
+        Collider[] hits = Physics.OverlapSphere(transform.position, AlertRadius, playerMask);
+        bool playerInAlertRadius = false;
+
+        foreach (var c in hits)
+        {
+            if (c.GetComponent<Player>() != null)
+            {
+                playerInAlertRadius = true;
+                break;
+            }
+        }
+
+        // --- Check vision
+        bool playerInVision = IsTargetInVision(player.DetectionCollider);
+
+        // --- Combine results
+        DetectedPlayer = playerInAlertRadius || playerInVision;
+        SeeingPlayer = playerInVision;
+
+        // --- Set colors
+        sphereColor = playerInAlertRadius ? Color.red : Color.blue;
+        visionConeColor = playerInVision ? Color.red : Color.blue;
+
+        // --- Check facing
+        Vector3 toTarget = player.transform.position - transform.position;
+        toTarget.y = 0f;
+        toTarget.Normalize();
+
+        Vector3 forwardXZ = transform.forward;
+        forwardXZ.y = 0f;
+        forwardXZ.Normalize();
+
+        float dot = Vector3.Dot(forwardXZ, toTarget);
+        float cosMargin = Mathf.Cos(MarginDegrees * Mathf.Deg2Rad);
+        FacingPlayer = dot >= cosMargin;
+
+        _timer += Time.deltaTime;
+        if (_timer >= ActionInterval)
+        {
+            _timer = 0f;
+            PickAction();
+        }
+
+        // --- Draw debug
+        foreach (var cone in VisionCones)
+            DrawMethods.DrawVisionCone(transform, cone, visionConeColor);
+
+        DrawMethods.WireSphere(transform.position, AlertRadius, sphereColor);
+    }
 
     public bool IsTargetInVision(Collider target)
     {
         Vector3 enemyPos = transform.position;
-        Vector3 forward = transform.forward;
 
         foreach (var cone in VisionCones)
         {
@@ -81,6 +177,20 @@ public abstract class Enemy : Entity
         return false;
     }
 
+    public void OnHit(IHitbox source)
+    {
+        TakeDamage(source.Damage);
+        if (source.Owner.CompareTag("Projectile"))
+        {
+            SpawnVFX();
+        }
+
+        foreach (var child in ChildrenWithFlashEffect)
+        {
+            child.Flash();
+        }
+    }
+
     public virtual void TakeDamage(int amount)
     {
         Health -= amount;
@@ -89,9 +199,58 @@ public abstract class Enemy : Entity
     }
     protected virtual void Die()
     {
-        // Default death logic
+        Dead = true;
     }
 
+    public virtual void HandleParried(IHurtbox by)
+    {
+        Collider collider = GetComponent<Collider>();
+        if (collider is CapsuleCollider capsule)
+        {
+            SpawnVFX(4f + capsule.radius);
+        }
+        else
+        {
+            SpawnVFX();
+        }
+
+        foreach (var child in ChildrenWithFlashEffect)
+        {
+            child.Flash();
+        }
+    }
+
+    protected virtual void InitializeActions() { }
+
+    void PickAction()
+    {
+        float totalWeight = 0f;
+
+        foreach (var action in Actions)
+        {
+            if (action.CanUse == null || action.CanUse())
+                totalWeight += action.Weight;
+        }
+
+        if (totalWeight <= 0f)
+            return;
+
+        float choice = UnityEngine.Random.value * totalWeight;
+        float cumulative = 0f;
+
+        foreach (var action in Actions)
+        {
+            if (action.CanUse == null || action.CanUse())
+            {
+                cumulative += action.Weight;
+                if (choice <= cumulative)
+                {
+                    _animator.SetTrigger(action.TriggerName);
+                    break;
+                }
+            }
+        }
+    }
     protected void FireProjectile(Transform target, bool seeking = false)
     {
         GameObject projObj = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
@@ -129,7 +288,7 @@ public abstract class Enemy : Entity
     }
 
     // Call this to spawn the VFX
-    public void SpawnVFX()
+    public void SpawnVFX(float middlePosDistance = 4f)
     {
         var prefab = GetVFXPrefab();
         if (prefab == null) return;
@@ -152,7 +311,7 @@ public abstract class Enemy : Entity
         float midY = enemyPos.y + (playerPos.y - enemyPos.y) / 2f;
 
         // Final middle position = enemy position + offset backward along the direction
-        Vector3 middlePos = enemyPos + direction * 4f;
+        Vector3 middlePos = enemyPos + direction * middlePosDistance;
         middlePos.y = midY;
 
         GameObject empty = new GameObject("EnergyCurveMidpoint");

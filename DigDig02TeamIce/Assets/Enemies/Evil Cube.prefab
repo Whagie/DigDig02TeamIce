@@ -121,6 +121,7 @@ MonoBehaviour:
   VisionCones: []
   ProjectileDamage: 1
   projectilePrefab: {fileID: 1782397548072673728, guid: 8f5c11f31697bf6448f90bcf5316b539, type: 3}
+  vfxResourcePath: EnergyEffect
   alertRadius: 2
   visionLength: 8
   visionAngle: 90

@@ -1,91 +1,106 @@
+using Game.Core;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI;
 
-public class Projectile : Entity
+public class Projectile : Entity, IHitbox
 {
+    public GameObject Owner => gameObject;
+    public bool CanBeParried => true;
+    public Collider Collider => GetComponent<Collider>();
+
+    [SerializeField] private LayerMask layers;
+    public LayerMask LayerMask => layers;
+
     public GameObject Parent { get; set; }
     public int Damage { get; set; } = 1;
     public Transform Target { get; set; }
-    public Vector3 Direction { get; set; }
     public float Speed { get; set; } = 5f;
     public float Lifespan { get; set; } = 10f;
     public bool Seeking { get; set; } = false;
-    public bool Rebound { get; set; } = false;
 
-    private bool recentlyParried = false;
+    public bool Rebound { get; private set; }
+    public Vector3 Direction { get; set; }
+
+    private bool recentlyParried;
+    private Vector3 prevPos;
+
+    protected override void OnEntityEnable()
+    {
+        HitboxManager.Register(this);
+        base.OnEntityEnable();
+    }
+    protected override void OnEntityDisable()
+    {
+        HitboxManager.Unregister(this);
+        base.OnEntityDisable();
+    }
 
     protected override void OnStart()
     {
+        prevPos = transform.position;
         StartCoroutine(LifespanTimer());
     }
+
     protected override void OnUpdate()
     {
-        if (Seeking)
-        {
-            if (Target != null)
-            {
-                transform.position = Vector3.MoveTowards(transform.position, Target.position, Speed * Time.deltaTime);
-            }
-        }
+        Vector3 currentPos = transform.position;
+
+        if (Seeking && Target)
+            currentPos = Vector3.MoveTowards(currentPos, Target.position, Speed * Time.deltaTime);
         else
-        {
-            if (Direction != null)
-            {
-                transform.position += Speed * Time.deltaTime * Direction;
-            }
-        }
+            currentPos += Speed * Time.deltaTime * Direction;
+
+        transform.position = currentPos;
+        prevPos = currentPos;
     }
 
-    private void OnTriggerEnter(Collider other)
+    public void OnParried(IHurtbox by)
     {
-        HandleCollision(other);
-    }
-    private void OnTriggerStay(Collider other)
-    {
-        HandleCollision(other);
+        if (!Rebound)
+            Reflect(-Direction);
     }
 
-    private void HandleCollision(Collider other)
+    public void OnHit(IHurtbox target)
     {
-        if (!Rebound && !recentlyParried && other.gameObject.layer == LayerMask.NameToLayer("PlayerDamage"))
+        if (recentlyParried) return;
+
+        if (target.Owner.layer == LayerMask.NameToLayer("Player") && !Rebound)
         {
-            Player player = TrackerHost.Current.Get<Player>();
-            player.TakeDamage(Damage);
+            target.OnHit(this);
             Destroy(gameObject);
         }
-        if (Rebound && other.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+        else if (target.Owner.layer == LayerMask.NameToLayer("Enemy") && Rebound)
         {
-            Debug.Log("Rebound and hit enemy!");
-            Enemy enemy = other.gameObject.GetComponent<Enemy>();
-            enemy.SpawnVFX();
+            target.OnHit(this);
             Destroy(gameObject);
         }
     }
 
-    public void Reflect(Vector3 newDirection)
+    public void Reflect(Vector3 newDir)
     {
-        Direction = newDirection;
+        Direction = newDir.normalized;
         Speed *= 2f;
         Rebound = true;
         recentlyParried = true;
         StartCoroutine(ClearParryFlag());
     }
 
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireCube(Collider.bounds.center, Collider.bounds.size);
+    }
+
     private IEnumerator ClearParryFlag()
     {
-        yield return new WaitForFixedUpdate(); // wait one physics frame
+        yield return new WaitForFixedUpdate();
         recentlyParried = false;
     }
 
     private IEnumerator LifespanTimer()
     {
-        while (Lifespan > 0f)
-        {
-            Lifespan -= Time.deltaTime;
-            yield return null;
-        }
+        yield return new WaitForSeconds(Lifespan);
         Destroy(gameObject);
-        yield return null;
     }
 }

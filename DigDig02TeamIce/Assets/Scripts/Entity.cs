@@ -66,4 +66,6 @@ public abstract class Entity : MonoBehaviour
             action?.Invoke();
         }
     }
+
+
 }

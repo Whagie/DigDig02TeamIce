@@ -4,9 +4,16 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Game.Core;
 
-public class Player : Entity
+public class Player : Entity, IHurtbox
 {
+    public GameObject Owner => gameObject;
+    public Collider Collider => DamageCollider;
+
+    [SerializeField] private LayerMask layers;
+    public LayerMask LayerMask => layers;
+
     public Collider DetectionCollider;
     public CapsuleCollider MainCollider;
     public CapsuleCollider DamageCollider;
@@ -56,6 +63,7 @@ public class Player : Entity
 
     protected override void OnEntityEnable()
     {
+        HitboxManager.Register(this);
         Player existing = TrackerHost.Current.Get<Player>();
         if (existing != null && existing != this)
         {
@@ -65,6 +73,11 @@ public class Player : Entity
         }
 
         base.OnEntityEnable();
+    }
+    protected override void OnEntityDisable()
+    {
+        HitboxManager.Unregister(this);
+        base.OnEntityDisable();
     }
     protected override void OnStart()
     {
@@ -257,6 +270,13 @@ public class Player : Entity
         }
     }
 
+    public void OnHit(IHitbox source)
+    {
+        if (!Parrying)
+        {
+            TakeDamage(source.Damage);
+        }
+    }
     public void TakeDamage(int amount)
     {
         if (Invisible || Parrying)

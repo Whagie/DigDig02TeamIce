@@ -4,9 +4,6 @@ using UnityEngine;
 
 public class EvilCube : Enemy
 {
-    private Color sphereColor = Color.blue;
-    private Color visionConeColor = Color.blue;
-
     public float alertRadius = 4f;
     public float visionLength = 5f;
     public float visionAngle = 90f;
@@ -23,30 +20,12 @@ public class EvilCube : Enemy
 
     protected override void OnUpdate()
     {
+        base.OnUpdate();
         VisionCones[0].angle = visionAngle;
         VisionCones[0].length = visionLength;
         VisionCones[0].rotation = visionRotation;
 
         Player player = TrackerHost.Current.Get<Player>();
-        if (Physics.OverlapSphere(transform.position, AlertRadius, LayerMask.NameToLayer("Player")).Length > 0)
-        {
-            sphereColor = Color.red;
-        }
-        else
-        {
-            sphereColor = Color.blue;
-        }
-
-        if (IsTargetInVision(player.DetectionCollider))
-        {
-            visionConeColor = Color.red;
-            DetectedPlayer = true;
-        }
-        else
-        {
-            visionConeColor = Color.blue;
-            DetectedPlayer = false;
-        }
 
         if (DetectedPlayer)
         {
@@ -57,13 +36,5 @@ public class EvilCube : Enemy
                 FireProjectile(player.transform);
             });
         }
-
-        foreach (var cone in VisionCones)
-        {
-            DrawMethods.DrawVisionCone(transform, cone, visionConeColor);
-        }
-
-        DrawMethods.WireSphere(transform.position, AlertRadius, sphereColor);        
-        DrawMethods.Line(transform.position, player.transform.position, Color.cyan);
     }
 }

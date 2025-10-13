@@ -1,5 +1,58 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3087757658881470458
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4548984032450051125}
+  - component: {fileID: 6520729428963478676}
+  m_Layer: 7
+  m_Name: Collider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4548984032450051125
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3087757658881470458}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8833575961220571637}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &6520729428963478676
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3087757658881470458}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &3539074013381973277
 GameObject:
   m_ObjectHideFlags: 0
@@ -11,8 +64,9 @@ GameObject:
   - component: {fileID: 8833575961220571637}
   - component: {fileID: 807621163776788845}
   - component: {fileID: 2810364982061909459}
-  - component: {fileID: 1013867372516737038}
   - component: {fileID: 5259194541159443587}
+  - component: {fileID: 8875083848132259741}
+  - component: {fileID: 3550136008933674332}
   m_Layer: 7
   m_Name: Evil Cube
   m_TagString: Untagged
@@ -32,7 +86,8 @@ Transform:
   m_LocalPosition: {x: 6.21, y: 1, z: -6.86}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 4548984032450051125}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &807621163776788845
@@ -85,7 +140,56 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &1013867372516737038
+--- !u!114 &5259194541159443587
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3539074013381973277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b40bb7977ada02848bfb0cb3f1f685f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ChildrenWithFlashEffect: []
+  Actions: []
+  _animator: {fileID: 0}
+  NavAgent: {fileID: 0}
+  tempSpeed: 1
+  speedOverride: 0
+  VisionCones: []
+  ProjectileDamage: 1
+  projectilePrefab: {fileID: 1782397548072673728, guid: 8f5c11f31697bf6448f90bcf5316b539, type: 3}
+  vfxResourcePath: EnergyEffect
+  MainCollider: {fileID: 6520729428963478676}
+  alertRadius: 2
+  visionLength: 8
+  visionAngle: 90
+  visionRotation: {x: 0, y: 0, z: 0}
+--- !u!195 &8875083848132259741
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3539074013381973277}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 2
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 240
+  m_StoppingDistance: 6
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 1
+  m_BaseOffset: 0.5
+  m_WalkableMask: 7
+  m_ObstacleAvoidanceType: 3
+--- !u!65 &3550136008933674332
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -100,29 +204,9 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &5259194541159443587
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3539074013381973277}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b40bb7977ada02848bfb0cb3f1f685f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  VisionCones: []
-  ProjectileDamage: 1
-  projectilePrefab: {fileID: 1782397548072673728, guid: 8f5c11f31697bf6448f90bcf5316b539, type: 3}
-  vfxResourcePath: EnergyEffect
-  alertRadius: 2
-  visionLength: 8
-  visionAngle: 90
-  visionRotation: {x: 0, y: 0, z: 0}

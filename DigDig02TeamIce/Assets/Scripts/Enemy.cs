@@ -2,9 +2,10 @@ using Game.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
-using UnityEngine.VFX;
-using static UnityEngine.GraphicsBuffer;
+using UnityEngine.AI;
 
 public abstract class Enemy : Entity, IHurtbox
 {
@@ -12,13 +13,27 @@ public abstract class Enemy : Entity, IHurtbox
     public LayerMask LayerMask { get; protected set; }
     public GameObject Owner => gameObject;
 
+    protected static Player player;
+
     public int Health { get; set; } = 10;
-    public float AlertRadius { get; set; } = 5;
+    public float AlertRadius { get; set; } = 5f;
+    public float MarginDegrees { get; set; } = 4f;
     public bool DetectedPlayer { get; set; } = false;
+    public bool LookingForPlayer { get; set; } = false;
     public bool SeeingPlayer { get; set; } = false;
     public bool FacingPlayer { get; set; } = false;
-    public float MarginDegrees { get; set; } = 4f;
     public bool Dead { get; set; } = false;
+    public bool Attacking { get; set; } = false;
+    public bool Idle { get; set; } = true;
+    public bool InCombat { get; set; } = false;
+
+    public float WanderSpeed { get; set; } = 2.5f;
+    public float ChaseSpeed { get; set; } = 7.5f;
+    public float WanderRadius { get; set; } = 5f;
+    public float WaitTime { get; set; } = 2f;
+    public float RotationSpeed { get; set; } = 75f;
+
+    public bool Wandering { get; set; } = false;
 
     public List<HitFlash> ChildrenWithFlashEffect;
 
@@ -28,14 +43,23 @@ public abstract class Enemy : Entity, IHurtbox
         public string TriggerName;
         public float Weight = 1f;
         public Func<bool> CanUse; // optional condition
+        public float? MinDistance = 4f; // how far from player to perform
+        public ActionModifier Modifier;
     }
 
     public EnemyAction[] Actions;
-    public float ActionInterval = 3f;
+    private EnemyAction _currentAction;
+    public float ActionInterval { get; set; } = 3f;
+    private bool hasAttacked = false;
+    private bool tryingFirstAttack = false;
 
     public Animator _animator;
     private float _timer;
 
+    public NavMeshAgent NavAgent;
+
+    public float tempSpeed = 1f;
+    public bool speedOverride = false;
 
     public List<VisionCone> VisionCones = new();
 
@@ -48,13 +72,42 @@ public abstract class Enemy : Entity, IHurtbox
     private Color sphereColor = Color.blue;
     private Color visionConeColor = Color.blue;
 
-
+    protected override void OnEntityEnable()
+    {
+        HitboxManager.Register(this);
+        base.OnEntityEnable();
+    }
+    protected override void OnEntityDisable()
+    {
+        HitboxManager.Unregister(this);
+        base.OnEntityDisable();
+    }
     protected override void OnAwake()
     {
         _animator = GetComponent<Animator>();
         if (_animator != null)
         {
             InitializeActions();
+        }
+
+        NavAgent = GetComponent<NavMeshAgent>();
+
+        Collider col = GetComponent<Collider>();
+        if (col != null)
+        {
+            Collider = col;
+        }
+    }
+    protected override void OnStart()
+    {
+        if (player == null)
+        {
+            player = TrackerHost.Current.Get<Player>();
+            if (player == null)
+            {
+                Debug.LogWarning("Error, player not found! Adding temporary player object...");
+                player = new GameObject("tempPlayer").AddComponent<Player>();
+            }
         }
     }
 
@@ -63,7 +116,16 @@ public abstract class Enemy : Entity, IHurtbox
         if (Dead)
             return;
 
-        Player player = TrackerHost.Current.Get<Player>();
+        if (player == null)
+        {
+            player = TrackerHost.Current.Get<Player>();
+            if (player == null)
+            {
+                Debug.LogWarning("Error, player not found! Adding temporary player object...");
+                player = new GameObject("tempPlayer").AddComponent<Player>();
+            }
+        }
+
         int playerMask = LayerMask.GetMask("Player");
 
         // --- Check alert radius
@@ -103,18 +165,197 @@ public abstract class Enemy : Entity, IHurtbox
         float cosMargin = Mathf.Cos(MarginDegrees * Mathf.Deg2Rad);
         FacingPlayer = dot >= cosMargin;
 
-        _timer += Time.deltaTime;
-        if (_timer >= ActionInterval)
+        if (_animator != null)
         {
-            _timer = 0f;
-            PickAction();
+            AnimatorStateInfo info = _animator.GetCurrentAnimatorStateInfo(0);
+
+            if (info.IsTag("Attack"))
+            {
+                Attacking = true;
+            }
+            else
+            {
+                Attacking = false;
+            }
+            if (info.IsTag("Idle"))
+            {
+                Idle = true;
+            }
+            else
+            {
+                Idle = false;
+            }
+
+            _timer += Time.deltaTime;
+
+            // normal behavior after first attack
+            if (hasAttacked)
+            {
+                if (_timer >= ActionInterval && !Attacking)
+                {
+                    _timer = 0f;
+                    PickAction();
+                }
+            }
+            else if (!tryingFirstAttack)
+            {
+                tryingFirstAttack = true;
+                TryFirstAttack();
+            }
+
+            if (Attacking && !SeeingPlayer)
+            {
+                CancelCurrentAction();
+            }
         }
+
+        if (!SeeingPlayer)
+        {
+            InCombat = false;
+        }
+        else
+        {
+            InCombat = true;
+        }
+
+        float rotSpeed;
+        if (DetectedPlayer)
+        {
+            if (!SeeingPlayer)
+            {
+                LookingForPlayer = true;
+                rotSpeed = RotationSpeed * 8f;
+            }
+            else
+            {
+                LookingForPlayer = false;
+                rotSpeed = RotationSpeed * 2f;
+            }
+            RotateTowardsY(transform, player.transform.position, rotSpeed);
+        }
+        //if (LookingForPlayer)
+        //{
+        //    if (!startedTurnRoutine)
+        //    {
+        //        StartCoroutine(TurnAndLook(RotationSpeed * 3f));
+        //        startedTurnRoutine = true;
+        //        stoppedTurnRoutine = false;
+        //    }
+
+        //    //RotateTowardsY(transform, player.transform.position, RotationSpeed * 4f);
+        //}
+        //else
+        //{
+        //    if (!stoppedTurnRoutine)
+        //    {
+        //        StopCoroutine(TurnAndLook(RotationSpeed * 3));
+        //        startedTurnRoutine = false;
+        //        stoppedTurnRoutine = true;
+        //    }
+        //}
+
+        if (NavAgent != null)
+        {
+            if (InCombat)
+            {
+                // Stop Wandering when in combat
+                if (Wandering)
+                {
+                    Debug.Log("Stopped Wander!");
+                    StopCoroutine(WanderRoutine());
+                    Wandering = false;
+                }
+                NavAgent.destination = player.transform.position;
+                if (!Attacking)
+                {
+                    SetSpeed(ChaseSpeed);
+                }
+                return;
+            }
+            if (!InCombat && !Wandering)
+            {
+                Debug.Log("Started Wander!");
+                StartCoroutine(WanderRoutine());
+                SetSpeed(WanderSpeed);
+            }
+        }
+    }
+
+    //public IEnumerator TurnAndLook(float rotSpeed)
+    //{
+    //    if (NavAgent != null)
+    //    {
+    //        NavAgent.updateRotation = false;
+    //    }
+
+    //    while (!SeeingPlayer)
+    //    {
+    //        RotateTowardsY(transform, player.transform.position, rotSpeed);
+
+    //        yield return null;
+    //    }
+    //    startedTurnRoutine = false;
+    //    if (NavAgent != null)
+    //    {
+    //        NavAgent.updateRotation = true;
+    //    }
+    //    yield break;
+    //}
+    private IEnumerator WanderRoutine()
+    {
+        Wandering = true;
+
+        while (!InCombat)
+        {
+            Vector3 newPos = GetRandomNavmeshPoint(transform.position, WanderRadius, NavMesh.AllAreas);
+
+            if (newPos != Vector3.zero)
+                NavAgent.SetDestination(newPos);
+
+            yield return new WaitUntil(() => !NavAgent.pathPending && NavAgent.remainingDistance <= NavAgent.stoppingDistance);
+            yield return new WaitForSeconds(WaitTime);
+        }
+
+        Wandering = false;
+    }
+
+    Vector3 GetRandomNavmeshPoint(Vector3 origin, float radius, int areaMask)
+    {
+        for (int i = 0; i < 10; i++) // up to 10 tries
+        {
+            Vector3 randomDirection = UnityEngine.Random.insideUnitSphere * radius;
+            randomDirection += origin;
+
+            if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, 1f, areaMask))
+                return hit.position;
+        }
+
+        return Vector3.zero; // failed to find valid point
+    }
+
+    public void OnDrawGizmos()
+    {
+        if (Dead)
+            return;
 
         // --- Draw debug
         foreach (var cone in VisionCones)
             DrawMethods.DrawVisionCone(transform, cone, visionConeColor);
 
         DrawMethods.WireSphere(transform.position, AlertRadius, sphereColor);
+
+        float dist = Vector3.Distance(transform.position, player.transform.position);
+        Color lineColor;
+        if (Mathf.Abs(dist) <= 4)
+        {
+            lineColor = Color.magenta;
+        }
+        else
+        {
+            lineColor = Color.yellow;
+        }
+
+        DrawMethods.Line(transform.position, player.transform.position, lineColor);
     }
 
     public bool IsTargetInVision(Collider target)
@@ -222,10 +463,22 @@ public abstract class Enemy : Entity, IHurtbox
 
     protected virtual void InitializeActions() { }
 
-    void PickAction()
+    void TryFirstAttack()
+    {
+        if (PickAction())
+        {
+            hasAttacked = true;
+            tryingFirstAttack = false;
+        }
+        else
+        {
+            // retry later if too far or invalid
+            tryingFirstAttack = false;
+        }
+    }
+    public bool PickAction()
     {
         float totalWeight = 0f;
-
         foreach (var action in Actions)
         {
             if (action.CanUse == null || action.CanUse())
@@ -233,7 +486,7 @@ public abstract class Enemy : Entity, IHurtbox
         }
 
         if (totalWeight <= 0f)
-            return;
+            return false;
 
         float choice = UnityEngine.Random.value * totalWeight;
         float cumulative = 0f;
@@ -245,10 +498,71 @@ public abstract class Enemy : Entity, IHurtbox
                 cumulative += action.Weight;
                 if (choice <= cumulative)
                 {
-                    _animator.SetTrigger(action.TriggerName);
-                    break;
+                    float dist = Vector3.Distance(transform.position, player.transform.position);
+
+                    if (dist <= action.MinDistance.Value)
+                    {
+                        // Store the chosen action
+                        _currentAction = action;
+
+                        // Apply its modifiers
+                        _currentAction.Modifier?.Evaluate(this);
+
+                        _animator.SetTriggerOneFrame(this, action.TriggerName);
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
             }
+        }
+
+        return false;
+    }
+    public void OnActionEnd()
+    {
+        _currentAction?.Modifier?.Revert(this);
+        _currentAction = null;
+    }
+    public void CancelCurrentAction()
+    {
+        if (_currentAction != null)
+        {
+            _currentAction.Modifier?.Revert(this);
+            _currentAction = null;
+        }
+
+        _animator.SetTrigger("ForceIdle");
+    }
+
+    public virtual void Lunge(float distance, float duration)
+    {
+        StartCoroutine(LungeRoutine(distance, duration));
+    }
+
+    private IEnumerator LungeRoutine(float distance, float duration)
+    {
+        Vector3 start = transform.position;
+        Vector3 target = start + transform.forward * distance;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            float t = elapsed / duration;
+            transform.position = Vector3.Lerp(start, target, t);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = target;
+    }
+    public void SetSpeed(float speed, bool overrideSpeed = false)
+    {
+        if (!speedOverride || overrideSpeed)
+        {
+            NavAgent.speed = speed;
         }
     }
     protected void FireProjectile(Transform target, bool seeking = false)

@@ -1,7 +1,9 @@
 using Game.Core;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class ShrumalWarrior : Enemy
 {
@@ -17,20 +19,26 @@ public class ShrumalWarrior : Enemy
     [SerializeField] private LayerMask layers;
 
     [SerializeField] private int health = 5;
-    public float alertRadius = 5f;
-    public float visionLength = 5f;
-    public float visionAngle = 90f;
-    public float rotationSpeed = 75f;
-    public Vector3 visionRotation = Vector3.zero;
+    [SerializeField] private float alertRadius = 5f;
+    [SerializeField] private float visionLength = 5f;
+    [SerializeField] private float chaseVisionLength = 16f;
+    [SerializeField] private float visionAngle = 90f;
+    [SerializeField] private float marginDegrees = 4f;
+    [SerializeField] private Vector3 visionRotation = Vector3.zero;
+
+    [SerializeField] private float wanderSpeed;
+    [SerializeField] private float chaseSpeed;
+    [SerializeField] private float wanderRadius;
+    [SerializeField] private float waitTime;
+
+    [SerializeField] private float actionInterval;
 
     protected override void OnEntityEnable()
     {
-        HitboxManager.Register(this);
         base.OnEntityEnable();
     }
     protected override void OnEntityDisable()
     {
-        HitboxManager.Unregister(this);
         base.OnEntityDisable();
     }
     protected override void InitializeActions()
@@ -41,13 +49,19 @@ public class ShrumalWarrior : Enemy
             {
                 TriggerName = "SwordSwing",
                 Weight = 0.7f,
-                CanUse = () => SeeingPlayer && FacingPlayer
+                CanUse = () => SeeingPlayer && FacingPlayer,
+                MinDistance = 4.5f,
+                Modifier = new ActionModifier()
+                    .ChangeSpeed(WanderSpeed / 2)
             },
             new EnemyAction
             {
                 TriggerName = "Headbash",
                 Weight = 0.4f,
-                CanUse = () => SeeingPlayer && FacingPlayer
+                CanUse = () => SeeingPlayer && FacingPlayer,
+                MinDistance = 4.5f,
+                Modifier = new ActionModifier()
+                    .StopAgent()
             }
         };
     }
@@ -58,10 +72,20 @@ public class ShrumalWarrior : Enemy
         LayerMask = layers;
         VisionCones.Add(new VisionCone(Vector3.zero, Vector3.zero, visionAngle, visionLength));
         AlertRadius = alertRadius;
-        MarginDegrees = 2f;
+        MarginDegrees = marginDegrees;
         ActionInterval = 1f;
-
         Health = health;
+
+        VisionCones[0].angle = visionAngle;
+        VisionCones[0].length = visionLength;
+        VisionCones[0].rotation = visionRotation;
+
+        WanderSpeed = wanderSpeed;
+        ChaseSpeed = chaseSpeed;
+        WanderRadius = wanderRadius;
+        WaitTime = waitTime;
+
+        ActionInterval = actionInterval;
 
         swordSwing = Sword.AddComponent<MeleeAttack>();
         swordSwing.hitCollider = SwordCollider;
@@ -79,28 +103,21 @@ public class ShrumalWarrior : Enemy
     {
         base.OnUpdate();
         VisionCones[0].angle = visionAngle;
-        VisionCones[0].length = visionLength;
         VisionCones[0].rotation = visionRotation;
 
-        Player player = TrackerHost.Current.Get<Player>();
-
-        float rotSpeed;
-        if (!SeeingPlayer)
+        if (SeeingPlayer)
         {
-            rotSpeed = rotationSpeed * 2f;
+            VisionCones[0].length = chaseVisionLength;
         }
         else
         {
-            rotSpeed = rotationSpeed;
+            VisionCones[0].length = visionLength;
         }
 
-        if (DetectedPlayer)
+        if (Attacking)
         {
-            RotateTowardsY(transform, player.transform.position, rotSpeed);
-        }
-        if (SeeingPlayer && FacingPlayer)
-        {
-            //_animator.SetTrigger("SwordSwing");
+            //NavAgent.speed = WanderSpeed / 2;
+            NavAgent.updateRotation = true;
         }
     }
 
@@ -169,6 +186,18 @@ public class ShrumalWarrior : Enemy
     {
         swordSwing.Damage = 1;
         headBash.Damage = 1;
+    }
+
+    public void LungeDistanceDuration(string parameters)
+    {
+        float dist = Vector3.Distance(transform.position, player.transform.position);
+        if (dist > Actions[1].MinDistance)
+        {
+            var parts = parameters.Split(';').Select(float.Parse).ToArray();
+            float distance = parts[0], duration = parts[1];
+
+            Lunge(distance, duration);
+        }
     }
 
     protected override void Die()

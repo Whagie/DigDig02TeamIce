@@ -45,11 +45,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02139cf3c491ea345a19c29f54ac51ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  layers:
+    serializedVersion: 2
+    m_Bits: 64
   ParryAnimation: {fileID: 3948149851726289611, guid: f83e4f8127a43a94890c81805deb4b7e, type: 3}
   ParryCollider: {fileID: 0}
   player: {fileID: 0}
-  parryLength: 0.2
-  parryCooldown: 0.5
+  parryLength: 0.15
+  parryCooldown: 0.2
 --- !u!65 &6458915300154005128
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -69,9 +72,9 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 0
   serializedVersion: 3
-  m_Size: {x: 1.5, y: 2.25, z: 1}
-  m_Center: {x: 0, y: 0, z: 0.5}
---- !u!1 &3927288751421748078
+  m_Size: {x: 1.5, y: 2.25, z: 1.5}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &3447542620193017878
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -79,22 +82,22 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1518952615093955098}
-  - component: {fileID: 4585606770748827542}
-  m_Layer: 8
-  m_Name: TargetLockOn
+  - component: {fileID: 5201478812634946681}
+  - component: {fileID: 822061573328724670}
+  m_Layer: 0
+  m_Name: Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1518952615093955098
+--- !u!4 &5201478812634946681
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3927288751421748078}
+  m_GameObject: {fileID: 3447542620193017878}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -103,27 +106,84 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7948930826786686778}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &4585606770748827542
-SphereCollider:
+--- !u!136 &822061573328724670
+CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3927288751421748078}
+  m_GameObject: {fileID: 3447542620193017878}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 2423
+    m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 25
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &3596337218474564963
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 931181460793127958}
+  - component: {fileID: 1698671085779544462}
+  m_Layer: 8
+  m_Name: DamageCollider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &931181460793127958
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3596337218474564963}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7948930826786686778}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!136 &1698671085779544462
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3596337218474564963}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.4
+  m_Height: 1.9
+  m_Direction: 1
+  m_Center: {x: 0, y: -0.05, z: 0}
 --- !u!1 &4804014977240423186
 GameObject:
   m_ObjectHideFlags: 0
@@ -135,7 +195,6 @@ GameObject:
   - component: {fileID: 7948930826786686778}
   - component: {fileID: 6532250650900250070}
   - component: {fileID: 7113094758777896580}
-  - component: {fileID: 4788957186732154030}
   - component: {fileID: 8716261745318826142}
   - component: {fileID: 4350470761977404649}
   m_Layer: 8
@@ -160,7 +219,8 @@ Transform:
   m_Children:
   - {fileID: 9107922848877941957}
   - {fileID: 6493286998354012962}
-  - {fileID: 1518952615093955098}
+  - {fileID: 931181460793127958}
+  - {fileID: 5201478812634946681}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!143 &6532250650900250070
@@ -201,7 +261,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DetectionCollider: {fileID: 4788957186732154030}
+  layers:
+    serializedVersion: 2
+    m_Bits: 64
+  DetectionCollider: {fileID: 822061573328724670}
+  MainCollider: {fileID: 822061573328724670}
+  DamageCollider: {fileID: 1698671085779544462}
+  LockOnIcon: {fileID: 3403924031572140294, guid: 56c8b228d05cb174e936ef5127ae57c6, type: 3}
   groundCheckDistance: 0.2
   Grounded: 0
   Sprinting: 0
@@ -211,34 +277,11 @@ MonoBehaviour:
   turnSpeed: 16
   jumpHeight: 3
   gravity: 30
-  Health: 7
+  Health: 30
   InvisibilityLength: 0.6
   debugInvisible: 0
   Parrying: 0
   body: {fileID: 7643953190918355345}
---- !u!136 &4788957186732154030
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4804014977240423186}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &8716261745318826142
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -328,6 +371,22 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 59603d3f-bc8c-487b-9b3d-ceb573870480
     m_ActionName: Gameplay/Parry[/Keyboard/alt]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7113094758777896580}
+        m_TargetAssemblyTypeName: Player, Assembly-CSharp
+        m_MethodName: LockOn
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 87ef2a22-358a-4a20-9e2c-9a89beb62877
+    m_ActionName: Gameplay/TargetLockOn[/Keyboard/p]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Gameplay

@@ -253,7 +253,7 @@ public class CustomWindZone : MonoBehaviour
         }
         else
         {
-            Debug.Log($"Marked {this.name} as Main wind");
+            //Debug.Log($"Marked {this.name} as Main wind");
         }
     }
 

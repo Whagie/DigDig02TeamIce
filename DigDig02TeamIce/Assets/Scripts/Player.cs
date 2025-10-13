@@ -19,7 +19,7 @@ public class Player : Entity, IHurtbox
     public CapsuleCollider DamageCollider;
 
     private Collider[] colliders = new Collider[50];
-    private Transform currentTarget;
+    public static Transform currentTarget;
     [SerializeField] private GameObject LockOnIcon;
     private GameObject iconCopy;
 

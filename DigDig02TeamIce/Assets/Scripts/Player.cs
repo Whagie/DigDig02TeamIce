@@ -48,6 +48,7 @@ public class Player : Entity, IHurtbox
     private Vector3 moveInput;
 
     public int Health = 15;
+    public int MaxHealth = 15;
 
     private float invisibilityTimer = 0f;
     public bool Invisible => invisibilityTimer > 0f;
@@ -60,6 +61,13 @@ public class Player : Entity, IHurtbox
 
     private Material material;
     public GameObject body;
+
+    public event System.Action<int> OnPlayerTakeDamage;
+
+    public int Energy = 0;
+    public int MaxEnergy = 6;
+    [SerializeField] private float energyTimer = 0.6f;
+    public event System.Action<int> OnGetEnergy;
 
     protected override void OnEntityEnable()
     {
@@ -282,12 +290,17 @@ public class Player : Entity, IHurtbox
         if (Invisible || Parrying)
             return;
 
-        Health -= amount;
+        if (Health > 0)
+        {
+            Health -= amount;
+        }
         if (Health <= 0)
         {
             Die();
             return;
         }
+
+        OnPlayerTakeDamage?.Invoke(Health);
 
         StartInvisible(InvisibilityLength, true);
         CameraActions.Main.Shake(0.15f, 0.3f, 0.2f);
@@ -323,6 +336,25 @@ public class Player : Entity, IHurtbox
     protected virtual void Die()
     {
         material.SetColor("_BaseColor", Color.magenta);
+    }
+
+    public void GiveEnergy()
+    {
+        StartCoroutine(EnergyCoroutine());
+    }
+    private IEnumerator EnergyCoroutine()
+    {
+        yield return new WaitForSeconds(energyTimer);
+
+        GetEnergy();
+    }
+    public void GetEnergy(int amount = 1)
+    {
+        if (Energy < MaxEnergy)
+        {
+            Energy += amount;
+            OnGetEnergy?.Invoke(Energy);
+        }
     }
 
     private void Parried()

@@ -233,26 +233,6 @@ public abstract class Enemy : Entity, IHurtbox
             }
             RotateTowardsY(transform, player.transform.position, rotSpeed);
         }
-        //if (LookingForPlayer)
-        //{
-        //    if (!startedTurnRoutine)
-        //    {
-        //        StartCoroutine(TurnAndLook(RotationSpeed * 3f));
-        //        startedTurnRoutine = true;
-        //        stoppedTurnRoutine = false;
-        //    }
-
-        //    //RotateTowardsY(transform, player.transform.position, RotationSpeed * 4f);
-        //}
-        //else
-        //{
-        //    if (!stoppedTurnRoutine)
-        //    {
-        //        StopCoroutine(TurnAndLook(RotationSpeed * 3));
-        //        startedTurnRoutine = false;
-        //        stoppedTurnRoutine = true;
-        //    }
-        //}
 
         if (NavAgent != null)
         {
@@ -279,28 +259,10 @@ public abstract class Enemy : Entity, IHurtbox
                 SetSpeed(WanderSpeed);
             }
         }
+
+        GizmoDraw();
     }
 
-    //public IEnumerator TurnAndLook(float rotSpeed)
-    //{
-    //    if (NavAgent != null)
-    //    {
-    //        NavAgent.updateRotation = false;
-    //    }
-
-    //    while (!SeeingPlayer)
-    //    {
-    //        RotateTowardsY(transform, player.transform.position, rotSpeed);
-
-    //        yield return null;
-    //    }
-    //    startedTurnRoutine = false;
-    //    if (NavAgent != null)
-    //    {
-    //        NavAgent.updateRotation = true;
-    //    }
-    //    yield break;
-    //}
     private IEnumerator WanderRoutine()
     {
         Wandering = true;
@@ -333,7 +295,7 @@ public abstract class Enemy : Entity, IHurtbox
         return Vector3.zero; // failed to find valid point
     }
 
-    public void OnDrawGizmos()
+    public void GizmoDraw()
     {
         if (Dead)
             return;
@@ -423,7 +385,7 @@ public abstract class Enemy : Entity, IHurtbox
         TakeDamage(source.Damage);
         if (source.Owner.CompareTag("Projectile"))
         {
-            SpawnVFX();
+            SpawnEnergy();
         }
 
         foreach (var child in ChildrenWithFlashEffect)
@@ -448,11 +410,11 @@ public abstract class Enemy : Entity, IHurtbox
         Collider collider = GetComponent<Collider>();
         if (collider is CapsuleCollider capsule)
         {
-            SpawnVFX(4f + capsule.radius);
+            SpawnEnergy(4f + capsule.radius);
         }
         else
         {
-            SpawnVFX();
+            SpawnEnergy();
         }
 
         foreach (var child in ChildrenWithFlashEffect)
@@ -602,8 +564,10 @@ public abstract class Enemy : Entity, IHurtbox
     }
 
     // Call this to spawn the VFX
-    public void SpawnVFX(float middlePosDistance = 4f)
+    public void SpawnEnergy(float middlePosDistance = 4f)
     {
+        player.GiveEnergy();
+
         var prefab = GetVFXPrefab();
         if (prefab == null) return;
 

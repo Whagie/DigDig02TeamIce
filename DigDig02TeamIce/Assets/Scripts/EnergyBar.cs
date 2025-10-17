@@ -11,6 +11,8 @@ public class EnergyBar : MonoBehaviour
 
     [SerializeField] private RectTransform energyBar;
 
+    private Player player;
+
     private void Start()
     {
         if (energyBar != null)
@@ -18,13 +20,20 @@ public class EnergyBar : MonoBehaviour
             Width = energyBar.rect.width;
             Height = energyBar.rect.height;
         }
-        Player player = TrackerHost.Current.Get<Player>();
+        player = TrackerHost.Current.Get<Player>();
         if (player != null)
         {
-            player.OnGetEnergy += SetEnergy;
+            player.OnChangeEnergy += SetEnergy;
             SetMaxEnergy(player.MaxEnergy);
             Energy = player.Energy;
             SetEnergy(Energy);
+        }
+    }
+    private void Update()
+    {
+        if (player != null)
+        {
+            SetEnergy(player.Energy);
         }
     }
     public void SetMaxEnergy(int maxHealth)

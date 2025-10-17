@@ -10,8 +10,9 @@ namespace Game.Core
         Collider Collider { get; }
         LayerMask LayerMask { get; }
         int Damage { get; }
+        bool UseMeshCollision { get; set; }
         void OnHit(IHurtbox target);
-        void OnParried(IHurtbox by); // called when a parry happens
+        void OnParried(IHurtbox by);
     }
 
     public interface IHurtbox
@@ -19,6 +20,7 @@ namespace Game.Core
         GameObject Owner { get; }
         Collider Collider { get; }
         LayerMask LayerMask { get; }
+        bool UseMeshCollision { get; set; }
         void OnHit(IHitbox source);
         void TakeDamage(int damage);
     }

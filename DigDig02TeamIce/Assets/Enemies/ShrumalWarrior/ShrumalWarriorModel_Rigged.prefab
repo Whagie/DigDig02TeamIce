@@ -363,6 +363,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ShrumalWarriorModel_Rigged
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 83055ee6d8d035d44a66c547656218e1, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 2854563699051640978, guid: 83055ee6d8d035d44a66c547656218e1, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: -10.393053
@@ -543,15 +547,15 @@ MonoBehaviour:
   HeadCollider: {fileID: 6170074782910658900}
   layers:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 768
   health: 5
   alertRadius: 4
-  visionLength: 12
+  visionLength: 6
   chaseVisionLength: 16
   visionAngle: 120
   marginDegrees: 4
   visionRotation: {x: 0, y: 0, z: 0}
-  wanderSpeed: 2.5
+  wanderSpeed: 0
   chaseSpeed: 6
   wanderRadius: 25
   waitTime: 2

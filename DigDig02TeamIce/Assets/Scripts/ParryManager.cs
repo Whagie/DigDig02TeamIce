@@ -8,6 +8,7 @@ public class ParryManager : Entity, IHurtbox
 {
     public GameObject Owner => gameObject;
     public Collider Collider => ParryCollider;
+    public bool UseMeshCollision { get; set; } = false;
 
     [SerializeField] private LayerMask layers;
     public LayerMask LayerMask => layers;

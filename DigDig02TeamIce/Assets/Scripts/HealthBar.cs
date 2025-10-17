@@ -11,6 +11,8 @@ public class HealthBar : MonoBehaviour
 
     [SerializeField] private RectTransform healthBar;
 
+    private Player player;
+
     private void Start()
     {
         if (healthBar != null)
@@ -18,13 +20,21 @@ public class HealthBar : MonoBehaviour
             Width = healthBar.rect.width;
             Height = healthBar.rect.height;
         }
-        Player player = TrackerHost.Current.Get<Player>();
+        player = TrackerHost.Current.Get<Player>();
         if (player != null)
         {
             player.OnPlayerTakeDamage += SetHealth;
             SetMaxHealth(player.MaxHealth);
             Health = player.Health;
             SetHealth(Health);
+        }
+    }
+    private void Update()
+    {
+        if (player != null)
+        {
+            SetMaxHealth(player.MaxHealth);
+            SetHealth(player.Health);
         }
     }
     public void SetMaxHealth(int maxHealth)

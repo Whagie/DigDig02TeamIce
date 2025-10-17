@@ -8,6 +8,7 @@ public class Projectile : Entity, IHitbox
     public GameObject Owner => gameObject;
     public bool CanBeParried => true;
     public Collider Collider => GetComponent<Collider>();
+    public bool UseMeshCollision { get; set; } = false;
 
     [SerializeField] private LayerMask layers;
     public LayerMask LayerMask => layers;

@@ -6,12 +6,14 @@ using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
+using static UnityEngine.GraphicsBuffer;
 
 public abstract class Enemy : Entity, IHurtbox
 {
-    public Collider Collider { get; protected set; }
-    public LayerMask LayerMask { get; protected set; }
     public GameObject Owner => gameObject;
+    public Collider Collider { get; protected set; }
+    public bool UseMeshCollision { get; set; } = false;
+    public LayerMask LayerMask { get; protected set; }
 
     protected static Player player;
 
@@ -68,6 +70,7 @@ public abstract class Enemy : Entity, IHurtbox
 
     [SerializeField] private string vfxResourcePath = "EnergyEffect";
     private static GameObject defaultVFXAsset;
+    public static event System.Action<Vector3> OnSendEnergy;
 
     private Color sphereColor = Color.blue;
     private Color visionConeColor = Color.blue;
@@ -89,6 +92,7 @@ public abstract class Enemy : Entity, IHurtbox
         {
             InitializeActions();
         }
+        LayerMask = LayerMask.GetMask("Player", "PlayerDamage");
 
         NavAgent = GetComponent<NavMeshAgent>();
 
@@ -241,7 +245,6 @@ public abstract class Enemy : Entity, IHurtbox
                 // Stop Wandering when in combat
                 if (Wandering)
                 {
-                    Debug.Log("Stopped Wander!");
                     StopCoroutine(WanderRoutine());
                     Wandering = false;
                 }
@@ -254,7 +257,6 @@ public abstract class Enemy : Entity, IHurtbox
             }
             if (!InCombat && !Wandering)
             {
-                Debug.Log("Started Wander!");
                 StartCoroutine(WanderRoutine());
                 SetSpeed(WanderSpeed);
             }
@@ -552,24 +554,18 @@ public abstract class Enemy : Entity, IHurtbox
     /// Triggers a one-time burst VFX that emits gradually over burstDuration.
     /// </summary>
     // Returns the VFX prefab, loading it if necessary
-    private GameObject GetVFXPrefab()
-    {
-        if (defaultVFXAsset == null)
-        {
-            defaultVFXAsset = Resources.Load<GameObject>(vfxResourcePath);
-            if (defaultVFXAsset == null)
-                Debug.LogWarning($"Failed to load VFX prefab at Resources/{vfxResourcePath}");
-        }
-        return defaultVFXAsset;
-    }
 
-    // Call this to spawn the VFX
     public void SpawnEnergy(float middlePosDistance = 4f)
     {
         player.GiveEnergy();
 
-        var prefab = GetVFXPrefab();
-        if (prefab == null) return;
+        if (defaultVFXAsset == null)
+        {
+            defaultVFXAsset = GetVFXPrefab(vfxResourcePath);
+             if (defaultVFXAsset == null) return;
+        }
+
+        GameObject prefab = defaultVFXAsset;
 
         var instance = Instantiate(prefab, transform);
         EnergyParticleManager particleManager = instance.GetComponent<EnergyParticleManager>();
@@ -603,6 +599,8 @@ public abstract class Enemy : Entity, IHurtbox
         float maxLifetime = 3; // match your particle lifetime
         Destroy(empty, maxLifetime);
         Destroy(instance, maxLifetime);
+
+        OnSendEnergy?.Invoke(empty.transform.position);
     }
 }
 

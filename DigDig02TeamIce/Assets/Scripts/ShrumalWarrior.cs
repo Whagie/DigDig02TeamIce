@@ -90,10 +90,12 @@ public class ShrumalWarrior : Enemy
         swordSwing = Sword.AddComponent<MeleeAttack>();
         swordSwing.hitCollider = SwordCollider;
         swordSwing.EnemyOwner = this;
+        swordSwing.LayerMask = LayerMask.GetMask("Player");
 
         headBash = Head.AddComponent<MeleeAttack>();
         headBash.hitCollider = HeadCollider;
         headBash.EnemyOwner = this;
+        headBash.LayerMask = LayerMask.GetMask("Player");
 
         SwordCollider.enabled = false;
         HeadCollider.enabled = false;

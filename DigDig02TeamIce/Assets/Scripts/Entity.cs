@@ -67,5 +67,12 @@ public abstract class Entity : MonoBehaviour
         }
     }
 
+    public GameObject GetVFXPrefab(string resourcePath)
+    {
+        var prefab = Resources.Load<GameObject>(resourcePath);
+        if (prefab == null)
+            Debug.LogWarning($"Failed to load VFX prefab at Resources/{resourcePath}");
 
+        return prefab;
+    }
 }

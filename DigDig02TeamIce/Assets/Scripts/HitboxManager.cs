@@ -43,7 +43,18 @@ public static class HitboxManager
                 // check if this hurtbox is a valid target for the hitbox
                 if ((hb.LayerMask & (1 << hurt.Owner.layer)) == 0) continue;
 
-                if (!CheckOverlap(hb.Collider, hurt.Collider)) continue;
+                if (hb.UseMeshCollision || hurt.UseMeshCollision)
+                {
+                    // Check collider overlap
+                    if (!CheckMeshColliderOverlap(hb.Collider, hurt.Collider))
+                        continue;
+                }
+                else
+                {
+                    // Check collider overlap
+                    if (!CheckOverlap(hb.Collider, hurt.Collider))
+                        continue;
+                }
 
                 // Apply hit
                 hb.OnHit(hurt);
@@ -86,5 +97,16 @@ public static class HitboxManager
         }
 
         return false;
+    }
+
+    private static bool CheckMeshColliderOverlap(Collider hitbox, Collider hurtbox)
+    {
+        Vector3 direction;
+        float distance;
+        return Physics.ComputePenetration(
+            hitbox, hitbox.transform.position, hitbox.transform.rotation,
+            hurtbox, hurtbox.transform.position, hurtbox.transform.rotation,
+            out direction, out distance
+        );
     }
 }

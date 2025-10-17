@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EvilCube : Enemy, IHurtbox
+public class EvilCube : Enemy
 {
     public Collider MainCollider;
 
@@ -11,6 +11,8 @@ public class EvilCube : Enemy, IHurtbox
     public float visionLength = 5f;
     public float visionAngle = 90f;
     public Vector3 visionRotation = Vector3.zero;
+
+    [SerializeField] private float shootInterval = 2f;
 
     protected override void OnAwake()
     {
@@ -40,7 +42,7 @@ public class EvilCube : Enemy, IHurtbox
         {
             RotateTowardsY(transform, player.transform.position, 90f);
 
-            OnInterval(2f, () =>
+            OnInterval(shootInterval, () =>
             {
                 FireProjectile(player.transform);
             });

@@ -10,6 +10,7 @@ public class Player : Entity, IHurtbox
 {
     public GameObject Owner => gameObject;
     public Collider Collider => DamageCollider;
+    public bool UseMeshCollision { get; set; } = false;
 
     [SerializeField] private LayerMask layers;
     public LayerMask LayerMask => layers;
@@ -19,7 +20,7 @@ public class Player : Entity, IHurtbox
     public CapsuleCollider DamageCollider;
 
     private Collider[] colliders = new Collider[50];
-    public static Transform currentTarget;
+    public static GameObject currentTarget;
     [SerializeField] private GameObject LockOnIcon;
     private GameObject iconCopy;
 
@@ -67,7 +68,7 @@ public class Player : Entity, IHurtbox
     public int Energy = 0;
     public int MaxEnergy = 6;
     [SerializeField] private float energyTimer = 0.6f;
-    public event System.Action<int> OnGetEnergy;
+    public event System.Action<int> OnChangeEnergy;
 
     protected override void OnEntityEnable()
     {
@@ -89,6 +90,10 @@ public class Player : Entity, IHurtbox
     }
     protected override void OnStart()
     {
+        if (Health > MaxHealth)
+        {
+            MaxHealth = Health;
+        }
         controller = GetComponent<CharacterController>();
         material = body.GetComponent<MeshRenderer>().material;
 
@@ -96,7 +101,10 @@ public class Player : Entity, IHurtbox
 
         parryManager = TrackerHost.Current.Get<ParryManager>();
         if (parryManager == null)
+        {
+            Debug.LogWarning("ParryManager is null!");
             return;
+        }
         parryManager.OnParryStart += HandleParryStart;
         parryManager.OnParryEnd += HandleParryEnd;
         parryManager.OnParryCooldownEnd += HandleParryCooldownEnd;
@@ -202,7 +210,7 @@ public class Player : Entity, IHurtbox
     {
         if (currentTarget != null)
         {
-            Vector3 target = Vector3.Normalize(currentTarget.position - transform.position);
+            Vector3 target = Vector3.Normalize(currentTarget.transform.position - transform.position);
             Quaternion targetRotation = Quaternion.LookRotation(new Vector3(target.x, 0, target.z));
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * turnSpeed);
         }
@@ -257,7 +265,7 @@ public class Player : Entity, IHurtbox
                 }
             }
 
-            currentTarget = closest.transform;
+            currentTarget = closest.gameObject;
 
             if (currentTarget != null)
             {
@@ -268,7 +276,7 @@ public class Player : Entity, IHurtbox
                         iconCopy = Instantiate(LockOnIcon, currentTarget.transform);
                     }
                     BillboardSprite billboardSprite = iconCopy.GetComponent<BillboardSprite>();
-                    billboardSprite.target = currentTarget.position + new Vector3(0, 5, 0);
+                    billboardSprite.target = currentTarget.transform.position + new Vector3(0, 5, 0);
                 }
             }
         }
@@ -353,8 +361,26 @@ public class Player : Entity, IHurtbox
         if (Energy < MaxEnergy)
         {
             Energy += amount;
-            OnGetEnergy?.Invoke(Energy);
+            OnChangeEnergy?.Invoke(Energy);
         }
+    }
+    public void ConsumeEnergy(int amount)
+    {
+        if (amount < 0)
+            return;
+
+        int energyAfterConsumption = Energy - amount;
+
+        if (energyAfterConsumption < 0)
+        {
+            Energy -= (amount - Math.Abs(energyAfterConsumption));
+        }
+        else if (energyAfterConsumption >= 0)
+        {
+            Energy -= amount;
+        }
+
+        OnChangeEnergy?.Invoke(Energy);
     }
 
     private void Parried()

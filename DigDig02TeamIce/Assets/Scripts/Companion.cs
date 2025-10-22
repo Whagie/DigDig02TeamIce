@@ -13,11 +13,11 @@ public class Companion : Entity
 
     [SerializeField] private GameObject Spear;
 
-    [SerializeField] private string gainEnergyResourcePath = "Construct_GainEnergy";
-    private static GameObject gainEnergyVFXAsset;
-
     public List<SpearAttackScript> previousSpears;
     private SpearAttackScript.SpearSpawnState lastState;
+
+    private float spearAttackCooldown = 1.2f;
+    private bool canAttack = true;
 
     protected override void OnEntityEnable()
     {
@@ -48,7 +48,7 @@ public class Companion : Entity
     {
         if (context.performed)
         {
-            if (TryAttack(1))
+            if (TryAttack(2) && canAttack)
             {
                 SpearOffset = GetRandomSpawnPosition(transform, out var spawnState);
 
@@ -57,6 +57,8 @@ public class Companion : Entity
                 spearAttack.State = spawnState;
 
                 previousSpears.Add(spearAttack);
+
+                StartCoroutine(AttackCooldown(spearAttackCooldown));
             }
         }
     }
@@ -73,13 +75,8 @@ public class Companion : Entity
 
     private void CollectEnergy(Vector3 senderPos)
     {
-        if (gainEnergyVFXAsset == null)
-        {
-            gainEnergyVFXAsset = GetVFXPrefab(gainEnergyResourcePath);
-            if (gainEnergyVFXAsset == null) return;
-        }
 
-        GameObject prefab = gainEnergyVFXAsset;
+        GameObject prefab = VFX.Construct_GainEnergy;
 
         Vector3 dir = senderPos - transform.position;
         Quaternion rotation = Quaternion.LookRotation(dir);
@@ -187,5 +184,12 @@ public class Companion : Entity
         spawnState = chosenState;
         lastState = chosenState;
         return origin.TransformPoint(localOffset);
+    }
+
+    private IEnumerator AttackCooldown(float amount)
+    {
+        canAttack = false;
+        yield return new WaitForSeconds(amount);
+        canAttack = true;
     }
 }

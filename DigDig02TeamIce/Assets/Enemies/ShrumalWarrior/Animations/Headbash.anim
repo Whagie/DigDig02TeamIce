@@ -43563,7 +43563,7 @@ AnimationClip:
     messageOptions: 0
   - time: 6.0833335
     functionName: LungeDistanceDuration
-    data: 3;0,8
+    data: 3;0,4
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 0

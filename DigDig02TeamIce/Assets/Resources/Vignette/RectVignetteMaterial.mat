@@ -29,7 +29,7 @@ Material:
     - _EdgeWidth: 0.45
     - _Fade: 0.25
     - _FadeAmount: 0.075
-    - _Falloff: 1.2
+    - _Falloff: 2.75
     - _HeightRatio: 2
     - _Intensity: 0
     - _Sharpness: 1

@@ -48,7 +48,7 @@ MonoBehaviour:
   intensity: 1
   edgeWidth: 0.45
   fadeAmount: 0.075
-  falloff: 1.2
+  falloff: 2.75
   cornerFade: 0.055
   widthRatio: 2
   heightRatio: 2

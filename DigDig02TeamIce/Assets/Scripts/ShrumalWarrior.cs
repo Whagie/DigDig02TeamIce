@@ -131,8 +131,6 @@ public class ShrumalWarrior : Enemy
         AlterHead(0);
 
         Debug.Log("Parried!");
-
-        TakeDamage(1);
     }
 
     public void AlterSword(int activate = 1)
@@ -153,6 +151,7 @@ public class ShrumalWarrior : Enemy
         if (activate == 1)
         {
             headBash.Activate();
+            CameraActions.Main.Shake(0.3f, 0.15f, 0.1f);
             headBash.gizmoColor = Color.red;
         }
         else

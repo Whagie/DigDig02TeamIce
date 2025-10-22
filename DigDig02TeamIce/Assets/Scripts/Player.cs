@@ -41,6 +41,8 @@ public class Player : Entity, IHurtbox
     public float jumpHeight = 1f;
 
     private bool jumpQueued;
+    //private bool lungeQueued;
+    //private Vector3 lungeDir;
 
     private float verticalVelocity;    
     public float gravity = 9.82f;
@@ -114,8 +116,11 @@ public class Player : Entity, IHurtbox
     protected override void OnUpdate()
     {
         GroundCheck();
-        MovementHandler();
-        Turn();
+        if (!Parrying)
+        {
+            MovementHandler();
+            Turn();
+        }
 
         UpdateInvisibility();
         debugInvisible = Invisible;
@@ -151,6 +156,12 @@ public class Player : Entity, IHurtbox
         else
         {
             Sprinting = false;
+        }
+
+        if (Parrying && context.performed)
+        {
+            //lungeQueued = true;
+            //lungeDir = moveDir.normalized;
         }
     }
 
@@ -265,7 +276,10 @@ public class Player : Entity, IHurtbox
                 }
             }
 
-            currentTarget = closest.gameObject;
+            if (closest.gameObject != null)
+            {
+                currentTarget = closest.gameObject;
+            }
 
             if (currentTarget != null)
             {
@@ -312,6 +326,7 @@ public class Player : Entity, IHurtbox
 
         StartInvisible(InvisibilityLength, true);
         CameraActions.Main.Shake(0.15f, 0.3f, 0.2f);
+        Freezer.Freeze(0.05f);
     }
 
     public void StartInvisible(float length = 0.6f, bool changeColor = false)
@@ -387,6 +402,7 @@ public class Player : Entity, IHurtbox
     {
         StartInvisible(parryManager.parryLength);
 
+        Freezer.Freeze(0.05f);
         ParticleSpawner.Spawn(Particles.P_spark, transform.position);
         CameraActions.Main.Punch(-0.75f, 0.1f);
     }
@@ -394,17 +410,42 @@ public class Player : Entity, IHurtbox
     {
         DamageCollider.enabled = false;
         material.SetColor("_BaseColor", Color.red);
-        //Debug.Log("Parry Start!");
     }
     private void HandleParryEnd()
     {
         DamageCollider.enabled = true;
+        //if (lungeQueued)
+        //{
+        //    lungeQueued = false;
+        //    Lunge(lungeDir, 3f, 0.1f);
+        //}
+
         material.SetColor("_BaseColor", Color.green);
-        //Debug.Log("Parry End!");
     }
     private void HandleParryCooldownEnd()
     {
         material.SetColor("_BaseColor", Color.blue);
-        //Debug.Log("Parry Cooldown End!");
+    }
+
+    public virtual void Lunge(Vector3 direction, float distance, float duration)
+    {
+        StartCoroutine(LungeRoutine(direction, distance, duration));
+    }
+
+    private IEnumerator LungeRoutine(Vector3 direction, float distance, float duration)
+    {
+        Vector3 start = transform.position;
+        Vector3 target = start + direction * distance;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            float t = elapsed / duration;
+            transform.position = Vector3.Lerp(start, target, t);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = target;
     }
 }

@@ -48,4 +48,10 @@ public class EvilCube : Enemy
             });
         }
     }
+
+    protected override void Die()
+    {
+        base.Die();
+        Destroy(gameObject);
+    }
 }

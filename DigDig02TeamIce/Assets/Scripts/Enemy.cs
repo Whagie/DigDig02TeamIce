@@ -68,8 +68,6 @@ public abstract class Enemy : Entity, IHurtbox
     public int ProjectileDamage = 1;
     public GameObject projectilePrefab;
 
-    [SerializeField] private string vfxResourcePath = "EnergyEffect";
-    private static GameObject defaultVFXAsset;
     public static event System.Action<Vector3> OnSendEnergy;
 
     private Color sphereColor = Color.blue;
@@ -559,13 +557,7 @@ public abstract class Enemy : Entity, IHurtbox
     {
         player.GiveEnergy();
 
-        if (defaultVFXAsset == null)
-        {
-            defaultVFXAsset = GetVFXPrefab(vfxResourcePath);
-             if (defaultVFXAsset == null) return;
-        }
-
-        GameObject prefab = defaultVFXAsset;
+        GameObject prefab = VFX.EnergyRibbons;
 
         var instance = Instantiate(prefab, transform);
         EnergyParticleManager particleManager = instance.GetComponent<EnergyParticleManager>();

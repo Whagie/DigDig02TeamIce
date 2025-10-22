@@ -6,7 +6,10 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/TeamIce_GameProject.unity
+    path: Assets/Scenes/MainMenu.unity
+    guid: 7fac2ac9593d8ce43beffbb9446e3032
+  - enabled: 1
+    path: Assets/Scenes/TestLevel.unity
     guid: b5330e2e7520f6c4b8675fa2e310f652
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 60de35bcbf6bf2e40b4ae5f1fd216156, type: 2}

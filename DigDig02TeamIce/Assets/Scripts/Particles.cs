@@ -6,6 +6,7 @@ public static class Particles
     private static Dictionary<string, GameObject> lookup;
 
     public static GameObject P_spark { get; private set; }
+    public static GameObject P_SpearExplosion { get; private set; }
 
     static Particles()
     {
@@ -20,6 +21,7 @@ public static class Particles
             switch (prefab.name)
             {
                 case nameof(P_spark): P_spark = prefab; break;
+                case nameof(P_SpearExplosion): P_SpearExplosion = prefab; break;
             }
         }
     }

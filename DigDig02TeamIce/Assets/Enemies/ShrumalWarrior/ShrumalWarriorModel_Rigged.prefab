@@ -539,7 +539,6 @@ MonoBehaviour:
   VisionCones: []
   ProjectileDamage: 1
   projectilePrefab: {fileID: 0}
-  vfxResourcePath: EnergyEffect
   Sword: {fileID: 784905170328205095}
   Head: {fileID: 3192949918886082579}
   MainCollider: {fileID: 8124100539039176902}
@@ -555,7 +554,7 @@ MonoBehaviour:
   visionAngle: 120
   marginDegrees: 4
   visionRotation: {x: 0, y: 0, z: 0}
-  wanderSpeed: 0
+  wanderSpeed: 3
   chaseSpeed: 6
   wanderRadius: 25
   waitTime: 2

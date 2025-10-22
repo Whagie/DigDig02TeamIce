@@ -389,13 +389,13 @@ MonoBehaviour:
   turnSpeed: 16
   jumpHeight: 3
   gravity: 30
-  Health: 30
+  Health: 15
   MaxHealth: 15
   InvisibilityLength: 0.6
   debugInvisible: 0
   Parrying: 0
   body: {fileID: 7643953190918355345}
-  Energy: 6
+  Energy: 0
   MaxEnergy: 6
   energyTimer: 1
 --- !u!114 &8716261745318826142

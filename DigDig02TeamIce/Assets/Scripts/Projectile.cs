@@ -16,7 +16,7 @@ public class Projectile : Entity, IHitbox
     public GameObject Parent { get; set; }
     public int Damage { get; set; } = 1;
     public Transform Target { get; set; }
-    public float Speed { get; set; } = 5f;
+    public float Speed { get; set; } = 8f;
     public float Lifespan { get; set; } = 10f;
     public bool Seeking { get; set; } = false;
 

@@ -1,19 +1,32 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class HitboxUpdate : MonoBehaviour
 {
-    void FixedUpdate()
-    {
-        // Run all hitbox/hurtbox interactions once per physics frame
-        HitboxManager.Update();
-    }
+    static HitboxUpdate instance;
 
-    // Called automatically when a new scene loads
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Initialize()
     {
-        var updater = new GameObject("HitboxUpdate");
-        updater.AddComponent<HitboxUpdate>();
-        updater.hideFlags = HideFlags.HideInHierarchy;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Example: only spawn for scenes that start with "Level" or contain "Game"
+        if (!scene.name.Equals("TestLevel")) return;
+
+        if (instance == null)
+        {
+            var go = new GameObject("HitboxUpdate");
+            instance = go.AddComponent<HitboxUpdate>();
+            Object.DontDestroyOnLoad(go);
+            go.hideFlags = HideFlags.HideInHierarchy;
+        }
+    }
+
+    void FixedUpdate()
+    {
+        HitboxManager.Update();
     }
 }

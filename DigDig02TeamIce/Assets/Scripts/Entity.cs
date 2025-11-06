@@ -33,11 +33,11 @@ public abstract class Entity : MonoBehaviour
     protected virtual void OnFixedUpdate() { }
     protected virtual void OnEntityEnable()
     {
-        TrackerHost.Current.Register(this);
+        //TrackerHost.Current.Register(this);
     }
     protected virtual void OnEntityDisable()
     {
-        TrackerHost.Current.Unregister(this);
+        //TrackerHost.Current.Unregister(this);
     }
     protected virtual void OnEntityDestroy() { }
     protected virtual void PreRender() { }

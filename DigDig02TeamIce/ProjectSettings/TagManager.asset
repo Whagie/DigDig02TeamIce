@@ -5,6 +5,10 @@ TagManager:
   serializedVersion: 2
   tags:
   - Projectile
+  - Minecart
+  - MinecartCollision
+  - LightReceiver
+  - Shrouder
   layers:
   - Default
   - TransparentFX
@@ -20,13 +24,13 @@ TagManager:
   - Wind
   - MaskLayer
   - 
-  - 
-  - 
+  - Walls
+  - OutsideOfRoom
   - TerrainMask
   - EntranceFade
   - EntranceFrame
   - 
-  - 
+  - LightReflector
   - 
   - 
   - 

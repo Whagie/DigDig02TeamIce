@@ -13,6 +13,7 @@ public class Player : Entity, IHurtbox
     public bool UseMeshCollision { get; set; } = false;
 
     [SerializeField] private LayerMask layers;
+    [SerializeField] private LayerMask groundLayers;
     public LayerMask LayerMask => layers;
 
     public Collider DetectionCollider;
@@ -41,6 +42,8 @@ public class Player : Entity, IHurtbox
     public float jumpHeight = 1f;
 
     private bool jumpQueued;
+    private bool jumped;
+    public bool Jumping;
     //private bool lungeQueued;
     //private Vector3 lungeDir;
 
@@ -75,7 +78,7 @@ public class Player : Entity, IHurtbox
     protected override void OnEntityEnable()
     {
         HitboxManager.Register(this);
-        Player existing = TrackerHost.Current.Get<Player>();
+        Player existing = GameObject.FindObjectOfType<Player>();
         if (existing != null && existing != this)
         {
             Debug.Log("Player already exists, cancelling spawn.");
@@ -101,7 +104,7 @@ public class Player : Entity, IHurtbox
 
         camera1 = Camera.main.transform;
 
-        parryManager = TrackerHost.Current.Get<ParryManager>();
+        parryManager = GameObject.FindObjectOfType<ParryManager>();
         if (parryManager == null)
         {
             Debug.LogWarning("ParryManager is null!");
@@ -116,6 +119,11 @@ public class Player : Entity, IHurtbox
     protected override void OnUpdate()
     {
         GroundCheck();
+        Move();
+        Jump();
+        Sprint();
+        LockOn();
+
         if (!Parrying)
         {
             MovementHandler();
@@ -128,28 +136,40 @@ public class Player : Entity, IHurtbox
 
     void GroundCheck()
     {
-        // origin a little above the bottom of the CharacterController
-        Vector3 origin = transform.position + Vector3.up * 0.1f;
-        float rayLength = (MainCollider.height / 2) + groundCheckDistance;
+        Vector3 dir = MainCollider.direction == 0 ? Vector3.right : MainCollider.direction == 1 ? Vector3.up : Vector3.forward;
+        float radius = MainCollider.radius * Mathf.Max(MainCollider.transform.lossyScale.x, MainCollider.transform.lossyScale.y, MainCollider.transform.lossyScale.z);
+        float height = MainCollider.height * 0.5f * Mathf.Max(MainCollider.transform.lossyScale.x, MainCollider.transform.lossyScale.y, MainCollider.transform.lossyScale.z);
+        Vector3 center = MainCollider.transform.TransformPoint(MainCollider.center);
+        Vector3 origin = center - dir * (height - radius) - new Vector3(0f, (radius / 2), 0f);
 
-        // raycast straight down
-        Grounded = Physics.Raycast(origin, Vector3.down, out RaycastHit hit, rayLength);
+        float rayLength = MainCollider.radius + groundCheckDistance;
+
+        //// origin a little above the bottom of the CharacterController
+        //Vector3 origin = transform.position + Vector3.up * 0.1f;
+        //float rayLength = (MainCollider.height / 2) + groundCheckDistance;
+
+        Grounded = false;
+        if (Physics.CheckSphere(origin, rayLength, groundLayers))
+        {
+            Grounded = true;
+        }
+        //Grounded = Physics.Raycast(origin, Vector3.down, out RaycastHit hit, rayLength);
 
         // optional: snap player slightly to ground if needed
-        if (Grounded)
-        {
-            float desiredY = hit.point.y + controller.skinWidth;
-            if (transform.position.y < desiredY)
-                transform.position = new Vector3(transform.position.x, desiredY, transform.position.z);
-        }
+        //if (Grounded)
+        //{
+        //    float desiredY = info.point.y + controller.skinWidth;
+        //    if (transform.position.y < desiredY)
+        //        transform.position = new Vector3(transform.position.x, desiredY, transform.position.z);
+        //}
 
         // optional debug
-        Debug.DrawRay(origin, Vector3.down * rayLength, Grounded ? Color.green : Color.red);
+        DrawMethods.WireSphere(origin, rayLength, Grounded ? Color.green : Color.red);
     }
 
-    public void Sprint(InputAction.CallbackContext context)
+    public void Sprint()
     {
-        if (context.ReadValue<float>() > 0)
+        if (UserInput.SprintHeld)
         {
             Sprinting = true;
         }
@@ -158,7 +178,7 @@ public class Player : Entity, IHurtbox
             Sprinting = false;
         }
 
-        if (Parrying && context.performed)
+        if (Parrying && UserInput.SprintPressed)
         {
             //lungeQueued = true;
             //lungeDir = moveDir.normalized;
@@ -187,6 +207,8 @@ public class Player : Entity, IHurtbox
         // Gravity & jumping
         if (Grounded)
         {
+            jumped = false;
+            Jumping = false;
             // Snap to ground
             if (verticalVelocity < -2f)
                 verticalVelocity = -2f;
@@ -195,6 +217,7 @@ public class Player : Entity, IHurtbox
             if (jumpQueued)
             {
                 jumpQueued = false;
+                jumped = true;
                 verticalVelocity = Mathf.Sqrt(jumpHeight * 2f * gravity);
             }
         }
@@ -202,6 +225,10 @@ public class Player : Entity, IHurtbox
         {
             // Apply gravity over time
             verticalVelocity -= gravity * Time.deltaTime;
+            if (jumped)
+            {
+                Jumping = true;
+            }
         }
 
         // Combine vertical & horizontal
@@ -212,9 +239,9 @@ public class Player : Entity, IHurtbox
         controller.Move(finalMove * Time.deltaTime);
     }
 
-    public void Move(InputAction.CallbackContext context)
+    public void Move()
     {
-        moveInput = context.ReadValue<Vector2>();
+        moveInput = UserInput.MoveInput;
     }
 
     void Turn()
@@ -235,15 +262,15 @@ public class Player : Entity, IHurtbox
         }
     }
 
-    public void Jump(InputAction.CallbackContext context)
+    public void Jump()
     {
-        if (context.performed && Grounded)
+        if (UserInput.JumpPressed && Grounded)
             jumpQueued = true;
     }
 
-    public void LockOn(InputAction.CallbackContext context)
+    public void LockOn()
     {
-        if (context.ReadValue<float>() > 0)
+        if (UserInput.LockOnHeld)
         {
             TargetEnemy();
         }

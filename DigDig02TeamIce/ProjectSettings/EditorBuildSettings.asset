@@ -11,5 +11,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TestLevel.unity
     guid: b5330e2e7520f6c4b8675fa2e310f652
+  - enabled: 1
+    path: Assets/Scenes/Dungeon_LightPuzzle01.unity
+    guid: 44d0b7eca841dd745b48b28bcaa874f0
+  - enabled: 1
+    path: Assets/Scenes/Outside01.unity
+    guid: 1a8bc919e0de67347b5ff04eb7484b9d
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 60de35bcbf6bf2e40b4ae5f1fd216156, type: 2}

@@ -21,7 +21,7 @@ public class Companion : Entity
 
     protected override void OnEntityEnable()
     {
-        Companion existing = TrackerHost.Current.Get<Companion>();
+        Companion existing = GameObject.FindObjectOfType<Companion>();
         if (existing != null && existing != this)
         {
             Debug.Log("Companion already exists, cancelling spawn.");
@@ -38,15 +38,17 @@ public class Companion : Entity
 
     protected override void OnUpdate()
     {
+        SpearAttack();
+
         if (player != null)
         {
             transform.SetPositionAndRotation(player.transform.position + Offset, new Quaternion(transform.rotation.x, player.transform.rotation.y, transform.rotation.z, transform.rotation.w));
         }
     }
 
-    public void SpearAttack(InputAction.CallbackContext context)
+    public void SpearAttack()
     {
-        if (context.performed)
+        if (UserInput.SpearAttackPressed)
         {
             if (TryAttack(2) && canAttack)
             {

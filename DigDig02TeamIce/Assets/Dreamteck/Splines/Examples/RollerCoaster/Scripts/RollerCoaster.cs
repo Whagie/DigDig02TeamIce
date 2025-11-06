@@ -44,7 +44,6 @@ namespace Dreamteck.Splines.Examples
         {
             follower = GetComponent<SplineFollower>();
             follower.onEndReached += OnEndReached;
-            Cursor.lockState = CursorLockMode.Locked;
         }
 
         void OnEndReached(double last)
@@ -113,7 +112,7 @@ namespace Dreamteck.Splines.Examples
                 if (speedPercent < sounds[i].startPercent+soundFadeLength) volume = Mathf.InverseLerp(sounds[i].startPercent, sounds[i].startPercent+soundFadeLength, speedPercent);
                 else if (speedPercent > sounds[i].endPercent) volume = Mathf.InverseLerp(sounds[i].endPercent + soundFadeLength, sounds[i].endPercent, speedPercent);
                 float pitchPercent = Mathf.InverseLerp(sounds[i].startPercent, sounds[i].endPercent, speedPercent);
-                sounds[i].source.volume = volume2;
+                sounds[i].source.volume = volume * volume2;
                 sounds[i].source.pitch = Mathf.Lerp(sounds[i].startPitch, sounds[i].endPitch, pitchPercent);
             }
 

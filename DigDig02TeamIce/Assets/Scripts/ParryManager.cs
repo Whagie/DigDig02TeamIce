@@ -41,13 +41,13 @@ public class ParryManager : Entity, IHurtbox
     protected override void OnStart()
     {
         ParryCollider = GetComponent<Collider>();
-        player = TrackerHost.Current.Get<Player>();
+        player = GameObject.FindObjectOfType<Player>();
         ParryCollider.enabled = false;
     }
 
-    public void Parry(InputAction.CallbackContext context)
+    public void Parry()
     {
-        if (context.performed && CanParry && !player.Invisible)
+        if (UserInput.ParryPressed && CanParry && !player.Invisible)
         {
             ParryBegin();
             Instantiate(ParryAnimation, transform.position, Quaternion.identity);
@@ -56,6 +56,8 @@ public class ParryManager : Entity, IHurtbox
 
     protected override void OnUpdate()
     {
+        Parry();
+
         switch (state)
         {
             case ParryState.Active:

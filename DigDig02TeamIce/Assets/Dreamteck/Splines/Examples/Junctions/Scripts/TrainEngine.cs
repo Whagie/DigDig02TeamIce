@@ -61,6 +61,8 @@ namespace Dreamteck.Splines.Examples
         //Called when the tracer has passed a junction (a Node)
         private void OnJunction(List<SplineTracer.NodeConnection> passed)
         {
+            Debug.Log($"[TrainEngine] Junction reached on {_tracer.spline?.name}, dir={_tracer.direction}, node={passed[0].node?.name}");
+
             Node node = passed[0].node; //Get the node of the junction
             JunctionSwitch junctionSwitch = node.GetComponent<JunctionSwitch>(); //Look for a JunctionSwitch component
             if (junctionSwitch == null) return; //No JunctionSwitch - ignore it - this isn't a real junction
@@ -102,22 +104,36 @@ namespace Dreamteck.Splines.Examples
 
         void SwitchSpline(Node.Connection from, Node.Connection to)
         {
-            //See how much units we have travelled past that Node in the last frame
-           
-            float excessDistance = from.spline.CalculateLength(from.spline.GetPointPercent(from.pointIndex), _tracer.UnclipPercent(_lastPercent));
-            //Set the spline to the tracer
+            float excessDistance = from.spline.CalculateLength(
+                from.spline.GetPointPercent(from.pointIndex),
+                _tracer.UnclipPercent(_lastPercent));
+
             _tracer.spline = to.spline;
             _tracer.RebuildImmediate();
-            //Get the location of the junction point in percent along the new spline
+
             double startpercent = _tracer.ClipPercent(to.spline.GetPointPercent(to.pointIndex));
-            if (Vector3.Dot(from.spline.Evaluate(from.pointIndex).forward, to.spline.Evaluate(to.pointIndex).forward) < 0f)
+
+            // Flip direction if opposite
+            if (Vector3.Dot(from.spline.Evaluate(from.pointIndex).forward,
+                            to.spline.Evaluate(to.pointIndex).forward) < 0f)
             {
-                if (_tracer.direction == Spline.Direction.Forward) _tracer.direction = Spline.Direction.Backward;
-                else _tracer.direction = Spline.Direction.Forward;
+                _tracer.direction = (_tracer.direction == Spline.Direction.Forward)
+                    ? Spline.Direction.Backward
+                    : Spline.Direction.Forward;
             }
-            //Position the tracer at the new location and travel excessDistance along the new spline
-            _tracer.SetPercent(_tracer.Travel(startpercent, excessDistance, _tracer.direction));
-            //Notify the wagon that we have entered a new spline segment
+
+            // Tiny offset so we don’t spawn exactly at 0 or 1.0
+            const double offsetPercent = 0.0001;
+            if (_tracer.direction == Spline.Direction.Forward)
+                startpercent = Math.Min(startpercent + offsetPercent, 0.9999);
+            else
+                startpercent = Math.Max(startpercent - offsetPercent, 0.0001);
+
+            // Clamp distance just in case
+            float clampedDistance = Mathf.Min(excessDistance, (float)to.spline.CalculateLength() * 0.999f);
+
+            _tracer.SetPercent(_tracer.Travel(startpercent, clampedDistance, _tracer.direction));
+
             _wagon.EnterSplineSegment(from.pointIndex, _tracer.spline, to.pointIndex, _tracer.direction);
             _wagon.UpdateOffset();
         }

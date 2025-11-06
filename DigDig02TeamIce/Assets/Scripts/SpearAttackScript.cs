@@ -44,7 +44,7 @@ public class SpearAttackScript : MeleeAttack
 
     void Start()
     {
-        companion = TrackerHost.Current.Get<Companion>();
+        companion = GameObject.FindObjectOfType<Companion>();
         companion.previousSpears.Add(this);
         PlayerAttack = true;
         DestroyOnHit = false;

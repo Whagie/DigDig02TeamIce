@@ -104,7 +104,7 @@ public abstract class Enemy : Entity, IHurtbox
     {
         if (player == null)
         {
-            player = TrackerHost.Current.Get<Player>();
+            player = GameObject.FindObjectOfType<Player>();
             if (player == null)
             {
                 Debug.LogWarning("Error, player not found! Adding temporary player object...");
@@ -120,7 +120,7 @@ public abstract class Enemy : Entity, IHurtbox
 
         if (player == null)
         {
-            player = TrackerHost.Current.Get<Player>();
+            player = GameObject.FindObjectOfType<Player>();
             if (player == null)
             {
                 Debug.LogWarning("Error, player not found! Adding temporary player object...");
@@ -561,7 +561,7 @@ public abstract class Enemy : Entity, IHurtbox
 
         var instance = Instantiate(prefab, transform);
         EnergyParticleManager particleManager = instance.GetComponent<EnergyParticleManager>();
-        Companion companion = TrackerHost.Current.Get<Companion>();
+        Companion companion = GameObject.FindObjectOfType<Companion>();
         if (companion == null)
         {
             Debug.Log("Companion is null!");

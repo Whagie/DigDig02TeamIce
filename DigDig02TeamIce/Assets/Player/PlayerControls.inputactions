@@ -7,7 +7,7 @@
             "actions": [
                 {
                     "name": "Move",
-                    "type": "Value",
+                    "type": "PassThrough",
                     "id": "12a7a1c2-2423-46c5-8041-c62f5a5a8f52",
                     "expectedControlType": "Vector2",
                     "processors": "",
@@ -54,6 +54,15 @@
                     "name": "ConstructAttack_01",
                     "type": "Button",
                     "id": "4ffa4ac8-e58c-4db1-85f2-ae6f60affda2",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Interact",
+                    "type": "Button",
+                    "id": "5290aedc-5f69-40e5-b6e8-c2aa03162789",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -234,6 +243,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "ConstructAttack_01",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3864a024-59a2-4cdb-97fa-66022bbea52c",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Interact",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2559fef8-cd82-422f-be12-39d63b689c63",
+                    "path": "<Gamepad>/buttonEast",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Interact",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

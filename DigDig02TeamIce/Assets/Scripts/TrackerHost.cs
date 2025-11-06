@@ -2,11 +2,11 @@
 
 public class TrackerHost : MonoBehaviour
 {
-    public static Tracker Current { get; private set; }
+    //public static Tracker Current { get; private set; }
 
     void Awake()
     {
-        Current = new Tracker(); // fresh tracker for this scene
+        //Current = new Tracker(); // fresh tracker for this scene
     }
 
     // Called automatically when a new scene loads

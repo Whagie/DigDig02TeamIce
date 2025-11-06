@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: f832b71561a916f44a3b09cb225a2bfe
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - blendMaterial: {fileID: 2100000, guid: 5fed8f2da5bc00a448e275b6211ad787, type: 2}
+  - player: {instanceID: 0}
+  - mainCamera: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

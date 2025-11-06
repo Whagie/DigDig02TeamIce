@@ -20,7 +20,7 @@ public class HealthBar : MonoBehaviour
             Width = healthBar.rect.width;
             Height = healthBar.rect.height;
         }
-        player = TrackerHost.Current.Get<Player>();
+        player = GameObject.FindObjectOfType<Player>();
         if (player != null)
         {
             player.OnPlayerTakeDamage += SetHealth;

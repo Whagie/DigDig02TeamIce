@@ -14,7 +14,7 @@ public class HitboxUpdate : MonoBehaviour
     private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         // Example: only spawn for scenes that start with "Level" or contain "Game"
-        if (!scene.name.Equals("TestLevel")) return;
+        if (scene.name.Equals("MainMenu")) return;
 
         if (instance == null)
         {

@@ -70,6 +70,12 @@ public static class HitboxManager
             Vector3 halfExtents = hbBox.size * 0.5f;
             Vector3 center = hbBox.transform.TransformPoint(hbBox.center);
             int count = Physics.OverlapBoxNonAlloc(center, halfExtents, overlapBuffer, hbBox.transform.rotation);
+
+            if (count == overlapBuffer.Length)
+            {
+                Debug.LogError($"[HitboxManager] overlapBuffer full ({count} entries)! Increase buffer size or reduce overlap density.");
+            }
+
             for (int i = 0; i < count; i++)
                 if (overlapBuffer[i] == hurtbox) return true;
         }
@@ -79,6 +85,12 @@ public static class HitboxManager
             Vector3 center = hbSphere.transform.TransformPoint(hbSphere.center);
             float radius = hbSphere.radius * Mathf.Max(hbSphere.transform.lossyScale.x, hbSphere.transform.lossyScale.y, hbSphere.transform.lossyScale.z);
             int count = Physics.OverlapSphereNonAlloc(center, radius, overlapBuffer);
+
+            if (count == overlapBuffer.Length)
+            {
+                Debug.LogError($"[HitboxManager] overlapBuffer full ({count} entries)! Increase buffer size or reduce overlap density.");
+            }
+
             for (int i = 0; i < count; i++)
                 if (overlapBuffer[i] == hurtbox) return true;
         }
@@ -92,6 +104,12 @@ public static class HitboxManager
             Vector3 point0 = center - dir * (height - radius);
             Vector3 point1 = center + dir * (height - radius);
             int count = Physics.OverlapCapsuleNonAlloc(point0, point1, radius, overlapBuffer);
+
+            if (count == overlapBuffer.Length)
+            {
+                Debug.LogError($"[HitboxManager] overlapBuffer full ({count} entries)! Increase buffer size or reduce overlap density.");
+            }
+
             for (int i = 0; i < count; i++)
                 if (overlapBuffer[i] == hurtbox) return true;
         }

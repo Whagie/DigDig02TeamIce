@@ -483,7 +483,7 @@ public abstract class Enemy : Entity, IHurtbox
 
         return false;
     }
-    public void OnActionEnd()
+    public void OnActionEnd() // THIS IS NOT USED! IT SHOULD BE USED! FIX THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     {
         _currentAction?.Modifier?.Revert(this);
         _currentAction = null;

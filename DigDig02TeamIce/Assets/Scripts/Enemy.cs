@@ -28,6 +28,7 @@ public abstract class Enemy : Entity, IHurtbox
     public bool Attacking { get; set; } = false;
     public bool Idle { get; set; } = true;
     public bool InCombat { get; set; } = false;
+    public bool IsAwake { get; set; } = true;
 
     public float WanderSpeed { get; set; } = 2.5f;
     public float ChaseSpeed { get; set; } = 7.5f;
@@ -115,7 +116,7 @@ public abstract class Enemy : Entity, IHurtbox
 
     protected override void OnUpdate()
     {
-        if (Dead)
+        if (Dead || !IsAwake)
             return;
 
         if (player == null)
@@ -238,6 +239,11 @@ public abstract class Enemy : Entity, IHurtbox
 
         if (NavAgent != null)
         {
+            if (!NavAgent.isOnNavMesh)
+            {
+                Debug.Log($"{name} is not on a NavMesh!");
+                return;
+            }
             if (InCombat)
             {
                 // Stop Wandering when in combat
@@ -269,30 +275,47 @@ public abstract class Enemy : Entity, IHurtbox
 
         while (!InCombat)
         {
-            Vector3 newPos = GetRandomNavmeshPoint(transform.position, WanderRadius, NavMesh.AllAreas);
+            // Try to find valid random point
+            if (TryGetRandomNavmeshPoint(transform.position, WanderRadius, NavMesh.AllAreas, out Vector3 newPos))
+            {
+                // Only set destination if valid
+                if (NavAgent.SetDestination(newPos))
+                {
+                    // Wait for path to complete but avoid infinite wait
+                    yield return new WaitUntil(() =>
+                        !NavAgent.pathPending &&
+                        NavAgent.hasPath &&
+                        NavAgent.remainingDistance <= NavAgent.stoppingDistance
+                    );
+                }
+            }
+            else
+            {
+                // No valid point found – avoid log spam
+                Debug.LogWarning($"{name} could not find a valid wander point.");
+            }
 
-            if (newPos != Vector3.zero)
-                NavAgent.SetDestination(newPos);
-
-            yield return new WaitUntil(() => !NavAgent.pathPending && NavAgent.remainingDistance <= NavAgent.stoppingDistance);
             yield return new WaitForSeconds(WaitTime);
         }
 
         Wandering = false;
     }
 
-    Vector3 GetRandomNavmeshPoint(Vector3 origin, float radius, int areaMask)
+    bool TryGetRandomNavmeshPoint(Vector3 origin, float radius, int areaMask, out Vector3 result)
     {
-        for (int i = 0; i < 10; i++) // up to 10 tries
+        for (int i = 0; i < 10; i++)
         {
-            Vector3 randomDirection = UnityEngine.Random.insideUnitSphere * radius;
-            randomDirection += origin;
+            Vector3 randomDirection = UnityEngine.Random.insideUnitSphere * radius + origin;
 
             if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, 1f, areaMask))
-                return hit.position;
+            {
+                result = hit.position;
+                return true;
+            }
         }
 
-        return Vector3.zero; // failed to find valid point
+        result = Vector3.zero;
+        return false;
     }
 
     public void GizmoDraw()

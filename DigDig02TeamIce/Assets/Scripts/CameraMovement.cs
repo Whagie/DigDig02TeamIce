@@ -65,7 +65,13 @@ public class CameraMovement : MonoBehaviour
         if (StaticCamera) return;
         if (!player) target = null;
         else target = player.transform;
-        if (!target) return;
+        
+        if (!target)
+        {
+            GameObject obj = new GameObject();
+            obj.transform.position = transform.position;
+            target = obj.transform;
+        }
 
         // === Follow logic ===
         Vector3 desiredPosition;

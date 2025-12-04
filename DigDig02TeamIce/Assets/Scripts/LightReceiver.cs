@@ -16,8 +16,15 @@ public class LightReceiver : MonoBehaviour
 
     [SerializeField] private List<GameObject> destroyOnRecieve;
 
+    [SerializeField] private WakeEnemies wakeEnemies;
+
     private void Start()
     {
+        if (wakeEnemies == null)
+        {
+            wakeEnemies = GetComponent<WakeEnemies>();
+        }
+
         receiveLightTimer = lightTimerLength;
         meshRenderer = GetComponent<MeshRenderer>();
     }
@@ -50,6 +57,11 @@ public class LightReceiver : MonoBehaviour
         foreach (var obj in destroyOnRecieve)
         {
             Destroy(obj);
+        }
+
+        if (wakeEnemies != null)
+        {
+            wakeEnemies.WakeUp();
         }
     }
 }

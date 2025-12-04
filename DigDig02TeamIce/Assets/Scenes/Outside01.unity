@@ -4004,7 +4004,8 @@ PrefabInstance:
       propertyPath: wanderSpeed
       value: 3
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 6762877068751080798, guid: 621aa0dfb7f3dcd4693e93c54b32c2b6, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -4337,6 +4338,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: b2d2f1b8135264e4aa8154e6b239ccd0, type: 3}
       propertyPath: m_Name
       value: OutwardsUVPlane
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: b2d2f1b8135264e4aa8154e6b239ccd0, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -35884,7 +35889,7 @@ ParticleSystemForceField:
     m_DirectionCurveX:
       serializedVersion: 2
       minMaxState: 0
-      scalar: -0.80101585
+      scalar: -1.6264043
       minScalar: 0
       maxCurve:
         serializedVersion: 2
@@ -35990,7 +35995,7 @@ ParticleSystemForceField:
     m_DirectionCurveZ:
       serializedVersion: 2
       minMaxState: 0
-      scalar: -0.105745316
+      scalar: 0.20698929
       minScalar: 0
       maxCurve:
         serializedVersion: 2

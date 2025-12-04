@@ -470,20 +470,6 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
-                    "m_Id": "80c4e29da69547fcb479286670a619c2"
-                },
-                "m_SlotId": 2
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "7cc99b6c1e5f4231bfb7f21aba8336a7"
-                },
-                "m_SlotId": 1
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
                     "m_Id": "8593c409c6f244f59a7fc34f34d03e4c"
                 },
                 "m_SlotId": 2
@@ -504,7 +490,7 @@
             },
             "m_InputSlot": {
                 "m_Node": {
-                    "m_Id": "fb087a9211ca4005b526abb4a6fec64f"
+                    "m_Id": "7cc99b6c1e5f4231bfb7f21aba8336a7"
                 },
                 "m_SlotId": 1
             }
@@ -535,6 +521,20 @@
                     "m_Id": "a966eb63967d4440af29405da66fb590"
                 },
                 "m_SlotId": 1
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "a5eb31809cd3423f98aab0e7ba1f3c0f"
+                },
+                "m_SlotId": 2
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "4f594c47de844c90921d408bd087351d"
+                },
+                "m_SlotId": 0
             }
         },
         {
@@ -2150,7 +2150,7 @@
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
     "m_Value": {
-        "m_SerializedTexture": "{\"texture\":{\"fileID\":2800000,\"guid\":\"e069a7c6139463e439a5e74e0587334e\",\"type\":3}}",
+        "m_SerializedTexture": "{\"texture\":{\"fileID\":2800000,\"guid\":\"2d5c197db84da514db032b0bc76528d1\",\"type\":3}}",
         "m_Guid": ""
     },
     "isMainTexture": false,
@@ -6752,7 +6752,7 @@
     "m_ShaderOutputName": "B",
     "m_StageCapability": 3,
     "m_Value": {
-        "e00": 3.5,
+        "e00": 2.5,
         "e01": 2.0,
         "e02": 2.0,
         "e03": 2.0,

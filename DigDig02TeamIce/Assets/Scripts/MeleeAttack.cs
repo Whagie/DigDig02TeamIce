@@ -41,6 +41,7 @@ public class MeleeAttack : MonoBehaviour, IHitbox
         active = true;
         HitboxManager.Register(this);
         Collider.enabled = true;
+        gizmoColor = Color.red;
         //StartCoroutine(DeactivateAfter(duration));
     }
 
@@ -56,6 +57,7 @@ public class MeleeAttack : MonoBehaviour, IHitbox
         active = false;
         HitboxManager.Unregister(this);
         Collider.enabled = false;
+        gizmoColor = Color.blue;
     }
 
     public virtual void OnHit(IHurtbox target)
@@ -72,11 +74,11 @@ public class MeleeAttack : MonoBehaviour, IHitbox
     {
         EnemyOwner.HandleParried(by);
     }
-    //void OnDrawGizmos()
-    //{
-    //    Color prevColor = Gizmos.color;
-    //    Gizmos.color = gizmoColor;
-    //    Gizmos.DrawWireCube(Collider.bounds.center, Collider.bounds.size);
-    //    Gizmos.color = prevColor;
-    //}
+    void OnDrawGizmos()
+    {
+        Color prevColor = Gizmos.color;
+        Gizmos.color = gizmoColor;
+        Gizmos.DrawWireCube(Collider.bounds.center, Collider.bounds.size);
+        Gizmos.color = prevColor;
+    }
 }

@@ -5,11 +5,11 @@ public class HitboxUpdate : MonoBehaviour
 {
     static HitboxUpdate instance;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    private static void Initialize()
-    {
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
+    //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    //private static void Initialize()
+    //{
+    //    SceneManager.sceneLoaded += OnSceneLoaded;
+    //}
 
     private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
@@ -21,7 +21,6 @@ public class HitboxUpdate : MonoBehaviour
             var go = new GameObject("HitboxUpdate");
             instance = go.AddComponent<HitboxUpdate>();
             Object.DontDestroyOnLoad(go);
-            go.hideFlags = HideFlags.HideInHierarchy;
         }
     }
 

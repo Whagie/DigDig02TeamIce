@@ -21,7 +21,7 @@ public class BillboardSprite : MonoBehaviour
             // Make the quad face the cam
             transform.forward = cam.forward;
             
-            if (LockOnTarget)
+            if (LockOnTarget && Player.currentTarget != null)
             {
                 transform.position = Player.currentTarget.transform.position + new Vector3(0, Player.currentTarget.GetComponent<Collider>().bounds.size.y + OffsetY, 0);
                 //transform.rotation = new Quaternion(transform.rotation.x, transform.rotation.y, 180f, transform.rotation.w);

@@ -95,6 +95,12 @@ public class Player : Entity, IHurtbox
     }
     protected override void OnStart()
     {
+        GameObject spawnPoint = GameObject.FindGameObjectWithTag("Respawn");
+        if (spawnPoint != null)
+        {
+            gameObject.transform.position = spawnPoint.transform.position;
+        }
+
         if (Health > MaxHealth)
         {
             MaxHealth = Health;

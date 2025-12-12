@@ -20,12 +20,12 @@ TagManager:
   - Enemy
   - Player
   - PlayerAttack
-  - 
+  - DoNotRender
   - Wind
   - MaskLayer
   - 
   - Walls
-  - OutsideOfRoom
+  - 
   - TerrainMask
   - EntranceFade
   - EntranceFrame

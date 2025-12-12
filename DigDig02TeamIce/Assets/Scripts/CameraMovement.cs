@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class CameraMovement : MonoBehaviour
 {
+    public static CameraMovement Instance;
     private Player player;
     private Transform target;
 
@@ -46,6 +47,13 @@ public class CameraMovement : MonoBehaviour
 
     public bool StaticCamera = false;
 
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+    }
     void Start()
     {
         player = GameObject.FindObjectOfType<Player>();
@@ -58,6 +66,20 @@ public class CameraMovement : MonoBehaviour
         cameraStartDistanceZ = cameraObject.transform.localPosition.z;
         cameraStartRotationX = cameraObject.transform.rotation.x;
         cameraStartPositionY = cameraObject.transform.localPosition.y;
+
+        transform.position = player.transform.position;
+
+        GameObject spawnPoint = GameObject.FindGameObjectWithTag("Respawn");
+        if (spawnPoint != null)
+        {
+            float startXAngle = transform.localEulerAngles.x;
+
+            transform.rotation = Quaternion.Euler(
+                startXAngle,
+                spawnPoint.transform.eulerAngles.y,
+                0f
+            );
+        }
     }
 
     void LateUpdate()
@@ -105,24 +127,24 @@ public class CameraMovement : MonoBehaviour
                 transform.position = newPosition;
         }
 
-        // === Rotation input (always apply) ===
-        if (Rotate && Input.GetMouseButton(0))
-        {
-            float mouseX = Input.GetAxis("Mouse X");
-            float mouseY = Input.GetAxis("Mouse Y");
+        //// === Rotation input (always apply) ===
+        //if (Rotate && Input.GetMouseButton(0))
+        //{
+        //    float mouseX = Input.GetAxis("Mouse X");
+        //    float mouseY = Input.GetAxis("Mouse Y");
 
-            rotationY += mouseX * rotationSensitivity * ySensitivityMultiplier;
-            rotationX -= mouseY * rotationSensitivity * xSensitivityMultiplier;
+        //    rotationY += mouseX * rotationSensitivity * ySensitivityMultiplier;
+        //    rotationX -= mouseY * rotationSensitivity * xSensitivityMultiplier;
 
-            // keep rotationX/rotationY in signed range for stable clamps
-            rotationX = NormalizeAngle(rotationX);
-            rotationY = NormalizeAngle(rotationY);
+        //    // keep rotationX/rotationY in signed range for stable clamps
+        //    rotationX = NormalizeAngle(rotationX);
+        //    rotationY = NormalizeAngle(rotationY);
 
-            float halfRange = xRange * 0.5f;
-            rotationX = Mathf.Clamp(rotationX, startX - halfRange, startX + halfRange);
+        //    float halfRange = xRange * 0.5f;
+        //    rotationX = Mathf.Clamp(rotationX, startX - halfRange, startX + halfRange);
 
-            transform.rotation = Quaternion.Euler(rotationX, rotationY, 0f);
-        }
+        //    transform.rotation = Quaternion.Euler(rotationX, rotationY, 0f);
+        //}
 
         float distanceAmount = MapToRange(rotationX, startX, xRange);
         float mappedDistance;

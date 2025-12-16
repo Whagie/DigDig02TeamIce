@@ -1,10 +1,13 @@
-﻿using System;
+﻿using FIMSpace.FTail;
+using Game.Core;
+using System;
 using System.Collections;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Game.Core;
+using UnityEngine.SceneManagement;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class Player : Entity, IHurtbox
 {
@@ -13,12 +16,14 @@ public class Player : Entity, IHurtbox
     public bool UseMeshCollision { get; set; } = false;
 
     [SerializeField] private LayerMask layers;
-    [SerializeField] private LayerMask groundLayers;
+    [SerializeField] public LayerMask groundLayers;
     public LayerMask LayerMask => layers;
 
     public Collider DetectionCollider;
     public CapsuleCollider MainCollider;
     public CapsuleCollider DamageCollider;
+
+    public Transform Center;
 
     private Collider[] colliders = new Collider[50];
     public static GameObject currentTarget;
@@ -29,6 +34,8 @@ public class Player : Entity, IHurtbox
 
     CharacterController controller;
     private Transform camera1;
+
+    public TailAnimator2 Tail;
 
     public float groundCheckDistance = 0.2f;
 
@@ -56,6 +63,12 @@ public class Player : Entity, IHurtbox
     public int Health = 15;
     public int MaxHealth = 15;
 
+    public bool Dead { get; private set; } = false;
+    public event System.Action OnPlayerDie;
+    public event System.Action OnPlayerResurrect;
+
+    public string sceneAtDeath;
+
     private float invisibilityTimer = 0f;
     public bool Invisible => invisibilityTimer > 0f;
 
@@ -74,6 +87,10 @@ public class Player : Entity, IHurtbox
     public int MaxEnergy = 6;
     [SerializeField] private float energyTimer = 0.6f;
     public event System.Action<int> OnChangeEnergy;
+
+    public Animator animator;
+
+    public Companion Companion;
 
     protected override void OnEntityEnable()
     {
@@ -106,7 +123,8 @@ public class Player : Entity, IHurtbox
             MaxHealth = Health;
         }
         controller = GetComponent<CharacterController>();
-        material = body.GetComponent<MeshRenderer>().material;
+        Companion = FindObjectOfType<Companion>();
+        material = Companion.GetComponent<MeshRenderer>().material;
 
         camera1 = Camera.main.transform;
 
@@ -124,6 +142,14 @@ public class Player : Entity, IHurtbox
 
     protected override void OnUpdate()
     {
+        if (Health <= 0 && !Dead)
+        {
+            Die();
+            return;
+        }
+
+        if (Dead) return;
+
         GroundCheck();
         Move();
         Jump();
@@ -138,6 +164,19 @@ public class Player : Entity, IHurtbox
 
         UpdateInvisibility();
         debugInvisible = Invisible;
+
+        if (Grounded)
+        {
+            animator.SetFloat("Move", controller.velocity.normalized.magnitude);
+            animator.SetBool("Sprinting", Sprinting);
+        }
+        else
+        {
+            animator.SetFloat("Move", 0f);
+            animator.SetBool("Sprinting", false);
+        }
+
+        animator.SetBool("Blocked", Parrying);
     }
 
     void GroundCheck()
@@ -389,9 +428,36 @@ public class Player : Entity, IHurtbox
         }
     }
 
-    protected virtual void Die()
+    public virtual void Die()
     {
+        Dead = true;
+        sceneAtDeath = SceneManager.GetActiveScene().name;
         material.SetColor("_BaseColor", Color.magenta);
+        DamageCollider.enabled = false;
+        MainCollider.enabled = false;
+        parryManager.ParryCollider.enabled = false;
+        animator.updateMode = AnimatorUpdateMode.UnscaledTime;
+        animator.SetBool("Dead", true);
+        Tail.enabled = false;
+        Tail.gameObject.SetActive(false);
+        OnPlayerDie?.Invoke();
+
+        SceneSwapManager.LoadDeathScene();
+    }
+    public virtual void Resurrect()
+    {
+        Dead = false;
+        Health = MaxHealth;
+        StartInvisible(1.5f, true);
+        material.SetColor("_BaseColor", Color.blue);
+        DamageCollider.enabled = true;
+        MainCollider.enabled = true;
+        parryManager.ParryCollider.enabled = true;
+        animator.updateMode = AnimatorUpdateMode.Normal;
+        Tail.enabled = true;
+        Tail.gameObject.SetActive(true);
+        Tail.User_ReposeTail();
+        OnPlayerResurrect?.Invoke();
     }
 
     public void GiveEnergy()
@@ -435,6 +501,7 @@ public class Player : Entity, IHurtbox
     {
         StartInvisible(parryManager.parryLength);
 
+        animator.SetTrigger("ParriedHit");
         Freezer.Freeze(0.05f);
         ParticleSpawner.Spawn(Particles.P_spark, transform.position);
         CameraActions.Main.Punch(-0.75f, 0.1f);
@@ -442,11 +509,13 @@ public class Player : Entity, IHurtbox
     private void HandleParryStart()
     {
         DamageCollider.enabled = false;
+        Parrying = true;
         material.SetColor("_BaseColor", Color.red);
     }
     private void HandleParryEnd()
     {
         DamageCollider.enabled = true;
+        Parrying = false;
         //if (lungeQueued)
         //{
         //    lungeQueued = false;

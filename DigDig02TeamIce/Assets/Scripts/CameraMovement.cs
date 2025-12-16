@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Linq;
 using UnityEngine;
 
 public class CameraMovement : MonoBehaviour
@@ -10,31 +12,11 @@ public class CameraMovement : MonoBehaviour
     private float cameraStartDistanceZ;
     private float cameraStartRotationX;
     private float cameraStartPositionY;
-    [SerializeField] private float cameraDistanceRange1 = 10f;
-    [SerializeField] private float cameraDistanceRange2 = 10f;
-    [SerializeField] float cameraLocalXRange1 = 20f;
-    [SerializeField] float cameraLocalXRange2 = 20f;
-    [SerializeField] float cameraLocalYPos1 = 0f;
-    [SerializeField] float cameraLocalYPos2 = 0f;
 
     [Header("Follow")]
     public float maxDistance = 5f;
     public float moveSmoothSpeed = 2f;
     public float recenterSmoothSpeed = 4f;
-
-    [Header("Rotation")]
-    public bool Rotate = true;
-    public float rotationSensitivity = 3f;
-    public float xSensitivityMultiplier = 1f;
-    public float ySensitivityMultiplier = 1f;
-    public float xRange = 30f;
-
-    [Header("Collision")]
-    public Transform rayOrigin;           // pivot from which raycasts are fired
-    public LayerMask collisionMask;       // layers that block the camera
-    public float rayDistance = 0.5f;      // distance to check for simple down/back checks
-    public float pushStrength = 5f;       // how quickly the pitch is pushed back
-    public float maxPushPenetration = 1f; // penetration mapped to 0..1 for smoothing
 
     private float rotationX; // signed -180..180
     private float rotationY; // signed -180..180
@@ -44,8 +26,32 @@ public class CameraMovement : MonoBehaviour
     private bool recentering = false;
 
     public bool followY = false;
-
     public bool StaticCamera = false;
+
+    private bool playingDeathAnim = false;
+    public float AmountThroughDeathAnim { get; private set; }
+    public event System.Action OnResurrectionRespawn;
+
+    private Quaternion originalRotation;
+    private Vector3 originalParentLocalPos;
+    private Vector3 originalChildLocalPos;
+
+    private void OnEnable()
+    {
+        if (player != null)
+        {
+            player.OnPlayerDie += OnPlayerDie;
+            //player.OnPlayerResurrect += OnPlayerResurrect;
+        }
+    }
+    private void OnDisable()
+    {
+        if (player != null)
+        {
+            player.OnPlayerDie -= OnPlayerDie;
+            //player.OnPlayerResurrect -= OnPlayerResurrect;
+        }
+    }
 
     private void Awake()
     {
@@ -57,6 +63,8 @@ public class CameraMovement : MonoBehaviour
     void Start()
     {
         player = GameObject.FindObjectOfType<Player>();
+
+        player.OnPlayerDie += OnPlayerDie;
 
         Vector3 euler = transform.localEulerAngles;
         startX = NormalizeAngle(euler.x);
@@ -74,6 +82,7 @@ public class CameraMovement : MonoBehaviour
         {
             float startXAngle = transform.localEulerAngles.x;
 
+            transform.position = spawnPoint.transform.position;
             transform.rotation = Quaternion.Euler(
                 startXAngle,
                 spawnPoint.transform.eulerAngles.y,
@@ -93,6 +102,11 @@ public class CameraMovement : MonoBehaviour
             GameObject obj = new GameObject();
             obj.transform.position = transform.position;
             target = obj.transform;
+        }
+
+        if (playingDeathAnim)
+        {
+            return;
         }
 
         // === Follow logic ===
@@ -123,109 +137,8 @@ public class CameraMovement : MonoBehaviour
             float smooth = (distance > maxDistance) ? moveSmoothSpeed : recenterSmoothSpeed;
             Vector3 newPosition = Vector3.SmoothDamp(transform.position, desiredPosition, ref velocity, 1f / smooth);
 
-            if (CanMoveDown(newPosition))
-                transform.position = newPosition;
+            transform.position = newPosition;
         }
-
-        //// === Rotation input (always apply) ===
-        //if (Rotate && Input.GetMouseButton(0))
-        //{
-        //    float mouseX = Input.GetAxis("Mouse X");
-        //    float mouseY = Input.GetAxis("Mouse Y");
-
-        //    rotationY += mouseX * rotationSensitivity * ySensitivityMultiplier;
-        //    rotationX -= mouseY * rotationSensitivity * xSensitivityMultiplier;
-
-        //    // keep rotationX/rotationY in signed range for stable clamps
-        //    rotationX = NormalizeAngle(rotationX);
-        //    rotationY = NormalizeAngle(rotationY);
-
-        //    float halfRange = xRange * 0.5f;
-        //    rotationX = Mathf.Clamp(rotationX, startX - halfRange, startX + halfRange);
-
-        //    transform.rotation = Quaternion.Euler(rotationX, rotationY, 0f);
-        //}
-
-        float distanceAmount = MapToRange(rotationX, startX, xRange);
-        float mappedDistance;
-        float mappedY;
-        float mappedRotation;
-        if (distanceAmount < 0f)
-        {
-            // negative side (-1 to 0) -> move towards Y
-            mappedDistance = Mathf.Lerp(0f, cameraDistanceRange1, -distanceAmount); // -distanceAmount goes 0 -> 1
-            mappedRotation = Mathf.Lerp(0f, cameraLocalXRange1, -distanceAmount); // -distanceAmount goes 0 -> 1
-            mappedY = Mathf.Lerp(0f, cameraLocalYPos1, -distanceAmount); // -distanceAmount goes 0 -> 1
-        }
-        else
-        {
-            // positive side (0 to 1) -> move towards Z
-            mappedDistance = Mathf.Lerp(0f, cameraDistanceRange2, distanceAmount);
-            mappedRotation = Mathf.Lerp(0f, cameraLocalXRange2, distanceAmount);
-            mappedY = Mathf.Lerp(0f, cameraLocalYPos2, distanceAmount);
-        }
-
-        float amountY = Mathf.InverseLerp(-1f, 1f, distanceAmount);
-
-        cameraObject.transform.SetLocalPositionAndRotation(new Vector3(
-            cameraObject.transform.localPosition.x, 
-            (amountY * cameraLocalYPos1) + cameraStartPositionY, 
-            (mappedDistance) + cameraStartDistanceZ),
-            
-            Quaternion.Euler(
-                (mappedRotation) + cameraStartRotationX,
-                cameraObject.transform.rotation.y,
-                cameraObject.transform.rotation.z
-            ));
-
-        // === Collision push-away (only adjust pitch smoothly) ===
-        //if (rayOrigin)
-        //{
-        //    Vector3 camDir = transform.position - rayOrigin.position;
-        //    float camDist = camDir.magnitude;
-
-        //    if (camDist > 0.001f)
-        //    {
-        //        if (Physics.Raycast(rayOrigin.position, camDir.normalized, out RaycastHit hit, camDist, collisionMask))
-        //        {
-        //            // only react to mostly-horizontal surfaces (ground/low slopes)
-        //            float upDot = Vector3.Dot(hit.normal, Vector3.up);
-
-        //            if (upDot > 0.4f) // tweak threshold if you want steeper slopes to count
-        //            {
-        //                // penetration: how far camera would be inside the hit surface
-        //                float penetration = camDist - hit.distance + 0.05f; // small cushion
-        //                penetration = Mathf.Max(0f, penetration);
-
-        //                // map penetration to 0..1 using a configurable max
-        //                float t = Mathf.Clamp01(penetration / Mathf.Max(0.0001f, maxPushPenetration));
-
-        //                // Smoothly nudge rotationX toward startX (center) based on t and pushStrength
-        //                // This avoids sign confusion: we always move the pitch *toward the safe center angle*
-        //                float targetX = Mathf.Lerp(rotationX, startX, t * pushStrength * Time.deltaTime);
-
-        //                // Optionally you might prefer to nudge only partially toward center:
-        //                rotationX = Mathf.Lerp(rotationX, targetX, 1f); // immediate copy of computed target
-        //                rotationX = Mathf.Clamp(rotationX, startX - xRange * 0.5f, startX + xRange * 0.5f);
-
-        //                transform.rotation = Quaternion.Euler(rotationX, rotationY, 0f);
-        //            }
-        //        }
-        //    }
-        //}
-    }
-
-    // --- Collision helpers ---
-    bool CanMoveDown(Vector3 newPosition)
-    {
-        if (!rayOrigin) return true;
-        return !Physics.Raycast(rayOrigin.position, Vector3.down, rayDistance, collisionMask);
-    }
-
-    bool CanMoveBack()
-    {
-        if (!rayOrigin) return true;
-        return !Physics.Raycast(rayOrigin.position, -rayOrigin.forward, rayDistance, collisionMask);
     }
 
     // Normalize angle 0..360 -> -180..180 and keep numbers small for stable math
@@ -243,15 +156,120 @@ public class CameraMovement : MonoBehaviour
         return (x - startX) / (fullRange * 0.5f);
     }
 
-    // Debug visualization
-    //void OnDrawGizmosSelected()
-    //{
-    //    if (!rayOrigin) return;
+    private void OnPlayerDie()
+    {
+        if (!playingDeathAnim)
+        {
+            CacheOriginalState();
+            StartCoroutine(DeathCam());
+            playingDeathAnim = true;
+        }
+    }
+    public void PlayerResurrect()
+    {
+        if (playingDeathAnim)
+        {
+            StopAllCoroutines();
+            StartCoroutine(ReturnCam(2f, true));
+        }
+    }
 
-    //    Gizmos.color = Color.yellow;
-    //    Gizmos.DrawLine(rayOrigin.position, rayOrigin.position + Vector3.down * rayDistance);
+    private IEnumerator DeathCam()
+    {
+        float delay = 0.5f;
+        float totalTime = player.animator.runtimeAnimatorController.animationClips.Where(c => c.name == "Die").FirstOrDefault().length;
 
-    //    Gizmos.color = Color.cyan;
-    //    Gizmos.DrawLine(rayOrigin.position, transform.position);
-    //}
+        float xAngle = 15f;
+        float yOffset = 135f;
+
+        float childMoveZ = 85f;
+        float childMoveY = -1f;
+
+        float parentMoveZ = 1.25f;
+
+        yield return new WaitForSecondsRealtime(delay);
+
+        // --- Start state
+        Quaternion startRot = transform.rotation;
+
+        // --- Target rotation (relative to player)
+        Quaternion targetRot =
+            Quaternion.AngleAxis(player.transform.eulerAngles.y + yOffset, Vector3.up) *
+            Quaternion.AngleAxis(xAngle, Vector3.right);
+
+        // --- Child movement
+        Transform child = transform.GetChild(0);
+        Vector3 childStart = child.localPosition;
+        Vector3 childTarget = childStart + new Vector3(0f, childMoveY, childMoveZ);
+
+        Vector3 parentStartPos = transform.localPosition;
+        Vector3 parentTargetPos = parentStartPos + new Vector3(0f, 0f, parentMoveZ);
+
+        float timer = 0f;
+
+        while (timer < totalTime)
+        {
+            timer += Time.unscaledDeltaTime;
+
+            AmountThroughDeathAnim = Mathf.Clamp01(timer / totalTime);
+
+            float t = Mathf.SmoothStep(0f, 1f, AmountThroughDeathAnim);
+
+            // --- Rotation
+            transform.rotation = Quaternion.Slerp(startRot, targetRot, t);
+
+            // --- Child movement starts halfway
+            if (t >= 0.4f)
+            {
+                float tHalf = Mathf.SmoothStep(0f, 1f, (t - 0.5f) / 0.5f);
+                child.localPosition = Vector3.Lerp(childStart, childTarget, tHalf);
+                transform.localPosition = Vector3.Lerp(parentStartPos, parentTargetPos, tHalf);
+            }
+
+            yield return null;
+        }
+
+        // Snap to final state
+        transform.rotation = targetRot;
+        child.localPosition = childTarget;
+    }
+    private IEnumerator ReturnCam(float duration = 2f, bool cancelDeathCam = false)
+    {
+        Transform child = transform.GetChild(0);
+
+        Quaternion startRot = transform.rotation;
+        Vector3 startParentPos = transform.localPosition;
+        Vector3 startChildPos = child.localPosition;
+
+        float timer = 0f;
+
+        while (timer < duration)
+        {
+            timer += Time.unscaledDeltaTime;
+            float t = Mathf.SmoothStep(0f, 1f, timer / duration);
+
+            transform.rotation = Quaternion.Slerp(startRot, originalRotation, t);
+            transform.localPosition = Vector3.Lerp(startParentPos, originalParentLocalPos, t);
+            child.localPosition = Vector3.Lerp(startChildPos, originalChildLocalPos, t);
+
+            yield return null;
+        }
+
+        transform.rotation = originalRotation;
+        transform.localPosition = originalParentLocalPos;
+        child.localPosition = originalChildLocalPos;
+
+        if (cancelDeathCam)
+        {
+            playingDeathAnim = false;
+            OnResurrectionRespawn?.Invoke();
+        }
+    }
+
+    void CacheOriginalState()
+    {
+        originalRotation = transform.rotation;
+        originalParentLocalPos = transform.localPosition;
+        originalChildLocalPos = transform.GetChild(0).localPosition;
+    }
 }

@@ -24,8 +24,8 @@ public class ParryManager : Entity, IHurtbox
     private enum ParryState { Ready, Active, Cooldown }
     private ParryState state = ParryState.Ready;
 
-    public float parryLength = 0.2f;
-    public float parryCooldown = 0.5f;
+    public float parryLength;
+    public float parryCooldown;
 
     private float parryLengthTimer;
     private float parryCooldownTimer;
@@ -101,7 +101,6 @@ public class ParryManager : Entity, IHurtbox
         parryLengthTimer = parryLength;
         CanParry = false;
         ParryCollider.enabled = true;
-        player.Parrying = true;
         parryResolvedThisFrame = false;
         OnParryStart?.Invoke();
     }
@@ -109,7 +108,6 @@ public class ParryManager : Entity, IHurtbox
     private void EndParry()
     {
         ParryCollider.enabled = false;
-        player.Parrying = false;
         OnParryEnd?.Invoke();
 
         parriedThisSession.Clear(); // reset per parry session

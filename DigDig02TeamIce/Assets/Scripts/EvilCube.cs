@@ -44,7 +44,7 @@ public class EvilCube : Enemy
 
             OnInterval(shootInterval, () =>
             {
-                FireProjectile(player.transform);
+                FireProjectile(player.Center.transform);
             });
         }
     }

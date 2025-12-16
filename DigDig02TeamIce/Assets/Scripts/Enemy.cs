@@ -329,18 +329,18 @@ public abstract class Enemy : Entity, IHurtbox
 
         DrawMethods.WireSphere(transform.position, AlertRadius, sphereColor);
 
-        float dist = Vector3.Distance(transform.position, player.transform.position);
-        Color lineColor;
-        if (Mathf.Abs(dist) <= 4)
-        {
-            lineColor = Color.magenta;
-        }
-        else
-        {
-            lineColor = Color.yellow;
-        }
+        //float dist = Vector3.Distance(transform.position, player.transform.position);
+        //Color lineColor;
+        //if (Mathf.Abs(dist) <= 4)
+        //{
+        //    lineColor = Color.magenta;
+        //}
+        //else
+        //{
+        //    lineColor = Color.yellow;
+        //}
 
-        DrawMethods.Line(transform.position, player.transform.position, lineColor);
+        //DrawMethods.Line(transform.position, player.transform.position, lineColor);
     }
 
     public bool IsTargetInVision(Collider target)

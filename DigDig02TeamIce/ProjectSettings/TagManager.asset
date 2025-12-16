@@ -9,6 +9,7 @@ TagManager:
   - MinecartCollision
   - LightReceiver
   - Shrouder
+  - PlayerUI
   layers:
   - Default
   - TransparentFX
@@ -23,7 +24,7 @@ TagManager:
   - DoNotRender
   - Wind
   - MaskLayer
-  - 
+  - Tail
   - Walls
   - 
   - TerrainMask

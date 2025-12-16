@@ -192,7 +192,7 @@ public class ShrumalWarrior : Enemy
     public void LungeDistanceDuration(string parameters)
     {
         float dist = Vector3.Distance(transform.position, player.transform.position);
-        if (dist > Actions[1].MinDistance)
+        if (dist > Actions[1].MinDistance) //Something wrong here with the distance?
         {
             var parts = parameters.Split(';').Select(float.Parse).ToArray();
             float distance = parts[0], duration = parts[1];

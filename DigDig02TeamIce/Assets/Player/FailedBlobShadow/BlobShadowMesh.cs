@@ -99,7 +99,7 @@ public class BlobShadowMesh : MonoBehaviour
             if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit,
                                 raycastHeight + maxDrop, groundMask))
             {
-                targetY = hit.point.y - anchorY;
+                targetY = (hit.point.y - anchorY) + 0.05f;
             }
 
             // Temporal smoothing (Y only)

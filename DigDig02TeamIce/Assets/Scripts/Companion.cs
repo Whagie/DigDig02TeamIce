@@ -48,9 +48,9 @@ public class Companion : Entity
 
     public void SpearAttack()
     {
-        if (UserInput.SpearAttackPressed)
+        if (UserInput.SpearAttackPressed && canAttack)
         {
-            if (TryAttack(2) && canAttack)
+            if (TryAttack(2))
             {
                 SpearOffset = GetRandomSpawnPosition(transform, out var spawnState);
 

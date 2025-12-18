@@ -42,8 +42,6 @@ public class BlinkController : MonoBehaviour
 
             if (Random.value < blinkChance)
             {
-                print("Blinked");
-
                 float normalizedBlend = 1f - (skinnedMesh.GetBlendShapeWeight(blinkBlendShapeIndex) / 100f);
 
                 animator.SetLayerWeight(blinkLayerIndex, normalizedBlend);

@@ -344,7 +344,7 @@ MonoBehaviour:
   blinkRateMultiplier: 1
   skinnedMesh: {fileID: 5511122384930764767}
   blinkBlendShapeIndex: 0
-  blinkDurationRange: {x: 0.125, y: 2}
+  blinkDurationRange: {x: 0.125, y: 0.2}
 --- !u!1 &7861368079501517889
 GameObject:
   m_ObjectHideFlags: 0

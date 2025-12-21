@@ -36,6 +36,8 @@ public class CameraMovement : MonoBehaviour
     private Vector3 originalParentLocalPos;
     private Vector3 originalChildLocalPos;
 
+    public CameraActions Actions { get; private set; }
+
     private void OnEnable()
     {
         if (player != null)
@@ -59,10 +61,18 @@ public class CameraMovement : MonoBehaviour
         {
             Instance = this;
         }
+        Actions = cameraObject.GetComponent<CameraActions>();
     }
     void Start()
     {
         player = GameObject.FindObjectOfType<Player>();
+        if (player != null)
+        {
+            if (player._camera == null)
+            {
+                player._camera = this;
+            }
+        }
 
         player.OnPlayerDie += OnPlayerDie;
 

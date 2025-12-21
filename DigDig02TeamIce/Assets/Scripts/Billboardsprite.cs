@@ -8,28 +8,27 @@ public class BillboardSprite : MonoBehaviour
     public Vector3 target;
 
     [SerializeField] private bool LockOnTarget;
-    [SerializeField] private float OffsetY = 1.5f;
+    [SerializeField] private float OffsetY = 0.75f;
     void Start()
     {
         cam = Camera.main.transform;
     }
 
-    void Update()
+    void LateUpdate()
     {
-        if (cam != null)
+        // Make the quad face the cam
+        transform.LookAt(cam);
+
+        if (LockOnTarget && Player.currentTarget != null)
         {
-            // Make the quad face the cam
-            transform.forward = cam.forward;
-            
-            if (LockOnTarget && Player.currentTarget != null)
-            {
-                transform.position = Player.currentTarget.transform.position + new Vector3(0, Player.currentTarget.GetComponent<Collider>().bounds.size.y + OffsetY, 0);
-                //transform.rotation = new Quaternion(transform.rotation.x, transform.rotation.y, 180f, transform.rotation.w);
-            }
-            else
-            {
-                transform.position = target;
-            }
+            transform.localScale = Vector3.one * 0.75f;
+            transform.position = Player.currentTarget.transform.position + new Vector3(0, Player.currentTarget.GetComponent<Collider>().bounds.size.y * 2f, 0);
+            //transform.rotation = new Quaternion(transform.rotation.x, transform.rotation.y, 180f, transform.rotation.w);
+        }
+        else
+        {
+            transform.position = target;
+            transform.localScale = Vector3.zero;
         }
     }
 }

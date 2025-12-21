@@ -537,8 +537,16 @@ PrefabInstance:
       value: 1048593
       objectReference: {fileID: 0}
     - target: {fileID: 7119627501738233021, guid: 0be8f096bef66d64c90c62e6755132ef, type: 3}
+      propertyPath: parryLength
+      value: 0.175
+      objectReference: {fileID: 0}
+    - target: {fileID: 7119627501738233021, guid: 0be8f096bef66d64c90c62e6755132ef, type: 3}
       propertyPath: parryCooldown
-      value: 0.5
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 7119627501738233021, guid: 0be8f096bef66d64c90c62e6755132ef, type: 3}
+      propertyPath: shortenedCooldownMultiplier
+      value: 0.35
       objectReference: {fileID: 0}
     - target: {fileID: 7948930826786686778, guid: 0be8f096bef66d64c90c62e6755132ef, type: 3}
       propertyPath: m_LocalPosition.x

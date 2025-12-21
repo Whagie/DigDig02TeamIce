@@ -24,4 +24,9 @@ namespace Game.Core
         void OnHit(IHitbox source);
         void TakeDamage(int damage);
     }
+
+    public interface IPushbackReceiver
+    {
+        void ApplyPushback(Vector3 direction, float force, float duration);
+    }
 }

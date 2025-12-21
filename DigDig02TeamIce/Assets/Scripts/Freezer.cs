@@ -31,12 +31,7 @@ public static class Freezer
 
         if (duration > 0f)
         {
-            if (freezeCoroutine != null)
-            {
-                runner.StopCoroutine(freezeCoroutine);
-            }
-
-            freezeCoroutine = runner.StartCoroutine(FreezeRoutine(duration));
+            runner.StartCoroutine(FreezeRoutine(duration));
         }
     }
 

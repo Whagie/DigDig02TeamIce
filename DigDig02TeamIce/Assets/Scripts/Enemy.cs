@@ -6,20 +6,31 @@ using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
-using static UnityEngine.GraphicsBuffer;
+using static UnityEngine.EventSystems.EventTrigger;
 
 public abstract class Enemy : Entity, IHurtbox
 {
     public GameObject Owner => gameObject;
     public Collider Collider { get; protected set; }
     public bool UseMeshCollision { get; set; } = false;
-    public LayerMask LayerMask { get; protected set; }
 
     protected static Player player;
 
-    public int Health { get; set; } = 10;
-    public float AlertRadius { get; set; } = 5f;
-    public float MarginDegrees { get; set; } = 4f;
+    [SerializeField] public EnemyStats stats;
+
+    public LayerMask LayerMask => stats.layers;
+    [SerializeField] public EnemyUI enemyUI;
+
+    public int Health => stats.health;
+    public int MaxHealth => stats.maxHealth;
+    public float AlertRadius => stats.alertRadius;
+    public float MarginDegrees => stats.marginDegrees;
+    public float WanderSpeed => stats.wanderSpeed;
+    public float ChaseSpeed => stats.chaseSpeed;
+    public float WanderRadius => stats.wanderRadius;
+    public float WaitTime => stats.waitTime;
+    public float RotationSpeed => stats.rotationSpeed;
+
     public bool DetectedPlayer { get; set; } = false;
     public bool LookingForPlayer { get; set; } = false;
     public bool SeeingPlayer { get; set; } = false;
@@ -30,13 +41,9 @@ public abstract class Enemy : Entity, IHurtbox
     public bool InCombat { get; set; } = false;
     public bool IsAwake { get; set; } = true;
 
-    public float WanderSpeed { get; set; } = 2.5f;
-    public float ChaseSpeed { get; set; } = 7.5f;
-    public float WanderRadius { get; set; } = 5f;
-    public float WaitTime { get; set; } = 2f;
-    public float RotationSpeed { get; set; } = 75f;
-
     public bool Wandering { get; set; } = false;
+    public bool ShouldWander { get; set; } = true;
+    public bool ShouldMove { get; set; } = true;
 
     public List<HitFlash> ChildrenWithFlashEffect;
 
@@ -52,9 +59,11 @@ public abstract class Enemy : Entity, IHurtbox
 
     public EnemyAction[] Actions;
     private EnemyAction _currentAction;
-    public float ActionInterval { get; set; } = 3f;
+    public float ActionInterval => stats.actionInterval;
     private bool hasAttacked = false;
     private bool tryingFirstAttack = false;
+
+    private bool firstDamage = true;
 
     public Animator _animator;
     private float _timer;
@@ -91,7 +100,6 @@ public abstract class Enemy : Entity, IHurtbox
         {
             InitializeActions();
         }
-        LayerMask = LayerMask.GetMask("Player", "PlayerDamage");
 
         NavAgent = GetComponent<NavMeshAgent>();
 
@@ -112,6 +120,19 @@ public abstract class Enemy : Entity, IHurtbox
                 player = new GameObject("tempPlayer").AddComponent<Player>();
             }
         }
+
+        VisionCones.Add(new VisionCone(Vector3.zero, Vector3.zero, stats.visionAngle, stats.visionLength));
+        foreach (var cone in VisionCones)
+        {
+            cone.angle = stats.visionAngle;
+            cone.rotation = stats.visionRotation;
+            cone.length = stats.visionLength;
+        }
+
+        if (enemyUI.EnemyOwner == null)
+        {
+            enemyUI.EnemyOwner = this;
+        }
     }
 
     protected override void OnUpdate()
@@ -126,6 +147,20 @@ public abstract class Enemy : Entity, IHurtbox
             {
                 Debug.LogWarning("Error, player not found! Adding temporary player object...");
                 player = new GameObject("tempPlayer").AddComponent<Player>();
+            }
+        }
+
+        foreach (var cone in VisionCones)
+        {
+            cone.angle = stats.visionAngle;
+            cone.rotation = stats.visionRotation;
+            if (SeeingPlayer)
+            {
+                cone.length = stats.chaseVisionLength;
+            }
+            else
+            {
+                cone.length = stats.visionLength;
             }
         }
 
@@ -239,30 +274,33 @@ public abstract class Enemy : Entity, IHurtbox
 
         if (NavAgent != null)
         {
-            if (!NavAgent.isOnNavMesh)
+            if (ShouldMove)
             {
-                Debug.Log($"{name} is not on a NavMesh!");
-                return;
-            }
-            if (InCombat)
-            {
-                // Stop Wandering when in combat
-                if (Wandering)
+                if (!NavAgent.isOnNavMesh)
                 {
-                    StopCoroutine(WanderRoutine());
-                    Wandering = false;
+                    Debug.Log($"{name} is not on a NavMesh!");
+                    return;
                 }
-                NavAgent.destination = player.transform.position;
-                if (!Attacking)
+                if (InCombat)
                 {
-                    SetSpeed(ChaseSpeed);
+                    // Stop Wandering when in combat
+                    if (Wandering)
+                    {
+                        StopCoroutine(WanderRoutine());
+                        Wandering = false;
+                    }
+                    NavAgent.destination = player.transform.position;
+                    if (!Attacking)
+                    {
+                        SetSpeed(ChaseSpeed);
+                    }
+                    return;
                 }
-                return;
-            }
-            if (!InCombat && !Wandering)
-            {
-                StartCoroutine(WanderRoutine());
-                SetSpeed(WanderSpeed);
+                if (!InCombat && !Wandering && ShouldWander)
+                {
+                    StartCoroutine(WanderRoutine());
+                    SetSpeed(WanderSpeed);
+                }
             }
         }
 
@@ -410,7 +448,6 @@ public abstract class Enemy : Entity, IHurtbox
         {
             SpawnEnergy();
         }
-
         foreach (var child in ChildrenWithFlashEffect)
         {
             child.Flash();
@@ -419,7 +456,26 @@ public abstract class Enemy : Entity, IHurtbox
 
     public virtual void TakeDamage(int amount)
     {
-        Health -= amount;
+        if (amount < 0)
+            return;
+
+        if (firstDamage)
+        {
+            enemyUI.group.alpha = 1f;
+            firstDamage = false;
+        }
+
+        int healthAfterDamage = stats.health - amount;
+
+        if (healthAfterDamage < 0)
+        {
+            stats.health -= (amount - Math.Abs(healthAfterDamage));
+        }
+        else if (healthAfterDamage >= 0)
+        {
+            stats.health -= amount;
+        }
+
         if (Health <= 0)
             Die();
     }
@@ -636,4 +692,28 @@ public class VisionCone
     }
 
     public Quaternion GetRotation() => Quaternion.Euler(rotation);
+}
+
+[System.Serializable]
+public class EnemyStats
+{
+    [SerializeField] public LayerMask layers;
+
+    [SerializeField] public int health = 5;
+    [SerializeField] public int maxHealth = 5;
+
+    [SerializeField] public float alertRadius = 5f;
+    [SerializeField] public float visionLength = 8f;
+    [SerializeField] public float chaseVisionLength = 16f;
+    [SerializeField] public float visionAngle = 120f;
+    [SerializeField] public float marginDegrees = 4f;
+    [SerializeField] public Vector3 visionRotation = Vector3.zero;
+
+    [SerializeField] public float wanderSpeed = 3f;
+    [SerializeField] public float chaseSpeed = 6f;
+    [SerializeField] public float wanderRadius = 25f;
+    [SerializeField] public float waitTime = 1f;
+    [SerializeField] public float rotationSpeed = 75f;
+
+    [SerializeField] public float actionInterval = 2f;
 }

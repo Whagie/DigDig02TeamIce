@@ -7,9 +7,10 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 using static UnityEditor.Experimental.GraphView.GraphView;
 
-public class Player : Entity, IHurtbox
+public class Player : Entity, IHurtbox, IPushbackReceiver
 {
     public GameObject Owner => gameObject;
     public Collider Collider => DamageCollider;
@@ -30,10 +31,11 @@ public class Player : Entity, IHurtbox
     [SerializeField] private GameObject LockOnIcon;
     private GameObject iconCopy;
 
+    public CameraMovement _camera;
+
     private ParryManager parryManager;
 
     CharacterController controller;
-    private Transform camera1;
 
     public TailAnimator2 Tail;
 
@@ -60,8 +62,15 @@ public class Player : Entity, IHurtbox
     private Vector3 moveDir;
     private Vector3 moveInput;
 
+    // Pushback
+    private Vector3 pushVelocity = Vector3.zero;
+    private float pushTimer = 0f;
+
     public int Health = 15;
     public int MaxHealth = 15;
+
+    private float airTimeBeforeAnimTransitionTimer = 0f;
+    private bool airTimerActive = false;
 
     public bool Dead { get; private set; } = false;
     public event System.Action OnPlayerDie;
@@ -70,7 +79,7 @@ public class Player : Entity, IHurtbox
     public string sceneAtDeath;
 
     private float invisibilityTimer = 0f;
-    public bool Invisible => invisibilityTimer > 0f;
+    public bool Invisible;
 
     public float InvisibilityLength = 0.6f;
     private bool invisibilityColorActive = false;
@@ -92,6 +101,15 @@ public class Player : Entity, IHurtbox
 
     public Companion Companion;
 
+    public bool Attacking { get; set; } = false;
+    public bool CanAttack { get; set; } = true;
+    public bool AllowFollowUpAttack = false;
+    public bool AttackBuffered = false;
+
+    public GameObject Wrench;
+    public Collider WrenchCollider;
+    private MeleeAttack wrenchAttack;
+
     protected override void OnEntityEnable()
     {
         HitboxManager.Register(this);
@@ -108,6 +126,12 @@ public class Player : Entity, IHurtbox
     protected override void OnEntityDisable()
     {
         HitboxManager.Unregister(this);
+
+        parryManager.OnParryStart -= HandleParryStart;
+        parryManager.OnParryEnd -= HandleParryEnd;
+        parryManager.OnParryCooldownEnd -= HandleParryCooldownEnd;
+        parryManager.OnParried -= Parried;
+
         base.OnEntityDisable();
     }
     protected override void OnStart()
@@ -126,7 +150,7 @@ public class Player : Entity, IHurtbox
         Companion = FindObjectOfType<Companion>();
         material = Companion.GetComponent<MeshRenderer>().material;
 
-        camera1 = Camera.main.transform;
+        _camera = GameObject.FindObjectOfType<CameraMovement>();
 
         parryManager = GameObject.FindObjectOfType<ParryManager>();
         if (parryManager == null)
@@ -138,6 +162,12 @@ public class Player : Entity, IHurtbox
         parryManager.OnParryEnd += HandleParryEnd;
         parryManager.OnParryCooldownEnd += HandleParryCooldownEnd;
         parryManager.OnParried += Parried;
+
+        wrenchAttack = Wrench.GetComponent<MeleeAttack>();
+        wrenchAttack.hitCollider = WrenchCollider;
+        wrenchAttack.EnemyOwner = null;
+        wrenchAttack.LayerMask = LayerMask.GetMask("Enemy");
+        WrenchCollider.enabled = false;
     }
 
     protected override void OnUpdate()
@@ -167,16 +197,25 @@ public class Player : Entity, IHurtbox
 
         if (Grounded)
         {
-            animator.SetFloat("Move", controller.velocity.normalized.magnitude);
+            animator.SetFloat("Move", controller.velocity.magnitude);
             animator.SetBool("Sprinting", Sprinting);
+            airTimerActive = false;
         }
         else
         {
-            animator.SetFloat("Move", 0f);
-            animator.SetBool("Sprinting", false);
+            if (!airTimerActive)
+            {
+                airTimerActive = true;
+                StartCoroutine(AirTimeTimer(0.075f));
+            }
         }
 
-        animator.SetBool("Blocked", Parrying);
+        if (!Parrying)
+        {
+            animator.SetBool("Blocked", false);
+        }
+
+        Attack();
     }
 
     void GroundCheck()
@@ -236,8 +275,8 @@ public class Player : Entity, IHurtbox
         float targetSpeed = Sprinting && Grounded ? sprintSpeed : walkSpeed;
 
         // Get movement direction relative to camera
-        Vector3 camForward = camera1.forward;
-        Vector3 camRight = camera1.right;
+        Vector3 camForward = _camera.transform.forward;
+        Vector3 camRight = _camera.transform.right;
         camForward.y = 0f;
         camRight.y = 0f;
         camForward.Normalize();
@@ -248,6 +287,18 @@ public class Player : Entity, IHurtbox
 
         // Apply horizontal movement
         moveDir = move * targetSpeed;
+
+        // ----- PUSHBACK -----
+        if (pushTimer > 0f)
+        {
+            // Override normal movement with pushback
+            moveDir = pushVelocity;
+
+            // Decrease timer
+            pushTimer -= Time.deltaTime;
+            if (pushTimer <= 0f)
+                pushVelocity = Vector3.zero;
+        }
 
         // Gravity & jumping
         if (Grounded)
@@ -374,6 +425,9 @@ public class Player : Entity, IHurtbox
 
     public void OnHit(IHitbox source)
     {
+        if (parryManager.LastParryFrame == Time.frameCount)
+            return;
+
         if (!Parrying)
         {
             TakeDamage(source.Damage);
@@ -405,6 +459,7 @@ public class Player : Entity, IHurtbox
     {
         invisibilityTimer = length;
         invisibilityColorActive = changeColor;
+        Invisible = true;
 
         if (changeColor)
             material.SetColor("_BaseColor", new Color(0.5f, 0.5f, 1f, 0.25f));
@@ -418,6 +473,7 @@ public class Player : Entity, IHurtbox
             if (invisibilityTimer <= 0f)
             {
                 invisibilityTimer = 0f;
+                Invisible = false;
 
                 if (invisibilityColorActive)
                 {
@@ -440,6 +496,7 @@ public class Player : Entity, IHurtbox
         animator.SetBool("Dead", true);
         Tail.enabled = false;
         Tail.gameObject.SetActive(false);
+        _camera.Actions.CancelAllActions();
         OnPlayerDie?.Invoke();
 
         SceneSwapManager.LoadDeathScene();
@@ -497,25 +554,26 @@ public class Player : Entity, IHurtbox
         OnChangeEnergy?.Invoke(Energy);
     }
 
-    private void Parried()
+    private void Parried(IHitbox hitbox)
     {
-        StartInvisible(parryManager.parryLength);
+        //StartInvisible(parryManager.parryLength);
 
         animator.SetTrigger("ParriedHit");
-        Freezer.Freeze(0.05f);
+        Freezer.Freeze(0.1f);
         ParticleSpawner.Spawn(Particles.P_spark, transform.position);
         CameraActions.Main.Punch(-0.75f, 0.1f);
+
+        Vector3 pushDir = hitbox.Owner.transform.position - transform.position;
+        Vector3 final = new Vector3(-pushDir.x, 0, -pushDir.z);
+        ApplyPushback(final, 2.5f, 0.15f);
     }
     private void HandleParryStart()
     {
-        DamageCollider.enabled = false;
-        Parrying = true;
+        animator.SetBool("Blocked", true);
         material.SetColor("_BaseColor", Color.red);
     }
     private void HandleParryEnd()
     {
-        DamageCollider.enabled = true;
-        Parrying = false;
         //if (lungeQueued)
         //{
         //    lungeQueued = false;
@@ -529,25 +587,109 @@ public class Player : Entity, IHurtbox
         material.SetColor("_BaseColor", Color.blue);
     }
 
-    public virtual void Lunge(Vector3 direction, float distance, float duration)
+    private IEnumerator AirTimeTimer(float length)
     {
-        StartCoroutine(LungeRoutine(direction, distance, duration));
-    }
+        airTimeBeforeAnimTransitionTimer = length;
 
-    private IEnumerator LungeRoutine(Vector3 direction, float distance, float duration)
-    {
-        Vector3 start = transform.position;
-        Vector3 target = start + direction * distance;
-        float elapsed = 0f;
-
-        while (elapsed < duration)
+        while (airTimeBeforeAnimTransitionTimer > 0)
         {
-            float t = elapsed / duration;
-            transform.position = Vector3.Lerp(start, target, t);
-            elapsed += Time.deltaTime;
+            if (Grounded)
+            {
+                airTimerActive = false;
+                yield break;
+            }
+            airTimeBeforeAnimTransitionTimer -= Time.deltaTime;
             yield return null;
         }
 
-        transform.position = target;
+        animator.SetFloat("Move", 0f);
+        animator.SetBool("Sprinting", false);
+        airTimerActive = false;
+    }
+
+    public void ApplyPushback(Vector3 direction, float force, float duration)
+    {
+        pushVelocity = direction.normalized * force;
+        pushTimer = duration;
+    }
+
+    private void Attack()
+    {
+        var state = animator.GetCurrentAnimatorStateInfo(2);
+        bool inTransition = animator.IsInTransition(2);
+        AnimatorStateInfo nextState = default;
+
+        if (inTransition)
+            nextState = animator.GetNextAnimatorStateInfo(2);
+
+        bool isInAttackState =
+            state.IsTag("Attack") ||
+            (inTransition && nextState.IsTag("Attack"));
+
+        // --- Authoritative attacking state ---
+        Attacking = isInAttackState;
+
+        // --- Input handling ---
+        if (UserInput.MeleeAttackPressed && !Parrying)
+        {
+            if (Attacking)
+            {
+                if (AllowFollowUpAttack)
+                {
+                    AllowFollowUpAttack = false;
+                    AttackBuffered = true;
+                }
+            }
+            else
+            {
+                // Starting a brand new attack
+                Attacking = true;
+                AttackBuffered = false;
+                AllowFollowUpAttack = false;
+
+                animator.SetBool("FollowUp", false); // IMPORTANT
+            }
+        }
+
+        // --- Layer weight ---
+        animator.SetLayerWeight(2, Attacking ? 1f : 0f);
+
+        // --- Animator params ---
+        animator.SetBool("Attack", Attacking);
+        animator.SetBool("FollowUp", AttackBuffered);
+
+        // --- Hard reset when idle ---
+        if (!Attacking && !isInAttackState)
+        {
+            AttackBuffered = false;
+            AllowFollowUpAttack = false;
+            animator.SetBool("FollowUp", false);
+        }
+    }
+
+    public void ActivateAttackHitbox(int activate = 1)
+    {
+        if (activate == 1)
+        {
+            wrenchAttack.Activate();
+            wrenchAttack.gizmoColor = Color.red;
+        }
+        else
+        {
+            wrenchAttack.Deactivate();
+            wrenchAttack.gizmoColor = Color.blue;
+        }
+    }
+    public void AllowNextAttackBuffer(int allow = 1)
+    {
+        if (allow == 1)
+        {
+            AllowFollowUpAttack = true;
+        }
+        else
+        {
+            AllowFollowUpAttack = false;
+            AttackBuffered = false;
+        }
     }
 }

@@ -106,4 +106,9 @@ public class CameraActions : MonoBehaviour
         cam.fieldOfView = startFOV; // reset
         punchRoutine = null;
     }
+
+    public void CancelAllActions()
+    {
+        StopAllCoroutines();
+    }
 }

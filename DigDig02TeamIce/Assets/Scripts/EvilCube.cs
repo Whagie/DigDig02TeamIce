@@ -7,24 +7,21 @@ public class EvilCube : Enemy
 {
     public Collider MainCollider;
 
-    public float alertRadius = 4f;
-    public float visionLength = 5f;
-    public float visionAngle = 90f;
-    public Vector3 visionRotation = Vector3.zero;
-
     [SerializeField] private float shootInterval = 2f;
 
     protected override void OnAwake()
     {
-        Health = 10;
-        AlertRadius = alertRadius;
-        ProjectileDamage = 2;
+        base.OnAwake();
 
-        VisionCones.Add(new VisionCone(Vector3.zero, Vector3.zero, visionAngle, visionLength));
+        ShouldWander = false;
+        ShouldMove = false;
+        ProjectileDamage = 2;
     }
 
     protected override void OnStart()
     {
+        base.OnStart();
+
         if (MainCollider != null)
         {
             Collider = MainCollider;
@@ -34,9 +31,6 @@ public class EvilCube : Enemy
     protected override void OnUpdate()
     {
         base.OnUpdate();
-        VisionCones[0].angle = visionAngle;
-        VisionCones[0].length = visionLength;
-        VisionCones[0].rotation = visionRotation;
 
         if (DetectedPlayer)
         {

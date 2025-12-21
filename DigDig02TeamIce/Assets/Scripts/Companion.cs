@@ -16,7 +16,7 @@ public class Companion : Entity
     public List<SpearAttackScript> previousSpears;
     private SpearAttackScript.SpearSpawnState lastState;
 
-    private float spearAttackCooldown = 1.2f;
+    public float spearAttackCooldown = 0.6f;
     private bool canAttack = true;
 
     protected override void OnEntityEnable()

@@ -26,19 +26,20 @@ public class ParryManager : Entity, IHurtbox
 
     public float parryLength;
     public float parryCooldown;
+    public float shortenedCooldownMultiplier = 0.4f;
 
     private float parryLengthTimer;
     private float parryCooldownTimer;
     private float cooldownMultiplier = 1f;
 
+    public int LastParryFrame { get; private set; } = -1;
     public bool CanParry { get; private set; } = true;
     private bool parryResolvedThisFrame = false;
-    private bool parryLockedUntilCooldownEnd = false;
 
     public event System.Action OnParryStart;
     public event System.Action OnParryEnd;
     public event System.Action OnParryCooldownEnd;
-    public event System.Action OnParried;
+    public event System.Action<IHitbox> OnParried;
 
     protected override void OnStart()
     {
@@ -49,7 +50,7 @@ public class ParryManager : Entity, IHurtbox
 
     public void Parry()
     {
-        if (UserInput.ParryPressed && CanParry && !parryLockedUntilCooldownEnd)
+        if (UserInput.ParryPressed && CanParry && !player.Invisible)
         {
             ParryBegin();
             Instantiate(ParryAnimation, transform.position, Quaternion.identity);
@@ -79,7 +80,6 @@ public class ParryManager : Entity, IHurtbox
                 if (parryCooldownTimer <= 0f)
                 {
                     CanParry = true;
-                    parryLockedUntilCooldownEnd = false;
                     state = ParryState.Ready;
                     OnParryCooldownEnd?.Invoke();
                 }
@@ -102,12 +102,16 @@ public class ParryManager : Entity, IHurtbox
         CanParry = false;
         ParryCollider.enabled = true;
         parryResolvedThisFrame = false;
+        player.DamageCollider.enabled = false;
+        player.Parrying = true;
         OnParryStart?.Invoke();
     }
 
     private void EndParry()
     {
         ParryCollider.enabled = false;
+        player.DamageCollider.enabled = true;
+        player.Parrying = false;
         OnParryEnd?.Invoke();
 
         parriedThisSession.Clear(); // reset per parry session
@@ -137,7 +141,7 @@ public class ParryManager : Entity, IHurtbox
                 box.bounds.extents,
                 overlapBuffer,
                 box.transform.rotation,
-                LayerMask.GetMask("Attack")
+                layers
             );
         }
         else
@@ -162,11 +166,13 @@ public class ParryManager : Entity, IHurtbox
                     if (!parryResolvedThisFrame)
                     {
                         parryResolvedThisFrame = true;
-                        cooldownMultiplier = 0.4f;
+                        LastParryFrame = Time.frameCount;
+
+                        cooldownMultiplier = shortenedCooldownMultiplier;
                         EndParry();
                     }
 
-                    OnParried?.Invoke();
+                    OnParried?.Invoke(hitbox);
                     hitbox.OnParried(this);
                 }
             }

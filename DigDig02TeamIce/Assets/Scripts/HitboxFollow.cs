@@ -9,6 +9,7 @@ public class HitboxFollow : MonoBehaviour
     [SerializeField] private bool useOffset = false;
 
     private Vector3 offset;
+    private Quaternion rotOffset;
     void Start()
     {
         if (follow == null)
@@ -20,7 +21,8 @@ public class HitboxFollow : MonoBehaviour
             if (useOffset)
             {
                 offset = transform.position - follow.position;
-                transform.SetPositionAndRotation(follow.position + offset, follow.rotation);
+                rotOffset = transform.rotation * Quaternion.Inverse(follow.rotation);
+                transform.SetPositionAndRotation(follow.position + offset, follow.rotation * rotOffset);
                 transform.localScale = follow.localScale * scaleMultiplier;
             }
             else
@@ -31,13 +33,13 @@ public class HitboxFollow : MonoBehaviour
         }
     }
 
-    void Update()
+    void LateUpdate()
     {
         if (follow != null)
         {
             if (useOffset)
             {
-                transform.SetPositionAndRotation(follow.position + offset, follow.rotation);
+                transform.SetPositionAndRotation(follow.position + offset, follow.rotation * rotOffset);
                 transform.localScale = follow.localScale * scaleMultiplier;
             }
             else

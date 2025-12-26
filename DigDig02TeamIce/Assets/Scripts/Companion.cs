@@ -17,6 +17,10 @@ public class Companion : Entity
     private SpearAttackScript.SpearSpawnState lastState;
 
     public float spearAttackCooldown = 0.6f;
+
+    public float slamCooldown = 1.1f;
+    public float slamShockwaveRadius = 6f;
+
     private bool canAttack = true;
 
     protected override void OnEntityEnable()
@@ -33,12 +37,19 @@ public class Companion : Entity
     }
     protected override void OnStart()
     {
+        base.OnStart();
         Enemy.OnSendEnergy += CollectEnergy;
+    }
+    protected override void OnDisable()
+    {
+        base.OnDisable();
+        Enemy.OnSendEnergy -= CollectEnergy;
     }
 
     protected override void OnUpdate()
     {
         SpearAttack();
+        SlamAttack();
 
         if (player != null)
         {
@@ -61,6 +72,20 @@ public class Companion : Entity
                 previousSpears.Add(spearAttack);
 
                 StartCoroutine(AttackCooldown(spearAttackCooldown));
+            }
+        }
+    }
+
+    public void SlamAttack()
+    {
+        if (UserInput.SlamAttackPressed && canAttack)
+        {
+            if (TryAttack(2))
+            {
+                StartCoroutine(SlamAttackRoutine());
+                ParticleSpawner.Spawn(Particles.P_SlamAttack, player.transform.position);
+
+                StartCoroutine(AttackCooldown(slamCooldown));
             }
         }
     }
@@ -92,6 +117,44 @@ public class Companion : Entity
 
         var instance2 = Instantiate(instance, transform.position, dir, transform);
         Destroy(instance2, lifetime);
+    }
+
+    private IEnumerator SlamAttackRoutine()
+    {
+        yield return new WaitForSeconds(0.2f);
+
+        CameraActions.Main.Shake(0.3f, 0.15f, 0.1f);
+
+        Collider[] enemyColliders = Physics.OverlapSphere(
+            player.transform.position,
+            slamShockwaveRadius,
+            LayerMask.GetMask("Enemy")
+        );
+
+        HashSet<Enemy> affectedEnemies = new HashSet<Enemy>();
+
+        foreach (var col in enemyColliders)
+        {
+            if (col == null)
+                continue;
+
+            Enemy enemy = col.GetComponentInParent<Enemy>();
+            if (enemy == null)
+            {
+                enemy = GetComponent<Enemy>();
+                if (enemy == null)
+                    continue;
+            }
+
+            // Skip if we've already handled this enemy
+            if (!affectedEnemies.Add(enemy))
+                continue;
+
+            Vector3 pushDir = player.transform.position - enemy.transform.position;
+            Vector3 final = new Vector3(-pushDir.x, 0, -pushDir.z);
+
+            enemy.ApplyPushback(final, 12f, 0.2f);
+        }
     }
 
     Vector3 GetRandomSpawnPosition(Transform origin, out SpearAttackScript.SpearSpawnState spawnState)

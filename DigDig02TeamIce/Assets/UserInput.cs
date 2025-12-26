@@ -24,6 +24,7 @@ public class UserInput : MonoBehaviour
     public static bool LockOnReleased;
 
     public static bool SpearAttackPressed;
+    public static bool SlamAttackPressed;
 
     public static bool MeleeAttackPressed;
 
@@ -35,6 +36,7 @@ public class UserInput : MonoBehaviour
     private InputAction _sprintAction;
     private InputAction _lockOnAction;
     private InputAction _spearAttackAction;
+    private InputAction _slamAttackAction;
     private InputAction _meleeAttackAction;
     private InputAction _interactAction;
 
@@ -48,6 +50,7 @@ public class UserInput : MonoBehaviour
         _sprintAction = PlayerInput.actions["Sprint"];
         _lockOnAction = PlayerInput.actions["TargetLockOn"];
         _spearAttackAction = PlayerInput.actions["ConstructAttack_01"];
+        _slamAttackAction = PlayerInput.actions["ConstructAttack_02"];
         _meleeAttackAction = PlayerInput.actions["MeleeAttack"];
         _interactAction = PlayerInput.actions["Interact"];
     }
@@ -71,6 +74,8 @@ public class UserInput : MonoBehaviour
         LockOnReleased = _lockOnAction.WasReleasedThisFrame();
 
         SpearAttackPressed = _spearAttackAction.WasPressedThisFrame();
+
+        SlamAttackPressed = _slamAttackAction.WasPressedThisFrame();
 
         MeleeAttackPressed = _meleeAttackAction.WasPressedThisFrame();
 

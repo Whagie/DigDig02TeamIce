@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using static UnityEngine.EventSystems.EventTrigger;
 
-public abstract class Enemy : Entity, IHurtbox
+public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
 {
     public GameObject Owner => gameObject;
     public Collider Collider { get; protected set; }
@@ -82,6 +82,10 @@ public abstract class Enemy : Entity, IHurtbox
 
     private Color sphereColor = Color.blue;
     private Color visionConeColor = Color.blue;
+
+    // Pushback
+    private Vector3 pushVelocity = Vector3.zero;
+    private float pushTimer = 0f;
 
     protected override void OnEntityEnable()
     {
@@ -274,6 +278,8 @@ public abstract class Enemy : Entity, IHurtbox
 
         if (NavAgent != null)
         {
+            HandlePushback();
+
             if (ShouldMove)
             {
                 if (!NavAgent.isOnNavMesh)
@@ -562,7 +568,7 @@ public abstract class Enemy : Entity, IHurtbox
 
         return false;
     }
-    public void OnActionEnd() // THIS IS NOT USED! IT SHOULD BE USED! FIX THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    public virtual void OnActionEnd() // THIS IS NOT USED! IT SHOULD BE USED! FIX THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     {
         _currentAction?.Modifier?.Revert(this);
         _currentAction = null;
@@ -624,6 +630,36 @@ public abstract class Enemy : Entity, IHurtbox
             proj.Seeking = false;
             Vector3 direction = (target.position - transform.position).normalized;
             proj.Direction = direction;
+        }
+    }
+
+    public void ApplyPushback(Vector3 direction, float force, float duration)
+    {
+        pushVelocity += direction.normalized * force;
+        pushTimer = Mathf.Max(pushTimer, duration);
+
+        NavAgent.isStopped = true;      // stop pathing
+        NavAgent.updateRotation = false;
+    }
+    void HandlePushback()
+    {
+        if (pushTimer <= 0f)
+            return;
+
+        // Manual movement
+        NavAgent.Move(pushVelocity * Time.deltaTime);
+
+        pushTimer -= Time.deltaTime;
+
+        if (pushTimer <= 0f)
+        {
+            pushVelocity = Vector3.zero;
+
+            NavAgent.isStopped = false;
+            NavAgent.updateRotation = true;
+
+            // Optional but recommended
+            NavAgent.ResetPath();
         }
     }
 

@@ -17,7 +17,7 @@ public class SpearAttackScript : MeleeAttack
     private Quaternion alignedRotation;
     private bool hasStartedAttack;
 
-    public float AttackSpeed = 30f;
+    public float AttackSpeed = 60f;
 
     [SerializeField] private LayerMask layers;
 
@@ -28,8 +28,8 @@ public class SpearAttackScript : MeleeAttack
     private float ageOverLifetime = 0f;
     private float lifetimeAmount = 8f;
     private float elapsedLifetime = 0f;
-    private float delayBeforeAttack = 2f;
-    private float playRate = 1.5f;
+    private float delayBeforeAttack = 0.75f;
+    private float playRate = 2f;
 
     [SerializeField] private string vfxResourcePath = "EnergyEffect";
     private static GameObject ribbonEffect;
@@ -169,8 +169,8 @@ public class SpearAttackScript : MeleeAttack
         float duration = delayBeforeAttack;
         Quaternion startRot = transform.rotation;
         Vector3 startPos = transform.position;
-        float pullbackDistance = 3f;
-        float pullbackStartTime = duration / 2.5f; // start after 1/3 of total duration
+        float pullbackDistance = 1.25f;
+        float pullbackStartTime = duration * 0.65f; // start after 1/3 of total duration
 
         while (elapsed < duration)
         {

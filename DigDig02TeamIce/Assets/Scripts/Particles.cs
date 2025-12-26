@@ -7,6 +7,7 @@ public static class Particles
 
     public static GameObject P_spark { get; private set; }
     public static GameObject P_SpearExplosion { get; private set; }
+    public static GameObject P_SlamAttack { get; private set; }
 
     static Particles()
     {
@@ -22,6 +23,7 @@ public static class Particles
             {
                 case nameof(P_spark): P_spark = prefab; break;
                 case nameof(P_SpearExplosion): P_SpearExplosion = prefab; break;
+                case nameof(P_SlamAttack): P_SlamAttack = prefab; break;
             }
         }
     }

@@ -140,7 +140,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 6
+      m_SerializableObject: 8
     min: -Infinity
     max: Infinity
     enumValues: []
@@ -1931,7 +1931,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Gradient, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"colorKeys":[{"color":{"r":0.054065536707639697,"g":0.5767636895179749,"b":1.1753376722335816,"a":1.0},"time":0.06176852062344551},{"color":{"r":0.015724962577223779,"g":0.10461045801639557,"b":0.925000011920929,"a":1.0},"time":0.29117265343666079},{"color":{"r":0.009009416215121746,"g":0.13229729235172273,"b":0.8603976368904114,"a":1.0},"time":0.6235294342041016},{"color":{"r":0.0027646832168102266,"g":0.0,"b":0.3137255012989044,"a":1.0},"time":1.0}],"alphaKeys":[{"alpha":0.0,"time":0.0},{"alpha":1.0,"time":0.06764324754476547},{"alpha":1.0,"time":0.6240024566650391},{"alpha":0.0,"time":0.8853437304496765}],"gradientMode":0}'
+      m_SerializableObject: '{"colorKeys":[{"color":{"r":0.04047618806362152,"g":0.418254017829895,"b":0.8500000238418579,"a":1.0},"time":0.06176852062344551},{"color":{"r":0.015724962577223779,"g":0.10461045801639557,"b":0.925000011920929,"a":1.0},"time":0.29117265343666079},{"color":{"r":0.009009416215121746,"g":0.13229729235172273,"b":0.8603976368904114,"a":1.0},"time":0.6235294342041016},{"color":{"r":0.0027646832168102266,"g":0.0,"b":0.3137255012989044,"a":1.0},"time":1.0}],"alphaKeys":[{"alpha":0.0,"time":0.0},{"alpha":1.0,"time":0.06764324754476547},{"alpha":1.0,"time":0.6240024566650391},{"alpha":0.0,"time":0.8853437304496765}],"gradientMode":0}'
     m_Space: 2147483647
   m_Property:
     name: Color
@@ -5521,7 +5521,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0.3
+      m_SerializableObject: 0.25
     m_Space: 2147483647
   m_Property:
     name: right
@@ -5652,7 +5652,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0.3
+      m_SerializableObject: 0.25
     m_Space: 2147483647
   m_Property:
     name: right
@@ -8530,7 +8530,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 2500
+      m_SerializableObject: 3500
     m_Space: 2147483647
   m_Property:
     name: False
@@ -8879,7 +8879,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 6
+      m_SerializableObject: 8
     m_Space: 2147483647
   m_Property:
     name: o

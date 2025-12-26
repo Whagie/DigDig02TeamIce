@@ -619,8 +619,8 @@ MonoBehaviour:
     layers:
       serializedVersion: 2
       m_Bits: 768
-    health: 5
-    maxHealth: 5
+    health: 12
+    maxHealth: 12
     alertRadius: 5
     visionLength: 5
     chaseVisionLength: 14

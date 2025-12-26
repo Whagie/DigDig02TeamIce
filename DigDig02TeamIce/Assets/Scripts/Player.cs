@@ -228,26 +228,12 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
 
         float rayLength = MainCollider.radius + groundCheckDistance;
 
-        //// origin a little above the bottom of the CharacterController
-        //Vector3 origin = transform.position + Vector3.up * 0.1f;
-        //float rayLength = (MainCollider.height / 2) + groundCheckDistance;
-
         Grounded = false;
         if (Physics.CheckSphere(origin, rayLength, groundLayers))
         {
             Grounded = true;
         }
-        //Grounded = Physics.Raycast(origin, Vector3.down, out RaycastHit hit, rayLength);
 
-        // optional: snap player slightly to ground if needed
-        //if (Grounded)
-        //{
-        //    float desiredY = info.point.y + controller.skinWidth;
-        //    if (transform.position.y < desiredY)
-        //        transform.position = new Vector3(transform.position.x, desiredY, transform.position.z);
-        //}
-
-        // optional debug
         DrawMethods.WireSphere(origin, rayLength, Grounded ? Color.green : Color.red);
     }
 
@@ -261,20 +247,12 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         {
             Sprinting = false;
         }
-
-        if (Parrying && UserInput.SprintPressed)
-        {
-            //lungeQueued = true;
-            //lungeDir = moveDir.normalized;
-        }
     }
 
     void MovementHandler()
     {
-        // Decide movement speed
         float targetSpeed = Sprinting && Grounded ? sprintSpeed : walkSpeed;
 
-        // Get movement direction relative to camera
         Vector3 camForward = _camera.transform.forward;
         Vector3 camRight = _camera.transform.right;
         camForward.y = 0f;
@@ -285,7 +263,6 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         Vector3 move = camForward * moveInput.y + camRight * moveInput.x;
         move.Normalize();
 
-        // Apply horizontal movement
         moveDir = move * targetSpeed;
 
         // ----- PUSHBACK -----
@@ -294,22 +271,19 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
             // Override normal movement with pushback
             moveDir = pushVelocity;
 
-            // Decrease timer
             pushTimer -= Time.deltaTime;
             if (pushTimer <= 0f)
                 pushVelocity = Vector3.zero;
         }
 
-        // Gravity & jumping
         if (Grounded)
         {
             jumped = false;
             Jumping = false;
-            // Snap to ground
+
             if (verticalVelocity < -2f)
                 verticalVelocity = -2f;
 
-            // Jump
             if (jumpQueued)
             {
                 jumpQueued = false;
@@ -319,7 +293,6 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         }
         else
         {
-            // Apply gravity over time
             verticalVelocity -= gravity * Time.deltaTime;
             if (jumped)
             {
@@ -327,11 +300,9 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
             }
         }
 
-        // Combine vertical & horizontal
         Vector3 finalMove = moveDir;
         finalMove.y = verticalVelocity;
 
-        // Move the controller
         controller.Move(finalMove * Time.deltaTime);
     }
 
@@ -373,53 +344,75 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         else
         {
             currentTarget = null;
+
             if (iconCopy != null)
             {
                 Destroy(iconCopy);
+                iconCopy = null;
             }
         }
     }
+
     private void TargetEnemy()
     {
-        int count = Physics.OverlapSphereNonAlloc(transform.position, 25f, colliders, LayerMask.GetMask("Enemy"));
+        int count = Physics.OverlapSphereNonAlloc(
+            transform.position,
+            25f,
+            colliders,
+            LayerMask.GetMask("Enemy")
+        );
 
-        if (count > 0)
+        if (count == 0)
         {
-            Collider closest = null;
-            float closestDist = float.MaxValue;
+            currentTarget = null;
+            return;
+        }
 
-            foreach (var enemy in colliders
-                         .Where(a => a != null && Math.Abs(a.transform.position.y - transform.position.y) < 4))
-            {
-                float dist = Vector3.Distance(transform.position, enemy.transform.position);
-                if (dist < closestDist)
-                {
-                    closestDist = dist;
-                    closest = enemy;
-                }
-            }
+        Collider closest = null;
+        float closestDist = float.MaxValue;
 
-            if (closest.gameObject != null)
-            {
-                currentTarget = closest.gameObject;
-            }
+        for (int i = 0; i < count; i++)
+        {
+            var enemy = colliders[i];
+            if (enemy == null)
+                continue;
 
-            if (currentTarget != null)
+            // Vertical filtering
+            float yDiff = Mathf.Abs(enemy.transform.position.y - transform.position.y);
+            if (yDiff >= 4f)
+                continue;
+
+            float dist = Vector3.Distance(transform.position, enemy.transform.position);
+            if (dist < closestDist)
             {
-                if (LockOnIcon != null)
-                {
-                    if (iconCopy == null)
-                    {
-                        iconCopy = Instantiate(LockOnIcon, currentTarget.transform);
-                    }
-                    BillboardSprite billboardSprite = iconCopy.GetComponent<BillboardSprite>();
-                    billboardSprite.target = currentTarget.transform.position + new Vector3(0, 5, 0);
-                }
+                closestDist = dist;
+                closest = enemy;
             }
+        }
+
+        if (closest != null)
+        {
+            currentTarget = closest.gameObject;
         }
         else
         {
-            currentTarget = null; // nothing in range
+            currentTarget = null;
+        }
+
+        if (currentTarget != null && LockOnIcon != null)
+        {
+            if (iconCopy == null)
+            {
+                iconCopy = Instantiate(LockOnIcon, currentTarget.transform);
+            }
+
+            var billboard = iconCopy.GetComponent<BillboardSprite>();
+            billboard.target = currentTarget.transform.position + new Vector3(0, 5f, 0);
+        }
+        else if (iconCopy != null)
+        {
+            Destroy(iconCopy);
+            iconCopy = null;
         }
     }
 
@@ -494,6 +487,9 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         parryManager.ParryCollider.enabled = false;
         animator.updateMode = AnimatorUpdateMode.UnscaledTime;
         animator.SetBool("Dead", true);
+        animator.SetBool("Attack", false);
+        animator.SetBool("FollowUp", false);
+        animator.SetLayerWeight(2, 0f);
         Tail.enabled = false;
         Tail.gameObject.SetActive(false);
         _camera.Actions.CancelAllActions();
@@ -574,12 +570,6 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
     }
     private void HandleParryEnd()
     {
-        //if (lungeQueued)
-        //{
-        //    lungeQueued = false;
-        //    Lunge(lungeDir, 3f, 0.1f);
-        //}
-
         material.SetColor("_BaseColor", Color.green);
     }
     private void HandleParryCooldownEnd()
@@ -647,14 +637,12 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
                 AttackBuffered = false;
                 AllowFollowUpAttack = false;
 
-                animator.SetBool("FollowUp", false); // IMPORTANT
+                animator.SetBool("FollowUp", false);
             }
         }
 
-        // --- Layer weight ---
         animator.SetLayerWeight(2, Attacking ? 1f : 0f);
 
-        // --- Animator params ---
         animator.SetBool("Attack", Attacking);
         animator.SetBool("FollowUp", AttackBuffered);
 

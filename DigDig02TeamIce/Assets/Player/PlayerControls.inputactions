@@ -60,6 +60,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "ConstructAttack_02",
+                    "type": "Button",
+                    "id": "10826b89-357d-49d4-9f3e-0693d252dda4",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Interact",
                     "type": "Button",
                     "id": "5290aedc-5f69-40e5-b6e8-c2aa03162789",
@@ -296,6 +305,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "MeleeAttack",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "05126857-06f1-4b55-8f1a-f66f8320879f",
+                    "path": "<Keyboard>/2",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ConstructAttack_02",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "38cdba30-c470-4d90-926c-58bcf7fa183f",
+                    "path": "<Gamepad>/dpad/up",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ConstructAttack_02",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

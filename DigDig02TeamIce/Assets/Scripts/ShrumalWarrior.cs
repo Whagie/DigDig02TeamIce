@@ -87,16 +87,6 @@ public class ShrumalWarrior : Enemy
         HeadCollider.enabled = false;
     }
 
-    protected override void OnUpdate()
-    {
-        base.OnUpdate();
-
-        if (Attacking)
-        {
-            NavAgent.updateRotation = true;
-        }
-    }
-
     public override void HandleParried(IHurtbox by)
     {
         base.HandleParried(by);

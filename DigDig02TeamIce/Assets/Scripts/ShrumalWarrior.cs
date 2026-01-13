@@ -33,8 +33,7 @@ public class ShrumalWarrior : Enemy
             {
                 TriggerName = "SwordSwing",
                 Weight = 0.7f,
-                CanUse = () => SeeingPlayer && FacingPlayer,
-                MinDistance = 4.5f,
+                CanUse = () => SeeingPlayer && FacingPlayer && DistanceToPlayer <= 4.5f,
                 Modifier = new ActionModifier()
                     .ChangeSpeed(WanderSpeed / 1.5f)
             },
@@ -42,8 +41,7 @@ public class ShrumalWarrior : Enemy
             {
                 TriggerName = "Headbash",
                 Weight = 0.4f,
-                CanUse = () => SeeingPlayer && FacingPlayer,
-                MinDistance = 4.5f,
+                CanUse = () => SeeingPlayer && FacingPlayer && DistanceToPlayer <= 4.5f,
                 Modifier = new ActionModifier()
                     .StopAgent()
             },
@@ -51,8 +49,7 @@ public class ShrumalWarrior : Enemy
             {
                 TriggerName = "StabSequence",
                 Weight = 0.3f,
-                CanUse = () => SeeingPlayer && FacingPlayer,
-                MinDistance = 4.5f,
+                CanUse = () => SeeingPlayer && FacingPlayer && DistanceToPlayer <= 4.5f,
                 Modifier = new ActionModifier()
                     .ChangeSpeed(WanderSpeed / 0.75f)
             }
@@ -155,24 +152,15 @@ public class ShrumalWarrior : Enemy
 
     public void LungeDistanceDuration(string parameters)
     {
-        float dist = Vector3.Distance(transform.position, player.transform.position);
-        if (dist > Actions[1].MinDistance)
+        var parts = parameters.Split(';').Select(float.Parse).ToArray();
+        float distance = parts[0], duration = parts[1];
+
+        if (DistanceToPlayer < distance)
         {
-            var parts = parameters.Split(';').Select(float.Parse).ToArray();
-            float distance = parts[0], duration = parts[1];
-
-            float finalDistance;
-            if (dist >= distance)
-            {
-                finalDistance = distance;
-            }
-            else
-            {
-                finalDistance = dist - 1.5f;
-            }
-
-            Lunge(distance, duration);
+            distance -= (distance - DistanceToPlayer);
         }
+
+        Lunge(distance, duration);
     }
 
     protected override void Die()

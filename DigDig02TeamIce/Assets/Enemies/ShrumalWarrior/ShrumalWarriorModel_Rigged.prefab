@@ -622,7 +622,8 @@ MonoBehaviour:
     health: 12
     maxHealth: 12
     alertRadius: 5
-    visionLength: 5
+    chaseAlertRadius: 8
+    visionLength: 8
     chaseVisionLength: 14
     visionAngle: 120
     marginDegrees: 4
@@ -643,6 +644,7 @@ MonoBehaviour:
   VisionCones: []
   ProjectileDamage: 1
   projectilePrefab: {fileID: 0}
+  DistanceToPlayer: 0
   Sword: {fileID: 784905170328205095}
   Head: {fileID: 3192949918886082579}
   MainCollider: {fileID: 8124100539039176902}

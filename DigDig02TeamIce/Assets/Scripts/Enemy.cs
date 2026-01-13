@@ -23,7 +23,6 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
 
     public int Health => stats.health;
     public int MaxHealth => stats.maxHealth;
-    public float AlertRadius => stats.alertRadius;
     public float MarginDegrees => stats.marginDegrees;
     public float WanderSpeed => stats.wanderSpeed;
     public float ChaseSpeed => stats.chaseSpeed;
@@ -31,6 +30,7 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
     public float WaitTime => stats.waitTime;
     public float RotationSpeed => stats.rotationSpeed;
 
+    public float AlertRadius { get; set; }
     public bool DetectedPlayer { get; set; } = false;
     public bool LookingForPlayer { get; set; } = false;
     public bool SeeingPlayer { get; set; } = false;
@@ -40,6 +40,7 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
     public bool Idle { get; set; } = true;
     public bool InCombat { get; set; } = false;
     public bool IsAwake { get; set; } = true;
+    public bool Stunned { get; set; } = false;
 
     public bool Wandering { get; set; } = false;
     public bool ShouldWander { get; set; } = true;
@@ -53,7 +54,6 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
         public string TriggerName;
         public float Weight = 1f;
         public Func<bool> CanUse; // optional condition
-        public float? MinDistance = 4f; // how far from player to perform
         public ActionModifier Modifier;
     }
 
@@ -62,6 +62,7 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
     public float ActionInterval => stats.actionInterval;
     private bool hasAttacked = false;
     private bool tryingFirstAttack = false;
+    private bool canForceIdle = false;
 
     private bool firstDamage = true;
 
@@ -82,6 +83,8 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
 
     private Color sphereColor = Color.blue;
     private Color visionConeColor = Color.blue;
+
+    public float DistanceToPlayer;
 
     // Pushback
     private Vector3 pushVelocity = Vector3.zero;
@@ -133,9 +136,25 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
             cone.length = stats.visionLength;
         }
 
+        if (NavAgent != null)
+        {
+            NavAgent.angularSpeed = RotationSpeed;
+        }
+
         if (enemyUI.EnemyOwner == null)
         {
             enemyUI.EnemyOwner = this;
+        }
+
+        if (_animator != null)
+        {
+            foreach (var param in _animator.parameters)
+            {
+                if (param.name == "ForceIdle")
+                {
+                    canForceIdle = true;
+                }
+            }
         }
     }
 
@@ -143,6 +162,15 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
     {
         if (Dead || !IsAwake)
             return;
+
+        if (Stunned)
+        {
+            if (NavAgent != null)
+            {
+                HandlePushback();
+            }
+            return;
+        }
 
         if (player == null)
         {
@@ -168,9 +196,16 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
             }
         }
 
-        int playerMask = LayerMask.GetMask("Player");
+        if (DetectedPlayer)
+        {
+            AlertRadius = stats.chaseAlertRadius;
+        }
+        else
+        {
+            AlertRadius = stats.alertRadius;
+        }
 
-        // --- Check alert radius
+        int playerMask = LayerMask.GetMask("Player");
         Collider[] hits = Physics.OverlapSphere(transform.position, AlertRadius, playerMask);
         bool playerInAlertRadius = false;
 
@@ -206,6 +241,8 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
         float dot = Vector3.Dot(forwardXZ, toTarget);
         float cosMargin = Mathf.Cos(MarginDegrees * Mathf.Deg2Rad);
         FacingPlayer = dot >= cosMargin;
+
+        DistanceToPlayer = Vector3.Distance(new Vector3(transform.position.x, 0f, transform.position.z), new Vector3(player.transform.position.x, 0f, player.transform.position.z));
 
         if (_animator != null)
         {
@@ -245,35 +282,41 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
                 TryFirstAttack();
             }
 
-            if (Attacking && !SeeingPlayer)
+            if (canForceIdle && Attacking && !DetectedPlayer)
             {
                 CancelCurrentAction();
             }
         }
 
-        if (!SeeingPlayer)
+        if (SeeingPlayer)
         {
-            InCombat = false;
+            // If enemy sees the player, always be in combat state
+            InCombat = true;
+        }
+        else if (DetectedPlayer && InCombat)
+        {
+            // If enemy doesn't see player, but still detect them,
+            // remain in combat ONLY IF they were in combat state before
+            InCombat = true;
+        }
+        else if (!canForceIdle && Attacking)
+        {
+            // If enemy doesn't see or detect player,
+            // but canForceIdle is false and they're in an attack, remain in combat.
+            // If canForceIdle is false, it means it shouldn't be able to exit attacks prematurely
+            InCombat = true;
         }
         else
         {
-            InCombat = true;
+            // If enemy doesn't see player, and they aren't already in combat state,
+            // they should exit combat state regardless of if they detected the player.
+            // 
+            InCombat = false;
         }
 
-        float rotSpeed;
-        if (DetectedPlayer)
+        if (DetectedPlayer && NavAgent.updateRotation)
         {
-            if (!SeeingPlayer)
-            {
-                LookingForPlayer = true;
-                rotSpeed = RotationSpeed * 8f;
-            }
-            else
-            {
-                LookingForPlayer = false;
-                rotSpeed = RotationSpeed * 2f;
-            }
-            RotateTowardsY(transform, player.transform.position, rotSpeed);
+            RotateTowardsY(transform, player.transform.position, RotationSpeed * 3f);
         }
 
         if (NavAgent != null)
@@ -295,7 +338,17 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
                         StopCoroutine(WanderRoutine());
                         Wandering = false;
                     }
-                    NavAgent.destination = player.transform.position;
+                    if (DistanceToPlayer > NavAgent.stoppingDistance)
+                    {
+                        NavAgent.isStopped = false;
+                        NavAgent.SetDestination(player.transform.position);
+                    }
+                    else
+                    {
+                        NavAgent.isStopped = true;
+                        NavAgent.ResetPath();
+                        NavAgent.velocity = Vector3.zero;
+                    }
                     if (!Attacking)
                     {
                         SetSpeed(ChaseSpeed);
@@ -309,8 +362,6 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
                 }
             }
         }
-
-        GizmoDraw();
     }
 
     private IEnumerator WanderRoutine()
@@ -362,9 +413,9 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
         return false;
     }
 
-    public void GizmoDraw()
+    public void OnDrawGizmos()
     {
-        if (Dead)
+        if (Dead || !IsAwake)
             return;
 
         // --- Draw debug
@@ -512,14 +563,21 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
 
     void TryFirstAttack()
     {
-        if (PickAction())
+        if (FacingPlayer)
         {
-            hasAttacked = true;
-            tryingFirstAttack = false;
+            if (PickAction())
+            {
+                hasAttacked = true;
+                tryingFirstAttack = false;
+            }
+            else
+            {
+                // retry later if too far or invalid
+                tryingFirstAttack = false;
+            }
         }
         else
         {
-            // retry later if too far or invalid
             tryingFirstAttack = false;
         }
     }
@@ -545,28 +603,29 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
                 cumulative += action.Weight;
                 if (choice <= cumulative)
                 {
-                    float dist = Vector3.Distance(transform.position, player.transform.position);
+                    // Store the chosen action
+                    _currentAction = action;
 
-                    if (dist <= action.MinDistance.Value)
-                    {
-                        // Store the chosen action
-                        _currentAction = action;
+                    // Apply its modifiers
+                    _currentAction.Modifier?.Evaluate(this);
 
-                        // Apply its modifiers
-                        _currentAction.Modifier?.Evaluate(this);
+                    _animator.SetTriggerOneFrame(this, action.TriggerName);
 
-                        _animator.SetTriggerOneFrame(this, action.TriggerName);
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    OnActionStart(_currentAction);
+                    return true;
+                }
+                else
+                {
+                    return false;
                 }
             }
         }
 
         return false;
+    }
+    public virtual void OnActionStart(EnemyAction action)
+    {
+
     }
     public virtual void OnActionEnd() // THIS IS NOT USED! IT SHOULD BE USED! FIX THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     {
@@ -591,6 +650,7 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
 
     private IEnumerator LungeRoutine(float distance, float duration)
     {
+        NavAgent.isStopped = true;
         Vector3 start = transform.position;
         Vector3 target = start + transform.forward * distance;
         float elapsed = 0f;
@@ -604,6 +664,7 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
         }
 
         transform.position = target;
+        NavAgent.isStopped = false;
     }
     public void SetSpeed(float speed, bool overrideSpeed = false)
     {
@@ -661,6 +722,25 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
             // Optional but recommended
             NavAgent.ResetPath();
         }
+    }
+
+    public void Stun(float duration)
+    {
+        StartCoroutine(StunRoutine(duration));
+    }
+    private IEnumerator StunRoutine(float duration)
+    {
+        Stunned = true;
+        _animator.SetBool("Stunned", true);
+
+        yield return null;
+        _animator.SetBool("AnyStateLock", true);
+
+        yield return new WaitForSeconds(duration);
+
+        Stunned = false;
+        _animator.SetBool("Stunned", false);
+        _animator.SetBool("AnyStateLock", false);
     }
 
     /// <summary>
@@ -739,6 +819,7 @@ public class EnemyStats
     [SerializeField] public int maxHealth = 5;
 
     [SerializeField] public float alertRadius = 5f;
+    [SerializeField] public float chaseAlertRadius = 8f;
     [SerializeField] public float visionLength = 8f;
     [SerializeField] public float chaseVisionLength = 16f;
     [SerializeField] public float visionAngle = 120f;

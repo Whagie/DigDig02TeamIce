@@ -30,6 +30,8 @@ public class UserInput : MonoBehaviour
 
     public static bool InteractPressed;
 
+    public static bool PausePressed;
+
     private InputAction _moveAction;
     private InputAction _parryAction;
     private InputAction _jumpAction;
@@ -39,6 +41,7 @@ public class UserInput : MonoBehaviour
     private InputAction _slamAttackAction;
     private InputAction _meleeAttackAction;
     private InputAction _interactAction;
+    private InputAction _pauseAction;
 
     private void Awake()
     {
@@ -53,6 +56,7 @@ public class UserInput : MonoBehaviour
         _slamAttackAction = PlayerInput.actions["ConstructAttack_02"];
         _meleeAttackAction = PlayerInput.actions["MeleeAttack"];
         _interactAction = PlayerInput.actions["Interact"];
+        _pauseAction = PlayerInput.actions["Pause"];
     }
 
     private void Update()
@@ -80,5 +84,7 @@ public class UserInput : MonoBehaviour
         MeleeAttackPressed = _meleeAttackAction.WasPressedThisFrame();
 
         InteractPressed = _interactAction.WasPressedThisFrame();
+
+        PausePressed = _pauseAction.WasPressedThisFrame();
     }
 }

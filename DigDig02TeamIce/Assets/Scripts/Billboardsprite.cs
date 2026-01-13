@@ -8,7 +8,6 @@ public class BillboardSprite : MonoBehaviour
     public Vector3 target;
 
     [SerializeField] private bool LockOnTarget;
-    [SerializeField] private float OffsetY = 0.75f;
     void Start()
     {
         cam = Camera.main.transform;

@@ -52,6 +52,12 @@ public class CameraActions : MonoBehaviour
 
         while (timer < duration)
         {
+            if (PauseManager.instance.IsPaused)
+            {
+                yield return null;
+                continue;
+            }
+
             timer += Time.deltaTime;
             float t = Mathf.Clamp01(timer / duration);
 
@@ -96,6 +102,12 @@ public class CameraActions : MonoBehaviour
 
         while (timer < duration)
         {
+            if (PauseManager.instance.IsPaused)
+            {
+                yield return null;
+                continue;
+            }
+
             timer += Time.deltaTime;
             float t = timer / duration;
             float eval = curve.Evaluate(t);        // goes 0 -> 1

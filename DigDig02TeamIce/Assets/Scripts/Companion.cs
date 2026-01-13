@@ -78,12 +78,11 @@ public class Companion : Entity
 
     public void SlamAttack()
     {
-        if (UserInput.SlamAttackPressed && canAttack)
+        if (UserInput.SlamAttackPressed && canAttack && !player.Parrying)
         {
             if (TryAttack(2))
             {
                 StartCoroutine(SlamAttackRoutine());
-                ParticleSpawner.Spawn(Particles.P_SlamAttack, player.transform.position);
 
                 StartCoroutine(AttackCooldown(slamCooldown));
             }
@@ -121,8 +120,10 @@ public class Companion : Entity
 
     private IEnumerator SlamAttackRoutine()
     {
+        player.animator.SetBool("SlamAttacking", true);
         yield return new WaitForSeconds(0.2f);
 
+        ParticleSpawner.Spawn(Particles.P_SlamAttack, player.transform.position);
         CameraActions.Main.Shake(0.3f, 0.15f, 0.1f);
 
         Collider[] enemyColliders = Physics.OverlapSphere(
@@ -154,7 +155,11 @@ public class Companion : Entity
             Vector3 final = new Vector3(-pushDir.x, 0, -pushDir.z);
 
             enemy.ApplyPushback(final, 12f, 0.2f);
+            enemy.Stun(4f);
         }
+
+        yield return new WaitForSeconds(0.5f);
+        player.animator.SetBool("SlamAttacking", false);
     }
 
     Vector3 GetRandomSpawnPosition(Transform origin, out SpearAttackScript.SpearSpawnState spawnState)

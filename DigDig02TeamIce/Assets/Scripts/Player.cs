@@ -59,12 +59,14 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
     private float verticalVelocity;    
     public float gravity = 9.82f;
 
-    private Vector3 moveDir;
-    private Vector3 moveInput;
+    public Vector3 moveDir;
+    public Vector3 moveInput;
+
+    private bool stopMovement = false;
 
     // Pushback
-    private Vector3 pushVelocity = Vector3.zero;
-    private float pushTimer = 0f;
+    private Vector3 pushbackVelocity = Vector3.zero;
+    private float pushbackTimer = 0f;
 
     public int Health = 15;
     public int MaxHealth = 15;
@@ -92,8 +94,8 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
 
     public event System.Action<int> OnPlayerTakeDamage;
 
-    public int Energy = 0;
-    public int MaxEnergy = 6;
+    public int Energy = 8;
+    public int MaxEnergy = 8;
     [SerializeField] private float energyTimer = 0.6f;
     public event System.Action<int> OnChangeEnergy;
 
@@ -109,6 +111,19 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
     public GameObject Wrench;
     public Collider WrenchCollider;
     private MeleeAttack wrenchAttack;
+
+    private float timeUntilPushStart = 0.3f;
+    private float pushStartTimer = 0.3f;
+    private float timeUntilPushMove = 0.75f;
+    public bool Pushing = false;
+    private bool prePushing;
+    private PushableObject objectToPush;
+    private Coroutine pushCoroutine;
+    private Vector3 pushDirection;
+    private RaycastHit pushHit;
+
+    private float prevTurnSpeed = 8f;
+    private float prevMoveSpeed = 5f;
 
     protected override void OnEntityEnable()
     {
@@ -146,9 +161,13 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         {
             MaxHealth = Health;
         }
+        if (Energy > MaxEnergy)
+        {
+            MaxEnergy = Energy;
+        }
         controller = GetComponent<CharacterController>();
         Companion = FindObjectOfType<Companion>();
-        material = Companion.GetComponent<MeshRenderer>().material;
+        material = Companion.Body.GetComponent<Renderer>().sharedMaterials.Where(m => m.name == "CrystalBall").FirstOrDefault();
 
         _camera = GameObject.FindObjectOfType<CameraMovement>();
 
@@ -168,6 +187,9 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         wrenchAttack.EnemyOwner = null;
         wrenchAttack.LayerMask = LayerMask.GetMask("Enemy");
         WrenchCollider.enabled = false;
+
+        prevTurnSpeed = turnSpeed;
+        prevMoveSpeed = walkSpeed;
     }
 
     protected override void OnUpdate()
@@ -198,7 +220,15 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         if (Grounded)
         {
             animator.SetFloat("Move", controller.velocity.magnitude);
-            animator.SetBool("Sprinting", Sprinting);
+            if (!Attacking)
+            {
+                animator.SetBool("Sprinting", Sprinting);
+            }
+            else
+            {
+                animator.SetBool("Sprinting", false);
+            }
+
             airTimerActive = false;
         }
         else
@@ -216,6 +246,52 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         }
 
         Attack();
+
+        ConstructCarry();
+
+        //DrawUI.Draw(pushStartTimer.ToString(), new Vector2(Screen.width * 0.8f, Screen.height * 0.1f), Color.white, 8);
+
+        bool hitPushable = Physics.Raycast(Center.position, transform.forward, out RaycastHit hit, 0.75f, LayerMask.GetMask("Pushable", "LightReflector"));
+
+        PushableObject hitObj = hitPushable
+            ? hit.collider.GetComponent<PushableObject>()
+            : null;
+
+        bool moving = moveInput.magnitude > 0.05f;
+
+        if (!hitObj || !moving || hitObj.Moving && hitObj.MovesUntilStop)
+        {
+            if (stopMovement)
+                return;
+
+            ResetPushState();
+            return;
+        }
+
+        if (!prePushing && !Pushing)
+        {
+            prePushing = true;
+            objectToPush = hitObj;
+            pushStartTimer = timeUntilPushStart;
+            prevTurnSpeed = turnSpeed;
+            prevMoveSpeed = walkSpeed;
+            pushHit = hit;
+            animator.SetBool("Pushing", true);
+        }
+
+        if (prePushing && !Pushing)
+        {
+            pushStartTimer -= Time.deltaTime;
+
+            turnSpeed = 0f;
+            walkSpeed = 0.5f;
+            SnapRotationToObject();
+
+            if (pushStartTimer <= 0f)
+            {
+                EnterPushState();
+            }
+        }
     }
 
     void GroundCheck()
@@ -252,6 +328,10 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
     void MovementHandler()
     {
         float targetSpeed = Sprinting && Grounded ? sprintSpeed : walkSpeed;
+        if (Attacking)
+        {
+            targetSpeed = walkSpeed * 0.5f;
+        }
 
         Vector3 camForward = _camera.transform.forward;
         Vector3 camRight = _camera.transform.right;
@@ -263,17 +343,24 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         Vector3 move = camForward * moveInput.y + camRight * moveInput.x;
         move.Normalize();
 
-        moveDir = move * targetSpeed;
+        if (!stopMovement)
+        {
+            moveDir = move * targetSpeed;
+        }
+        else
+        {
+            moveDir = Vector3.zero;
+        }
 
         // ----- PUSHBACK -----
-        if (pushTimer > 0f)
+        if (pushbackTimer > 0f)
         {
             // Override normal movement with pushback
-            moveDir = pushVelocity;
+            moveDir = pushbackVelocity;
 
-            pushTimer -= Time.deltaTime;
-            if (pushTimer <= 0f)
-                pushVelocity = Vector3.zero;
+            pushbackTimer -= Time.deltaTime;
+            if (pushbackTimer <= 0f)
+                pushbackVelocity = Vector3.zero;
         }
 
         if (Grounded)
@@ -313,6 +400,9 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
 
     void Turn()
     {
+        if (stopMovement)
+            return;
+
         if (currentTarget != null)
         {
             Vector3 target = Vector3.Normalize(currentTarget.transform.position - transform.position);
@@ -561,7 +651,7 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
 
         Vector3 pushDir = hitbox.Owner.transform.position - transform.position;
         Vector3 final = new Vector3(-pushDir.x, 0, -pushDir.z);
-        ApplyPushback(final, 2.5f, 0.15f);
+        ApplyPushback(final, 2.5f, 0.125f);
     }
     private void HandleParryStart()
     {
@@ -599,8 +689,8 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
 
     public void ApplyPushback(Vector3 direction, float force, float duration)
     {
-        pushVelocity = direction.normalized * force;
-        pushTimer = duration;
+        pushbackVelocity = direction.normalized * force;
+        pushbackTimer = duration;
     }
 
     private void Attack()
@@ -679,5 +769,142 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
             AllowFollowUpAttack = false;
             AttackBuffered = false;
         }
+    }
+
+    public void ConstructCarry()
+    {
+        if (Companion == null)
+            return;
+
+        if (UserInput.InteractPressed && !Parrying)
+        {
+            if (!Companion.isCarrying)
+            {
+                Companion.StartCarry(GameObject.Find("Pickup").transform);
+                return;
+            }
+            else
+            {
+                Companion.StopCarry();
+                return;
+            }
+        }
+    }
+
+    void EnterPushState()
+    {
+        if (Pushing)
+            return;
+
+        Pushing = true;
+        prePushing = false;
+        animator.SetBool("Pushing", true);
+
+        pushCoroutine = StartCoroutine(PushRoutine(objectToPush));
+    }
+    void ResetPushState()
+    {
+        if (!prePushing && !Pushing)
+            return;
+
+        prePushing = false;
+        Pushing = false;
+
+        if (pushCoroutine != null)
+        {
+            StopCoroutine(pushCoroutine);
+            pushCoroutine = null;
+        }
+
+        animator.SetBool("Pushing", false);
+
+        objectToPush = null;
+        pushStartTimer = timeUntilPushStart;
+        turnSpeed = prevTurnSpeed;
+        walkSpeed = prevMoveSpeed;
+    }
+
+    IEnumerator PushRoutine(PushableObject pushable)
+    {
+        SnapRotationToObject();
+        turnSpeed = 0f;
+
+        Vector2Int moveDir = PushableObject.PushDirToGrid(pushDirection);
+
+        bool canPush =
+            (moveDir.x != 0 && pushable.CanPushX) ||
+            (moveDir.y != 0 && pushable.CanPushZ);
+
+        while (!canPush)
+        {
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(timeUntilPushMove);
+
+        // One-shot push
+        if (pushable.MovesUntilStop)
+        {
+            int steps = pushable.GetMaxSteps(moveDir);
+            float moveDuration = pushable.MoveDurationPerStep * steps;
+
+            pushable.MoveSteps(moveDir, steps, moveDuration, delta => { });
+
+            animator.SetTrigger("PushStumble");
+            float animDuration = animator.runtimeAnimatorController.animationClips.Where(c => c.name == "PushStumble").FirstOrDefault().length / 1.2f;
+
+            stopMovement = true;
+            yield return new WaitForSeconds(animDuration);
+            stopMovement = false;
+
+            ResetPushState();
+
+            yield break;
+        }
+
+        // Continuous push
+        while (Pushing)
+        {
+            int steps;
+            if (pushable.StepsToMove != 0)
+            {
+                steps = pushable.StepsToMove;
+            }
+            else
+            {
+                steps = 1;
+            }
+
+            float moveDuration = pushable.MoveDurationPerStep * steps;
+
+            pushable.MoveSteps(moveDir, steps, moveDuration, delta => { transform.position += delta; });
+            // Add pushable object's movement to player, so it stays connected to it, without parenting the player
+
+            walkSpeed = 0f;
+
+            yield return new WaitForSeconds(moveDuration);
+
+            walkSpeed = 0.5f;
+
+            yield return new WaitForSeconds(timeUntilPushMove);
+        }
+
+        ResetPushState();
+    }
+
+    void SnapRotationToObject()
+    {
+        Vector3 dir = -pushHit.normal;
+        dir.y = 0f;
+        pushDirection = SnapToAxis(dir);
+
+        if (dir.sqrMagnitude > 0.001f)
+            transform.rotation = Quaternion.LookRotation(pushDirection);
+    }
+    Vector3 SnapToAxis(Vector3 dir)
+    {
+        return Mathf.Abs(dir.x) > Mathf.Abs(dir.z)
+            ? new Vector3(Mathf.Sign(dir.x), 0f, 0f)
+            : new Vector3(0f, 0f, Mathf.Sign(dir.z));
     }
 }

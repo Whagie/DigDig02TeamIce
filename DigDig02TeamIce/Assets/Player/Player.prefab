@@ -312,10 +312,12 @@ MonoBehaviour:
   Speed: 0
   walkSpeed: 4
   sprintSpeed: 8
-  turnSpeed: 16
+  turnSpeed: 12
   jumpHeight: 3
   Jumping: 0
   gravity: 30
+  moveDir: {x: 0, y: 0, z: 0}
+  moveInput: {x: 0, y: 0, z: 0}
   Health: 15
   MaxHealth: 15
   sceneAtDeath: 
@@ -324,8 +326,8 @@ MonoBehaviour:
   debugInvisible: 0
   Parrying: 0
   body: {fileID: 0}
-  Energy: 0
-  MaxEnergy: 6
+  Energy: 8
+  MaxEnergy: 8
   energyTimer: 1
   animator: {fileID: 8590856406397615567}
   Companion: {fileID: 0}
@@ -333,6 +335,7 @@ MonoBehaviour:
   AttackBuffered: 0
   Wrench: {fileID: 3358136876924479786}
   WrenchCollider: {fileID: 5951158097761976849}
+  Pushing: 0
 --- !u!114 &770796046032243651
 MonoBehaviour:
   m_ObjectHideFlags: 0

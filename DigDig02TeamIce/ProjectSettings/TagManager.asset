@@ -10,6 +10,8 @@ TagManager:
   - LightReceiver
   - Shrouder
   - PlayerUI
+  - MoveUntilStop
+  - ConstructSpawn
   layers:
   - Default
   - TransparentFX
@@ -37,7 +39,7 @@ TagManager:
   - EmissionCubes
   - 
   - 
-  - 
+  - Pushable
   - 
   - 
   - 

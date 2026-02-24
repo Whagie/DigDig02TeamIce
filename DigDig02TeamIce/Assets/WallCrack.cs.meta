@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: cd626779b6b19df4480222660fcc15e9
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - Surface: {instanceID: 0}
+  - wallCrackMaterial: {fileID: 2100000, guid: 4d161643a1afc0b41ae6f700915b719c, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

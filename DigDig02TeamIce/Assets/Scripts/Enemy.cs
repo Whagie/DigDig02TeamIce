@@ -55,6 +55,7 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
         public float Weight = 1f;
         public Func<bool> CanUse; // optional condition
         public ActionModifier Modifier;
+        public string[] CustomData;
     }
 
     public EnemyAction[] Actions;

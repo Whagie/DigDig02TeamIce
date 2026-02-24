@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!319 &31900000
+AvatarMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ConstructWings
+  m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  m_Elements:
+  - m_Path: 
+    m_Weight: 1
+  - m_Path: Armature
+    m_Weight: 0
+  - m_Path: Armature/BodyControl
+    m_Weight: 0
+  - m_Path: Armature/BodyControl/Body
+    m_Weight: 0
+  - m_Path: Armature/BodyControl/Body/ArmUpper_L
+    m_Weight: 0
+  - m_Path: Armature/BodyControl/Body/ArmUpper_L/ArmLower_L
+    m_Weight: 0
+  - m_Path: Armature/BodyControl/Body/ArmUpper_L/ArmLower_L/ClawInner_L
+    m_Weight: 0
+  - m_Path: Armature/BodyControl/Body/ArmUpper_L/ArmLower_L/ClawOuter_L
+    m_Weight: 0
+  - m_Path: Armature/BodyControl/Body/ArmUpper_R
+    m_Weight: 0
+  - m_Path: Armature/BodyControl/Body/ArmUpper_R/ArmLower_R
+    m_Weight: 0
+  - m_Path: Armature/BodyControl/Body/ArmUpper_R/ArmLower_R/ClawInner_R
+    m_Weight: 0
+  - m_Path: Armature/BodyControl/Body/ArmUpper_R/ArmLower_R/ClawOuter_R
+    m_Weight: 0
+  - m_Path: Armature/BodyControl/Body/Wings_L
+    m_Weight: 1
+  - m_Path: Armature/BodyControl/Body/Wings_L/WingLargeLower_L
+    m_Weight: 1
+  - m_Path: Armature/BodyControl/Body/Wings_L/WingLargeLower_L/WingLargeUpper_L
+    m_Weight: 1
+  - m_Path: Armature/BodyControl/Body/Wings_L/WingMediumLower_L
+    m_Weight: 1
+  - m_Path: Armature/BodyControl/Body/Wings_L/WingMediumLower_L/WingMediumUpper_L
+    m_Weight: 1
+  - m_Path: Armature/BodyControl/Body/Wings_L/WingSmallLower_L
+    m_Weight: 1
+  - m_Path: Armature/BodyControl/Body/Wings_L/WingSmallLower_L/WingSmallUpper_L
+    m_Weight: 1
+  - m_Path: Armature/BodyControl/Body/Wings_R
+    m_Weight: 1
+  - m_Path: Armature/BodyControl/Body/Wings_R/WingLargeLower_R
+    m_Weight: 1
+  - m_Path: Armature/BodyControl/Body/Wings_R/WingLargeLower_R/WingLargeUpper_R
+    m_Weight: 1
+  - m_Path: Armature/BodyControl/Body/Wings_R/WingMediumLower_R
+    m_Weight: 1
+  - m_Path: Armature/BodyControl/Body/Wings_R/WingMediumLower_R/WingMediumUpper_R
+    m_Weight: 1
+  - m_Path: Armature/BodyControl/Body/Wings_R/WingSmallLower_R
+    m_Weight: 1
+  - m_Path: Armature/BodyControl/Body/Wings_R/WingSmallLower_R/WingSmallUpper_R
+    m_Weight: 1
+  - m_Path: Armature/GrabPosition
+    m_Weight: 0
+  - m_Path: Construct
+    m_Weight: 0

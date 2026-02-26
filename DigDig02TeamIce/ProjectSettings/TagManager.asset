@@ -24,7 +24,7 @@ TagManager:
   - Player
   - PlayerAttack
   - DoNotRender
-  - Wind
+  - Shrouders
   - MaskLayer
   - Tail
   - Walls

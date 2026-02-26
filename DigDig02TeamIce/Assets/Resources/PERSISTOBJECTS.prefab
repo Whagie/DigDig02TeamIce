@@ -770,7 +770,7 @@ PrefabInstance:
       objectReference: {fileID: 8723674436024030815}
     - target: {fileID: 5647199914955635245, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
       propertyPath: maxDrop
-      value: 6
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5647199914955635245, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
       propertyPath: maxAirHeight
@@ -778,7 +778,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5647199914955635245, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
       propertyPath: raycastHeight
-      value: 3.5
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 5647199914955635245, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
       propertyPath: groundMask.m_Bits

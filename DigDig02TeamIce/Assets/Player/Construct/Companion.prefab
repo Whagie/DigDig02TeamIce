@@ -268,7 +268,7 @@ MonoBehaviour:
   lookDirectionCountRange: {x: 2, y: 3}
   lookDurationRange: {x: 0.35, y: 1.3}
   minLookAngleDelta: 30
-  rotationSpeed: 3
+  rotationSpeed: 6
   orbitProbeCount: 24
   minFreeTravelOrbitProbeCount: 2
   probeRadius: 0.35
@@ -295,7 +295,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.9
+  m_Radius: 0.6
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &7055840081985382335
 Rigidbody:

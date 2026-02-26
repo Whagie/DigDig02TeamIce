@@ -7,11 +7,13 @@ public class SceneSwapManager : MonoBehaviour
 {
     public static SceneSwapManager instance;
 
-    private static bool _loadFromDoor;
+    public static bool LoadFromDoor { get; private set; }
 
     private Player _player;
     private GameObject _camera;
-    private Vector3 _doorSpawnPos;
+    private Companion _construct;
+    private Transform _doorSpawnPos;
+    private Transform _constructDoorTargetPos;
     private Vector3 _playerSpawnPosition;
 
     private DoorTriggerInteraction.DoorToSpawnAt _doorToSpawnTo;
@@ -25,6 +27,7 @@ public class SceneSwapManager : MonoBehaviour
 
         _player = GameObject.FindObjectOfType<Player>();
         _camera = GameObject.FindObjectOfType<CameraMovement>().gameObject;
+        _construct = GameObject.FindObjectOfType<Companion>();
     }
 
     private void OnEnable()
@@ -38,12 +41,12 @@ public class SceneSwapManager : MonoBehaviour
 
     public static void SwapSceneFromDoorUse(SceneField myScene, DoorTriggerInteraction.DoorToSpawnAt doorToSpawnAt)
     {
-        _loadFromDoor = true;
+        LoadFromDoor = true;
         instance.StartCoroutine(instance.FadeOutThenChangeScene(myScene, doorToSpawnAt));
     }
     public static void UnloadDeathScene(string myScene, GameObject[] respawnObject, Vector3[] spawnPos)
     {
-        _loadFromDoor = false;
+        LoadFromDoor = false;
         instance.StartCoroutine(instance.DeathResurrectSceneSwap(myScene, respawnObject, spawnPos));
     }
 
@@ -109,12 +112,9 @@ public class SceneSwapManager : MonoBehaviour
     {
         SceneFadeManager.instance.StartFadeIn();
 
-        if (_loadFromDoor)
+        if (LoadFromDoor)
         {
-            FindDoor(_doorToSpawnTo);
-            _player.transform.position = _playerSpawnPosition;
-            _camera.transform.position = _playerSpawnPosition;
-            _loadFromDoor = false;
+            StartCoroutine(PlayerDoorPositioning());
         }
     }
 
@@ -126,7 +126,8 @@ public class SceneSwapManager : MonoBehaviour
         {
             if (doors[i].CurrentDoorPosition == doorSpawnNumber)
             {
-                _doorSpawnPos = doors[i].SpawnPosition.position;
+                _doorSpawnPos = doors[i].SpawnPosition;
+                _constructDoorTargetPos = doors[i].ConstructTargetPos;
 
                 CalculateSpawnPosition();
                 return;
@@ -160,18 +161,45 @@ public class SceneSwapManager : MonoBehaviour
         //Freezer.Cancel();
     }
 
+    private IEnumerator PlayerDoorPositioning()
+    {
+        FindDoor(_doorToSpawnTo);
+
+        _player.Tail.enabled = false;
+        _player.Tail.gameObject.SetActive(false);
+        _player.transform.position = _playerSpawnPosition;
+        _player.Tail.enabled = true;
+        _player.Tail.gameObject.SetActive(true);
+        _player.Tail.User_ReposeTail();
+
+        _camera.transform.position = _playerSpawnPosition;
+
+        Vector3 pos = _playerSpawnPosition + (Vector3.up * 2f);
+        Vector3 dir = _constructDoorTargetPos.position - _doorSpawnPos.position;
+        dir.y = 0f;
+
+        if (_construct.DoorEntranceAnimRoutine != null)
+            StopCoroutine(_construct.DoorEntranceAnimRoutine);
+
+        _construct.DoorEntranceAnimRoutine = StartCoroutine(_construct.DoorEntranceAnimation(pos, _constructDoorTargetPos.position, dir.normalized));
+
+        yield return null;
+        LoadFromDoor = false;
+    }
+
     private void CalculateSpawnPosition()
     {
         float colliderHeight = _player.MainCollider.bounds.extents.y;
         Vector3 spawnPos;
 
-        if (Physics.Raycast(_doorSpawnPos, Vector3.down, out RaycastHit info))
+        if (Physics.Raycast(_doorSpawnPos.position, Vector3.down, out RaycastHit info, 15f, LayerMask.GetMask("Default")))
         {
-            spawnPos = info.point + new Vector3(0f, colliderHeight, 0f);
+            //spawnPos = info.point + new Vector3(0f, colliderHeight, 0f);
+            spawnPos = info.point;
         }
         else
         {
-            spawnPos = _doorSpawnPos;
+            spawnPos = _doorSpawnPos.position;
         }
         _playerSpawnPosition = spawnPos;
     }

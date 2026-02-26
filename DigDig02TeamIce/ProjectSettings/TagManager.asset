@@ -29,7 +29,7 @@ TagManager:
   - Tail
   - Walls
   - 
-  - TerrainMask
+  - DepthShroudingWithoutAO
   - EntranceFade
   - EntranceFrame
   - 

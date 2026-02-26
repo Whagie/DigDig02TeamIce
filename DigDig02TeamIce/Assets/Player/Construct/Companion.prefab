@@ -243,6 +243,7 @@ MonoBehaviour:
   player: {fileID: 0}
   Offset: {x: -3.5, y: 3.5, z: -1}
   SpearOffset: {x: -5, y: 1.5, z: 0}
+  agent: {fileID: 0}
   Spear: {fileID: 1541981574055698079, guid: c2296a7adabf9dd4c93438bb4f2cc41d, type: 3}
   previousSpears: []
   spearAttackCooldown: 0.6
@@ -257,15 +258,15 @@ MonoBehaviour:
   circlingSpeed: 0.6
   walkingCirclingSpeed: 1.5
   sprintingCirclingSpeed: 2.2
-  followLerpSpeed: 8
+  followLerpSpeed: 5
   bobbingStrength: 0.4
   bobbingSpeed: 3
   chanceToStopCircling: 0.2
-  minCirclingTime: 3.5
-  maxCirclingTime: 9
+  minCirclingTime: 5
+  maxCirclingTime: 11
   chanceToFlipOrbitDirection: 0.3
   lookDirectionCountRange: {x: 2, y: 3}
-  lookDurationRange: {x: 0.5, y: 1.5}
+  lookDurationRange: {x: 0.35, y: 1.3}
   minLookAngleDelta: 30
   rotationSpeed: 3
   orbitProbeCount: 24
@@ -274,6 +275,7 @@ MonoBehaviour:
   obstacleMask:
     serializedVersion: 2
     m_Bits: 68157441
+  isCarrying: 0
 --- !u!135 &5039081755964336664
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -334,7 +336,7 @@ NavMeshAgent:
   m_Radius: 0.9
   m_Speed: 24
   m_Acceleration: 24
-  avoidancePriority: 50
+  avoidancePriority: 80
   m_AngularSpeed: 260
   m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1

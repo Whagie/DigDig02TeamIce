@@ -110,7 +110,7 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
 
     public GameObject Wrench;
     public Collider WrenchCollider;
-    private MeleeAttack wrenchAttack;
+    public MeleeAttack wrenchAttack;
 
     private float timeUntilPushStart = 0.3f;
     private float pushStartTimer = 0.3f;
@@ -124,6 +124,7 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
 
     private float prevTurnSpeed = 8f;
     private float prevMoveSpeed = 5f;
+    private float prevSprintSpeed = 10f;
 
     protected override void OnEntityEnable()
     {
@@ -244,6 +245,13 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         {
             animator.SetBool("Blocked", false);
         }
+        else
+        {
+            if (wrenchAttack.active)
+            {
+                wrenchAttack.Deactivate();
+            }
+        }
 
         Attack();
 
@@ -275,6 +283,7 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
             pushStartTimer = timeUntilPushStart;
             prevTurnSpeed = turnSpeed;
             prevMoveSpeed = walkSpeed;
+            prevSprintSpeed = sprintSpeed;
             pushHit = hit;
             animator.SetBool("Pushing", true);
         }
@@ -285,6 +294,7 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
 
             turnSpeed = 0f;
             walkSpeed = 0.5f;
+            sprintSpeed = 1f;
             SnapRotationToObject();
 
             if (pushStartTimer <= 0f)
@@ -331,6 +341,11 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         if (Attacking)
         {
             targetSpeed = walkSpeed * 0.5f;
+        }
+
+        if (animator.GetCurrentAnimatorStateInfo(0).IsName("BlockAbove"))
+        {
+            targetSpeed = 0f;
         }
 
         Vector3 camForward = _camera.transform.forward;
@@ -776,19 +791,24 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         if (Companion == null)
             return;
 
-        if (UserInput.InteractPressed && !Parrying)
-        {
-            if (!Companion.isCarrying)
-            {
-                Companion.StartCarry(GameObject.Find("Pickup").transform);
-                return;
-            }
-            else
-            {
-                Companion.StopCarry();
-                return;
-            }
-        }
+        //if (UserInput.InteractPressed && !Parrying)
+        //{
+        //    if (!Companion.isCarrying)
+        //    {
+        //        GameObject pickup = GameObject.Find("Pickup");
+
+        //        if (pickup != null)
+        //        {
+        //            Companion.StartCarry(pickup.transform);
+        //        }               
+        //        return;
+        //    }
+        //    else
+        //    {
+        //        Companion.StopCarry();
+        //        return;
+        //    }
+        //}
     }
 
     void EnterPushState()
@@ -822,6 +842,7 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         pushStartTimer = timeUntilPushStart;
         turnSpeed = prevTurnSpeed;
         walkSpeed = prevMoveSpeed;
+        sprintSpeed = prevSprintSpeed;
     }
 
     IEnumerator PushRoutine(PushableObject pushable)
@@ -881,10 +902,12 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
             // Add pushable object's movement to player, so it stays connected to it, without parenting the player
 
             walkSpeed = 0f;
+            sprintSpeed = 0f;
 
             yield return new WaitForSeconds(moveDuration);
 
             walkSpeed = 0.5f;
+            sprintSpeed = 1f;
 
             yield return new WaitForSeconds(timeUntilPushMove);
         }

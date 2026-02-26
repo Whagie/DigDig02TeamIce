@@ -80,8 +80,6 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
     public int ProjectileDamage = 1;
     public GameObject projectilePrefab;
 
-    public static event System.Action<Vector3> OnSendEnergy;
-
     private Color sphereColor = Color.blue;
     private Color visionConeColor = Color.blue;
 
@@ -700,8 +698,11 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
         pushVelocity += direction.normalized * force;
         pushTimer = Mathf.Max(pushTimer, duration);
 
-        NavAgent.isStopped = true;      // stop pathing
-        NavAgent.updateRotation = false;
+        if (NavAgent != null)
+        {
+            NavAgent.isStopped = true;      // stop pathing
+            NavAgent.updateRotation = false;
+        }
     }
     void HandlePushback()
     {
@@ -727,6 +728,9 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
 
     public void Stun(float duration)
     {
+        if (NavAgent == null)
+            return;
+
         StartCoroutine(StunRoutine(duration));
     }
     private IEnumerator StunRoutine(float duration)
@@ -753,42 +757,7 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
     {
         player.GiveEnergy();
 
-        GameObject prefab = VFX.EnergyRibbons;
-
-        var instance = Instantiate(prefab, transform);
-        EnergyParticleManager particleManager = instance.GetComponent<EnergyParticleManager>();
-        Companion companion = GameObject.FindObjectOfType<Companion>();
-        if (companion == null)
-        {
-            Debug.Log("Companion is null!");
-        }
-
-        Vector3 enemyPos = transform.position;
-        Vector3 playerPos = companion.player.transform.position;
-
-        // Direction *away* from the companion (so the curve bends back)
-        Vector3 direction = (enemyPos - playerPos).normalized;
-
-        // Midpoint halfway in Y between the two
-        float midY = enemyPos.y + (playerPos.y - enemyPos.y) / 2f;
-
-        // Final middle position = enemy position + offset backward along the direction
-        Vector3 middlePos = enemyPos + direction * middlePosDistance;
-        middlePos.y = midY;
-
-        GameObject empty = new GameObject("EnergyCurveMidpoint");
-        empty.transform.position = middlePos;
-
-        particleManager.StartPos = transform;
-        particleManager.EndPos = companion.transform;
-        particleManager.MiddlePos = empty.transform;
-
-        // Optional: destroy the VFX prefab after its lifetime
-        float maxLifetime = 3; // match your particle lifetime
-        Destroy(empty, maxLifetime);
-        Destroy(instance, maxLifetime);
-
-        OnSendEnergy?.Invoke(empty.transform.position);
+        ParticleSpawner.SpawnEnergy(transform, true, middlePosDistance);
     }
 }
 

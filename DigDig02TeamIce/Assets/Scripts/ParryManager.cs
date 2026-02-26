@@ -104,6 +104,7 @@ public class ParryManager : Entity, IHurtbox
         parryResolvedThisFrame = false;
         player.DamageCollider.enabled = false;
         player.Parrying = true;
+        player.wrenchAttack.Deactivate();
         OnParryStart?.Invoke();
     }
 

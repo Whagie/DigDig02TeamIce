@@ -18,7 +18,7 @@ public class Companion : MonoBehaviour
     public Vector3 Offset;
     public Vector3 SpearOffset;
 
-    private NavMeshAgent agent;
+    public NavMeshAgent agent;
 
     [SerializeField] private GameObject Spear;
     public List<SpearAttackScript> previousSpears;
@@ -30,7 +30,7 @@ public class Companion : MonoBehaviour
     public float slamShockwaveRadius = 6f;
 
     private bool canAttack = true;
-    private bool slamAttacking = false;
+    public bool SlamAttacking { get; private set; } = false;
     private bool shouldMove = true;
     private bool movementOverride = false;
 
@@ -115,9 +115,15 @@ public class Companion : MonoBehaviour
     private float carryOffsetDistance = 1.5f;
     public bool isCarrying = false;
     private bool isPlayingGrabAnim = false;
+    private float agentSpeedBeforeGrab = 24f;
+    private float agentAccelerationBeforeGrab = 24f;
+    private float carryBobTime = 0f;
+    private bool isPlayingEntranceAnim = false;
 
     private Coroutine behaviorRoutine;
     private Coroutine attackCooldownRoutine;
+    private Coroutine outOfEnergyShakeRoutine;
+    public Coroutine DoorEntranceAnimRoutine;
 
     private void OnEnable()
     {
@@ -137,13 +143,16 @@ public class Companion : MonoBehaviour
 
     private void Start()
     {
-        Enemy.OnSendEnergy += CollectEnergy;
+        ParticleSpawner.OnSendEnergy += CollectEnergy;
         _animator = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
         circlingTimer = minCirclingTime;
         origCirclingSpeed = circlingSpeed;
         circlingRadius = walkingCirclingSpeed;
         sprintFacing = transform.forward;
+
+        agentSpeedBeforeGrab = agent.speed;
+        agentAccelerationBeforeGrab = agent.acceleration;
 
         grabPosition = transform.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == "GrabPosition");
         if (grabPosition == null)
@@ -190,7 +199,7 @@ public class Companion : MonoBehaviour
     }
     private void OnDisable()
     {
-        Enemy.OnSendEnergy -= CollectEnergy;
+        ParticleSpawner.OnSendEnergy -= CollectEnergy;
     }
 
     private void Update()
@@ -198,13 +207,16 @@ public class Companion : MonoBehaviour
         // -----------------------------
         // 1. NON-MOVEMENT LOGIC (always runs)
         // -----------------------------
+        UpdateOrbitProbes();
+
+        if (isPlayingEntranceAnim)
+            return;
+
         if (!isCarrying)
         {
             SpearAttack();
             SlamAttack();
         }
-
-        UpdateOrbitProbes();
 
         // -----------------------------
         // 2. SENSING / STATE DETECTION
@@ -274,6 +286,12 @@ public class Companion : MonoBehaviour
                 ExitNavMove();
             }
 
+            if (isCarrying)
+            {
+                carryBobTime += Time.deltaTime * bobbingSpeed;
+                agent.baseOffset = 3.5f + Mathf.Sin(carryBobTime) * bobbingStrength * 0.3f;
+            }
+
             return; // NOTHING BELOW THIS RUNS
         }
 
@@ -327,7 +345,7 @@ public class Companion : MonoBehaviour
         }
     }
 
-    void EnterNavMove(Vector3 destination)
+    void EnterNavMove(Vector3 destination, float stoppingDistance = 0f)
     {
         if (movementMode == CompanionMovementMode.NavMove)
             return;
@@ -343,6 +361,7 @@ public class Companion : MonoBehaviour
         agent.ResetPath();
         agent.isStopped = false;
         agent.SetDestination(destination);
+        agent.stoppingDistance = stoppingDistance;
     }
     void ExitNavMove()
     {
@@ -665,7 +684,7 @@ public class Companion : MonoBehaviour
         transform.rotation = Quaternion.Slerp(
             transform.rotation,
             target,
-            rotationSpeed * Time.deltaTime
+            rotationSpeed * 1.4f * Time.deltaTime
         );
     }
     void UpdateIdleFollow()
@@ -756,7 +775,7 @@ public class Companion : MonoBehaviour
         yield return ReturnToOrbit();
     }
 
-    IEnumerator ReturnToOrbit()
+    IEnumerator ReturnToOrbit(float returnDuration = 1.25f)
     {
         ReanchorBobPhase(bobbingStrength);
 
@@ -772,7 +791,7 @@ public class Companion : MonoBehaviour
             prevValue = walkingCirclingSpeed;
         }
 
-        float duration = 1.25f;
+        float duration = returnDuration;
         float t = 0f;
 
         while (t < 1f)
@@ -803,7 +822,7 @@ public class Companion : MonoBehaviour
             yield return null;
         }
 
-        circlingSpeed = prevCirclingSpeed.Value;
+        circlingSpeed = prevValue;
         prevCirclingSpeed = null;
         isReturning = false;
         isLooking = false;
@@ -1013,6 +1032,40 @@ public class Companion : MonoBehaviour
         shouldMove = true;
         _animator.SetLayerWeight(1, 1f);
     }
+    private IEnumerator OutOfEnergyShakeWait()
+    {
+        var clip = _animator.runtimeAnimatorController.animationClips.FirstOrDefault(c => c.name == "Idle_Twitch");
+        float totalTime;
+
+        if (clip == null)
+        {
+            Debug.LogWarning("Idle_Twitch animation not found!");
+            totalTime = 0.5f;
+        }
+        else
+        {
+            totalTime = clip.length;
+        }
+
+        float prevWeight = IdleActions[0].Weight;
+        var prevConditions = IdleActions[0].CanUse;
+
+        IdleActions[0].Weight = 99999f;
+        IdleActions[0].CanUse = () => !movementOverride;
+        _animator.SetLayerWeight(2, 1f);
+        _animator.SetBool("IdleAnimOverride", true);
+
+        PickAction();
+
+        IdleActions[0].Weight = prevWeight;
+        IdleActions[0].CanUse = prevConditions;
+
+        yield return new WaitForSeconds(totalTime);
+
+        _animator.SetLayerWeight(2, 0f);
+        _animator.SetBool("IdleAnimOverride", false);
+        outOfEnergyShakeRoutine = null;
+    }
 
     public void StartCarry(Transform target)
     {
@@ -1041,6 +1094,13 @@ public class Companion : MonoBehaviour
         isCarrying = true;
         isPlayingGrabAnim = true;
         movementOverride = true;
+
+        if (outOfEnergyShakeRoutine != null)
+        {
+            StopCoroutine(outOfEnergyShakeRoutine);
+            _animator.SetLayerWeight(2, 0f);
+            _animator.SetBool("IdleAnimOverride", false);
+        }
 
         if (playingIdleAnim)
         {
@@ -1140,6 +1200,14 @@ public class Companion : MonoBehaviour
         isPlayingGrabAnim = false;
         movementOverride = false;
         agent.isStopped = false;
+
+        agentSpeedBeforeGrab = agent.speed;
+        agentAccelerationBeforeGrab = agent.acceleration;
+
+        agent.stoppingDistance = 3f;
+        agent.speed = 12f;
+        agent.acceleration = 12f;
+        carryBobTime = 0f;
     }
 
     private IEnumerator PutDownObject(Transform target = null)
@@ -1152,6 +1220,13 @@ public class Companion : MonoBehaviour
         isCarrying = true;
         isPlayingGrabAnim = true;
         movementOverride = true;
+
+        if (outOfEnergyShakeRoutine != null)
+        {
+            StopCoroutine(outOfEnergyShakeRoutine);
+            _animator.SetLayerWeight(2, 0f);
+            _animator.SetBool("IdleAnimOverride", false);
+        }
 
         if (!targetNull)
         {
@@ -1211,7 +1286,7 @@ public class Companion : MonoBehaviour
             }
             else // Nowhere to place object, break out of loop
             {
-                float totalTime = player.animator.runtimeAnimatorController.animationClips.Where(c => c.name == "Idle_Twitch").FirstOrDefault().length;
+                float totalTime = _animator.runtimeAnimatorController.animationClips.Where(c => c.name == "Idle_Twitch").FirstOrDefault().length;
                 _animator.SetLayerWeight(2, 1f);
                 _animator.SetTriggerOneFrame(this, "Idle_Twitch");
 
@@ -1267,7 +1342,7 @@ public class Companion : MonoBehaviour
         }
 
         float startHeight2 = agent.baseOffset;
-        float endHeight2 = startHeight;
+        float endHeight2 = 3.5f;
         Vector3 start2 = transform.position;
         Vector3 end2 = start;
 
@@ -1290,6 +1365,9 @@ public class Companion : MonoBehaviour
         isCarrying = false;
         movementOverride = false;
         agent.isStopped = false;
+        agent.stoppingDistance = 0f;
+        agent.speed = agentSpeedBeforeGrab;
+        agent.acceleration = agentAccelerationBeforeGrab;
         ExitNavMove();
     }
 
@@ -1349,7 +1427,7 @@ public class Companion : MonoBehaviour
 
     public void SlamAttack()
     {
-        if (UserInput.SlamAttackPressed && canAttack && !slamAttacking && !player.Parrying)
+        if (UserInput.SlamAttackPressed && canAttack && !SlamAttacking && !player.Parrying && !player.Pushing && player.Grounded)
         {
             if (TryAttack(2))
             {
@@ -1375,12 +1453,21 @@ public class Companion : MonoBehaviour
             player.ConsumeEnergy(energyCost);
             return true;
         }
-        return false;
+        else
+        {
+            if (outOfEnergyShakeRoutine != null)
+            {
+                StopCoroutine(outOfEnergyShakeRoutine);
+                _animator.SetLayerWeight(2, 0f);
+                _animator.SetBool("IdleAnimOverride", false);
+            }
+            outOfEnergyShakeRoutine = StartCoroutine(OutOfEnergyShakeWait());
+            return false;
+        }
     }
 
     private void CollectEnergy(Vector3 senderPos)
     {
-
         GameObject prefab = VFX.Construct_GainEnergy;
 
         Vector3 dir = senderPos - transform.position;
@@ -1399,8 +1486,15 @@ public class Companion : MonoBehaviour
 
     private IEnumerator SlamAttackRoutine()
     {
-        slamAttacking = true;
+        SlamAttacking = true;
         StopMovement();
+
+        if (outOfEnergyShakeRoutine != null)
+        {
+            StopCoroutine(outOfEnergyShakeRoutine);
+            _animator.SetLayerWeight(2, 0f);
+            _animator.SetBool("IdleAnimOverride", false);
+        }
 
         if (playingIdleAnim)
         {
@@ -1524,7 +1618,7 @@ public class Companion : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
         agent.enabled = true;
         player.animator.SetBool("SlamAttacking", false);
-        slamAttacking = false;
+        SlamAttacking = false;
         ResumeMovement();
     }
 
@@ -1627,6 +1721,146 @@ public class Companion : MonoBehaviour
         canAttack = false;
         yield return new WaitForSeconds(amount);
         canAttack = true;
+    }
+
+    public IEnumerator DoorEntranceAnimation(Vector3 spawnPos, Vector3 targetPos, Vector3 direction)
+    {
+        StopMovement();
+        _animator.SetBool("Looking", false);
+        _animator.SetBool("IdleAnimOverride", false);
+        _animator.Play("Fly", 0);
+        isPlayingEntranceAnim = true;
+        agent.enabled = false;
+        previousSpears = new List<SpearAttackScript>();
+        previousSpears.Clear();
+
+        transform.position = spawnPos;
+        transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+
+        while (SceneFadeManager.instance.IsFadingIn)
+        {
+            yield return null;
+        }
+
+        Vector3 start = spawnPos + (direction * 2f);
+        Vector3 target = targetPos;
+
+        Vector3 startXZ = new Vector3(start.x, 0f, start.z);
+        Vector3 targetXZ = new Vector3(target.x, 0f, target.z);
+
+        float startY = start.y;
+        float targetY = target.y;
+
+        float duration = 0.6f;
+        float t = 0f;
+
+        bool playedSpinAnim = false;
+
+        while (t < 1f)
+        {
+            t += Time.deltaTime / duration;
+            t = Mathf.Clamp01(t);
+
+            float yWeight = t * t * t;      // cubic rise
+            float xzWeight = 1f - yWeight;
+
+            Vector3 xzPos = Vector3.Lerp(startXZ, targetXZ, t);
+            float yPos = Mathf.Lerp(startY, targetY, yWeight);
+
+            Vector3 desiredPos = new Vector3(
+                xzPos.x,
+                yPos,
+                xzPos.z
+            );
+
+            transform.position = Vector3.SmoothDamp(
+                transform.position,
+                desiredPos,
+                ref followVelocity,
+                0.15f,        // smaller = snappier
+                Mathf.Infinity
+            );
+
+            if (t >= 0.5f && !playedSpinAnim)
+            {
+                playedSpinAnim = true;
+                _animator.speed *= 1.2f;
+                _animator.Play("Idle_Spin", 0);
+                _animator.SetLayerWeight(1, 0f);
+            }
+
+            yield return null;
+        }
+
+        float inertiaTime = 0.75f;
+        float inertiaT = 0f;
+
+        while (inertiaT < inertiaTime)
+        {
+            inertiaT += Time.deltaTime;
+
+            transform.position += followVelocity * Time.deltaTime;
+
+            // natural damping
+            followVelocity = Vector3.Lerp(followVelocity, Vector3.zero, 4f * Time.deltaTime);
+
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(0.6f); // Small wait for animation finish
+        _animator.speed *= 1f / 1.2f;
+        _animator.SetLayerWeight(1, 1f);
+
+        Vector3 start2 = transform.position;
+        Vector3 target2 = player.transform.position;
+
+        float duration2 = 0.75f;
+        float t2 = 0f;
+
+        while (t2 < 1f)
+        {
+            t2 += Time.deltaTime / duration2;
+            t2 = Mathf.Clamp01(t2);
+
+            MoveToClosestProbe();
+
+            if (forcedWorldTarget.HasValue)
+            {
+                target2 = forcedWorldTarget.Value;
+            }
+            else
+            {
+                target2 = player.transform.position;
+            }
+
+            Vector3 pos = Vector3.Lerp(start2, target2, t2);
+
+            pos = Vector3.SmoothDamp(
+                transform.position,
+                pos,
+                ref followVelocity,
+                0.15f,
+                Mathf.Infinity
+            );
+
+            transform.position = pos;
+
+            yield return null;
+        }
+
+        yield return ReturnToOrbit(0.25f);
+
+        isLooking = false;
+        isReturning = false;
+        isCircling = true;
+
+        if (behaviorRoutine == null)
+            behaviorRoutine = StartCoroutine(BehaviorLoop());
+
+        isPlayingEntranceAnim = false;
+        agent.enabled = true;
+
+        DoorEntranceAnimRoutine = null;
     }
 
     void OnDrawGizmos()

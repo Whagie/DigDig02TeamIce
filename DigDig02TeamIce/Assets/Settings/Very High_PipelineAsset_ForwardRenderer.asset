@@ -120,12 +120,12 @@ MonoBehaviour:
     AfterOpaque: 1
     Source: 1
     NormalSamples: 1
-    Intensity: 1.5
+    Intensity: 20
     DirectLightingStrength: 0.4
-    Radius: 0.75
+    Radius: 0.65
     Samples: 0
     BlurQuality: 0
-    Falloff: 300
+    Falloff: 450
     SampleCount: -1
   m_BlueNoise256Textures:
   - {fileID: 2800000, guid: 36f118343fc974119bee3d09e2111500, type: 3}
@@ -156,7 +156,7 @@ MonoBehaviour:
       RenderQueueType: 0
       LayerMask:
         serializedVersion: 2
-        m_Bits: 256
+        m_Bits: 65792
       PassNames: []
     overrideMaterial: {fileID: 2100000, guid: 2c6a83d1303ce47228acf3a969d9b49a, type: 2}
     overrideMaterialPassIndex: 0

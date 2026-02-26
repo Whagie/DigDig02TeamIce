@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Rendering;
 
 [CustomEditor(typeof(PushableObject))]
@@ -14,6 +16,24 @@ public class PushableObjectEditor : Editor
     const float BodyLength = 0.7f;
     const float BodyWidth = 0.25f;
     const float HeadWidth = 0.5f;
+
+    private List<string> Starts = new() { 
+        "Bookshelves/Start/Bookshelf_Start_A", 
+        "Bookshelves/Start/Bookshelf_Start_B", 
+        "Bookshelves/Start/Bookshelf_Start_C" 
+    };
+
+    private List<string> Middles = new() {
+        "Bookshelves/Middle/Bookshelf_Middle_A",
+        "Bookshelves/Middle/Bookshelf_Middle_B",
+        "Bookshelves/Middle/Bookshelf_Middle_C"
+    };
+
+    private List<string> Ends = new() {
+        "Bookshelves/End/Bookshelf_End_A",
+        "Bookshelves/End/Bookshelf_End_B",
+        "Bookshelves/End/Bookshelf_End_C"
+    };
 
     void OnEnable()
     {
@@ -58,9 +78,21 @@ public class PushableObjectEditor : Editor
             );
         }
 
+        if (GUILayout.Button("Add / Fit BoxCollider"))
+        {
+            AddOrFitBoxCollider();
+        }
+
+        GUILayout.Space(10);
+
         if (GUILayout.Button("Spawn Bookshelves"))
         {
             SpawnBookshelves();
+        }
+
+        if (GUILayout.Button("Clear Bookshelves"))
+        {
+            ClearExistingBookshelves();
         }
     }
 
@@ -131,6 +163,8 @@ public class PushableObjectEditor : Editor
 
     void SpawnBookshelves()
     {
+        int lx = obj.LengthOnGridX;
+        int lz = obj.LengthOnGridZ;
 
         PushableGridPoint p = obj.Grid.Get(obj.OriginCoord);
         Vector3 pos =
@@ -141,26 +175,172 @@ public class PushableObjectEditor : Editor
                     p.Coord.y * obj.Grid.GridMargin
                 );
 
-        GameObject prefab = Resources.Load<GameObject>("Bookshelves/Middle/Bookshelf_Middle_A");
-
         int group = Undo.GetCurrentGroup();
-        Undo.SetCurrentGroupName("Spawn Pushable Children");
+        Undo.SetCurrentGroupName("Spawn Pushable Bookshelves");
 
-        for (int z = 0; z < obj.LengthOnGridZ / 2; z++)
+        int sx = lx / 2;
+        int sz = lz / 2;
+
+        Vector3 oddOffset = Vector3.zero;
+
+        if (lx % 2 != 0)
         {
-            GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
-            instance.transform.SetParent(obj.transform);
-            instance.transform.position = pos + (new Vector3(0f, 0f, 2f) * z);
+            oddOffset.x += obj.CellExtents().x;
+        }
 
-            for (int x = 0; x < obj.LengthOnGridX / 2; x++)
+        if (lz % 2 != 0)
+        {
+            oddOffset.z += obj.CellExtents().z;
+        }
+
+        bool alongZ = sz >= sx;
+        bool flipFacing = !alongZ;
+
+        if (sx == 1 && sz == 1)
+        {
+            SpawnRandom(Middles, 0, 0, pos, oddOffset, flipFacing, true);
+        }
+        else
+        {
+            int length = alongZ ? sz : sx;
+            int thickness = alongZ ? sx : sz;
+
+            for (int l = 0; l < length; l++)
             {
-                GameObject instance2 = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
-                instance2.transform.SetParent(obj.transform);
-                instance2.transform.position = pos + (new Vector3(2f, 0f, 0f) * x);
+                for (int t = 0; t < thickness; t++)
+                {
+                    List<string> sourceList;
+                    bool isMiddle = false;
 
-                Undo.RegisterCreatedObjectUndo(instance2, "Spawn Pushable Children");
+                    if (l == 0)
+                        sourceList = Ends;
+                    else if (l == length - 1)
+                        sourceList = Starts;
+                    else
+                    {
+                        sourceList = Middles;
+                        isMiddle = true;
+                    }
+
+                    int x = alongZ ? t : l;
+                    int z = alongZ ? l : t;
+
+                    SpawnRandom(sourceList, x, z, pos, oddOffset, flipFacing, isMiddle);
+                }
             }
         }
+
+        Undo.CollapseUndoOperations(group);
+    }
+
+    void SpawnRandom(List<string> list, int x, int z, Vector3 origin, Vector3 offset, bool flip, bool isMiddle)
+    {
+        GameObject prefab =
+            Resources.Load<GameObject>(list[Random.Range(0, list.Count)]);
+
+        GameObject instance =
+            (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+
+        instance.transform.SetParent(obj.transform);
+        instance.transform.position =
+            origin +
+            offset +
+            new Vector3(2f * x, 0f, 2f * z);
+
+        if (flip)
+        {
+            instance.transform.Rotate(0f, 90f, 0f);
+        }
+
+        if (Random.value > 0.5f && isMiddle)
+        {
+            instance.transform.Rotate(0f, 180f, 0f);
+        }
+
+        Undo.RegisterCreatedObjectUndo(instance, "Spawn Pushable Bookshelves");
+    }
+
+    void ClearExistingBookshelves()
+    {
+        int group = Undo.GetCurrentGroup();
+        Undo.SetCurrentGroupName("Clear Bookshelves");
+
+        // Important: copy to list first to avoid modifying collection while iterating
+        List<GameObject> children = new List<GameObject>();
+
+        foreach (Transform child in obj.transform)
+            children.Add(child.gameObject);
+
+        foreach (GameObject go in children)
+            Undo.DestroyObjectImmediate(go);
+
+        Undo.CollapseUndoOperations(group);
+    }
+
+    void AddOrFitBoxCollider()
+    {
+        int group = Undo.GetCurrentGroup();
+        Undo.SetCurrentGroupName("Add / Fit Pushable Collider");
+
+        float boxX = obj.LengthOnGridX * obj.Grid.GridMargin;
+        float boxZ = obj.LengthOnGridZ * obj.Grid.GridMargin;
+
+        if (!obj.TryGetComponent(out BoxCollider box))
+        {
+            box = Undo.AddComponent<BoxCollider>(obj.gameObject);
+        }
+        else
+        {
+            Undo.RecordObject(box, "Modify BoxCollider");
+        }
+
+        Vector3 size = box.size;
+        size.y = 4f;
+        size.x = boxX;
+        size.z = boxZ;
+
+        Vector3 center = box.center;
+        center.y = 2f;
+        center.x = boxX / 2f;
+        center.z = boxZ / 2f;
+
+        if (obj.LengthOnGridX % 2 != 0)
+        {
+            if (obj.LengthOnGridX != 2 && obj.LengthOnGridX != 1)
+            {
+                size.x -= 1;
+            }
+        }
+        if (obj.LengthOnGridZ % 2 != 0)
+        {
+            if (obj.LengthOnGridZ != 2 && obj.LengthOnGridZ != 1)
+            {
+                size.z -= 1;
+            }
+        }
+
+        box.size = size;
+        box.center = center;
+
+        if (!obj.TryGetComponent(out NavMeshObstacle navObstable))
+        {
+            navObstable = Undo.AddComponent<NavMeshObstacle>(obj.gameObject);
+        }
+        else
+        {
+            Undo.RecordObject(navObstable, "Modify NavMeshObstacle");
+        }
+
+        navObstable.shape = NavMeshObstacleShape.Box;
+        navObstable.center = box.center;
+        navObstable.size = box.size;
+        navObstable.carving = true;
+
+        PrefabUtility.RecordPrefabInstancePropertyModifications(navObstable);
+        EditorUtility.SetDirty(navObstable);
+
+        PrefabUtility.RecordPrefabInstancePropertyModifications(box);
+        EditorUtility.SetDirty(box);
 
         Undo.CollapseUndoOperations(group);
     }

@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 using static UnityEngine.Rendering.DebugUI;
 
-public class Projectile : Entity, IHitbox
+public class Projectile : MonoBehaviour, IHitbox
 {
     public GameObject Owner => gameObject;
     public bool CanBeParried => true;
@@ -26,24 +26,22 @@ public class Projectile : Entity, IHitbox
     private bool recentlyParried;
     private Vector3 prevPos;
 
-    protected override void OnEntityEnable()
+    private void OnEnable()
     {
         HitboxManager.Register(this);
-        base.OnEntityEnable();
     }
-    protected override void OnEntityDisable()
+    private void OnDisable()
     {
         HitboxManager.Unregister(this);
-        base.OnEntityDisable();
     }
 
-    protected override void OnStart()
+    private void Start()
     {
         prevPos = transform.position;
         StartCoroutine(LifespanTimer());
     }
 
-    protected override void OnUpdate()
+    private void Update()
     {
         Vector3 currentPos = transform.position;
 

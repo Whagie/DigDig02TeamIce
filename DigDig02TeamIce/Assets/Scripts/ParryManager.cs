@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class ParryManager : Entity, IHurtbox
+public class ParryManager : MonoBehaviour, IHurtbox
 {
     public GameObject Owner => gameObject;
     public Collider Collider => ParryCollider;
@@ -41,7 +41,7 @@ public class ParryManager : Entity, IHurtbox
     public event System.Action OnParryCooldownEnd;
     public event System.Action<IHitbox> OnParried;
 
-    protected override void OnStart()
+    private void Start()
     {
         ParryCollider = GetComponent<Collider>();
         player = GameObject.FindObjectOfType<Player>();
@@ -57,7 +57,7 @@ public class ParryManager : Entity, IHurtbox
         }
     }
 
-    protected override void OnUpdate()
+    private void Update()
     {
         Parry();
 
@@ -180,7 +180,7 @@ public class ParryManager : Entity, IHurtbox
         }
     }
 
-    protected override void OnEntityDisable()
+    private void OnDisable()
     {
         ParryCollider.enabled = false;
         player.Parrying = false;

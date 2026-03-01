@@ -17,14 +17,6 @@ public class ShrumalWarrior : Enemy
     public Collider SwordCollider;
     public Collider HeadCollider;
 
-    protected override void OnEntityEnable()
-    {
-        base.OnEntityEnable();
-    }
-    protected override void OnEntityDisable()
-    {
-        base.OnEntityDisable();
-    }
     protected override void InitializeActions()
     {
         Actions = new[]
@@ -56,9 +48,9 @@ public class ShrumalWarrior : Enemy
         };
     }
 
-    protected override void OnStart()
+    protected override void Start()
     {
-        base.OnStart();
+        base.Start();
 
         Collider = MainCollider;
 
@@ -166,6 +158,15 @@ public class ShrumalWarrior : Enemy
     protected override void Die()
     {
         _animator.SetBool("Died", true);
+
+        // If dead is set to true before base.Die(), it means the enemy was dead in save data,
+        // hence player has already killed them and no death animation
+        if (Dead)
+        {
+            _animator.Play("Die", -1, 1f);
+            _animator.Update(0f);
+        }
+
         MainCollider.enabled = false;
         SwordCollider.enabled = false;
         HeadCollider.enabled = false;

@@ -1,3 +1,4 @@
+using FIMSpace.Basics;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,9 +13,14 @@ public class SceneSwapManager : MonoBehaviour
     private Player _player;
     private GameObject _camera;
     private Companion _construct;
+
     private Transform _doorSpawnPos;
+    private Transform _constructDoorTargetSpinPos;
     private Transform _constructDoorTargetPos;
     private Vector3 _playerSpawnPosition;
+    private float cameraRotY;
+    private bool allowSpinEntrance;
+    private bool forceSpinEntrance;
 
     private DoorTriggerInteraction.DoorToSpawnAt _doorToSpawnTo;
 
@@ -52,7 +58,7 @@ public class SceneSwapManager : MonoBehaviour
 
     public static void LoadDeathScene()
     {
-        instance.StartCoroutine(instance.FreezeUntilLoaded(true));
+        instance.StartCoroutine(instance.FreezeAndLoadDeathSceneRoutine(true));
     }
 
     private IEnumerator FadeOutThenChangeScene(SceneField myScene, DoorTriggerInteraction.DoorToSpawnAt doorToSpawnAt = DoorTriggerInteraction.DoorToSpawnAt.None)
@@ -99,6 +105,9 @@ public class SceneSwapManager : MonoBehaviour
 
         _player.animator.updateMode = AnimatorUpdateMode.UnscaledTime;
         _player.animator.SetBool("Dead", false);
+
+        _construct._animator.SetBool("Died", false);
+        _construct._animator.SetLayerWeight(1, 1f);
         yield return null;
 
         yield return new WaitForSecondsRealtime(2f);
@@ -128,6 +137,10 @@ public class SceneSwapManager : MonoBehaviour
             {
                 _doorSpawnPos = doors[i].SpawnPosition;
                 _constructDoorTargetPos = doors[i].ConstructTargetPos;
+                _constructDoorTargetSpinPos = doors[i].ConstructTargetSpinPos;
+                cameraRotY = doors[i].CameraRotationY;
+                allowSpinEntrance = doors[i].AllowSpinEntrance;
+                forceSpinEntrance = doors[i].ForceSpinEntrance;
 
                 CalculateSpawnPosition();
                 return;
@@ -135,7 +148,7 @@ public class SceneSwapManager : MonoBehaviour
         }
     }
 
-    private IEnumerator FreezeUntilLoaded(bool waitOneFrame = false)
+    private IEnumerator FreezeAndLoadDeathSceneRoutine(bool waitOneFrame = false)
     {
         if (waitOneFrame)
         {
@@ -173,15 +186,115 @@ public class SceneSwapManager : MonoBehaviour
         _player.Tail.User_ReposeTail();
 
         _camera.transform.position = _playerSpawnPosition;
+        Vector3 angles = _camera.transform.localEulerAngles;
+        angles.y = cameraRotY;
+        _camera.transform.localEulerAngles = angles;
 
         Vector3 pos = _playerSpawnPosition + (Vector3.up * 2f);
-        Vector3 dir = _constructDoorTargetPos.position - _doorSpawnPos.position;
+
+        bool doSpin = Random.value < 0.33f;
+        if (!allowSpinEntrance && !forceSpinEntrance)
+            doSpin = false;
+
+        Vector3 dir;
+        Vector3 targetPos;
+        if (doSpin || forceSpinEntrance)
+        {
+            if (!_construct.isCarrying)
+            {
+                doSpin = true;
+                dir = _constructDoorTargetSpinPos.position - _doorSpawnPos.position;
+                targetPos = _constructDoorTargetSpinPos.position;
+            }
+            else
+            {
+                doSpin = false;
+                dir = _constructDoorTargetPos.position - _doorSpawnPos.position;
+                targetPos = _constructDoorTargetPos.position;
+                pos += Vector3.up * 0.75f;
+            }
+        }
+        else
+        {
+            doSpin = false;
+            dir = _constructDoorTargetPos.position - _doorSpawnPos.position;
+            targetPos = _constructDoorTargetPos.position;
+            pos += Vector3.up * 0.75f;
+        }
+
         dir.y = 0f;
+
+        if (_construct.PickUpRoutine != null)
+        {
+            StopCoroutine(_construct.PickUpRoutine);
+            _construct.PickUpRoutine = null;
+
+            if (_construct.heldObject == null)
+            {
+                _construct.isCarrying = false;
+                _construct.isPlayingGrabAnim = false;
+                _construct.movementOverride = false;
+                _construct.agent.isStopped = true;
+                _construct.agent.ResetPath();
+                _construct.agent.enabled = false;
+                _construct._animator.SetBool("Grabbing", false);
+            }
+            else
+            {
+                _construct.isPlayingGrabAnim = false;
+                _construct.movementOverride = false;
+                _construct.agent.enabled = true;
+                _construct.agent.isStopped = false;
+
+                _construct.agentSpeedBeforeGrab = _construct.agent.speed;
+                _construct.agentAccelerationBeforeGrab = _construct.agent.acceleration;
+
+                _construct.agent.stoppingDistance = 3f;
+                _construct.agent.speed = 12f;
+                _construct.agent.acceleration = 12f;
+                _construct.carryBobTime = 0f;
+            }
+        }
+
+        if (_construct.PutDownRoutine != null)
+        {
+            StopCoroutine( _construct.PutDownRoutine);
+            _construct.PutDownRoutine = null;
+
+            if (_construct.heldObject == null)
+            {
+                _construct.isCarrying = false;
+                _construct.isPlayingGrabAnim = false;
+                _construct.movementOverride = false;
+                _construct._animator.SetBool("Grabbing", false);
+
+                _construct.carriedObjectExtentsY = null;
+                _construct.agent.enabled = true;
+                _construct.agent.isStopped = false;
+                _construct.agent.stoppingDistance = 0f;
+                _construct.agent.speed = _construct.agentSpeedBeforeGrab;
+                _construct.agent.acceleration = _construct.agentAccelerationBeforeGrab;
+                _construct.disableAgentOnReachTarget = true;
+                _construct.ExitNavMove(false);
+            }
+            else
+            {
+                _construct.isCarrying = true;
+                _construct.isPlayingGrabAnim = false;
+                _construct.movementOverride = false;
+
+                _construct.agent.isStopped = true;
+                _construct.agent.ResetPath();
+                _construct.agent.enabled = false;
+
+                _construct._animator.SetBool("Grabbing", true);
+            }
+        }
 
         if (_construct.DoorEntranceAnimRoutine != null)
             StopCoroutine(_construct.DoorEntranceAnimRoutine);
 
-        _construct.DoorEntranceAnimRoutine = StartCoroutine(_construct.DoorEntranceAnimation(pos, _constructDoorTargetPos.position, dir.normalized));
+        _construct.DoorEntranceAnimRoutine = StartCoroutine(_construct.DoorEntranceAnimation(pos, targetPos, dir.normalized, doSpin));
 
         yield return null;
         LoadFromDoor = false;

@@ -249,6 +249,7 @@ MonoBehaviour:
   spearAttackCooldown: 0.6
   slamCooldown: 1.1
   slamShockwaveRadius: 6
+  movementOverride: 0
   _animator: {fileID: 0}
   ActionInterval: 4
   IdleActions: []
@@ -270,12 +271,18 @@ MonoBehaviour:
   minLookAngleDelta: 30
   rotationSpeed: 6
   orbitProbeCount: 24
-  minFreeTravelOrbitProbeCount: 2
-  probeRadius: 0.35
+  minFreeTravelOrbitProbeCount: 1
+  probeRadius: 0.425
   obstacleMask:
     serializedVersion: 2
     m_Bits: 68157441
+  heldObject: {fileID: 0}
   isCarrying: 0
+  isPlayingGrabAnim: 0
+  agentSpeedBeforeGrab: 24
+  agentAccelerationBeforeGrab: 24
+  carryBobTime: 0
+  disableAgentOnReachTarget: 0
 --- !u!135 &5039081755964336664
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -333,7 +340,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 5498119829050176816}
   m_Enabled: 1
   m_AgentTypeID: -902729914
-  m_Radius: 0.9
+  m_Radius: 0.8
   m_Speed: 24
   m_Acceleration: 24
   avoidancePriority: 80

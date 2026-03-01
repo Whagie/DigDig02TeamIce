@@ -10,7 +10,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using static UnityEditor.Experimental.GraphView.GraphView;
 
-public class Player : Entity, IHurtbox, IPushbackReceiver
+public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 {
     public GameObject Owner => gameObject;
     public Collider Collider => DamageCollider;
@@ -89,9 +89,6 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
     [SerializeField] private bool debugInvisible;
     public bool Parrying;
 
-    private Material material;
-    public GameObject body;
-
     public event System.Action<int> OnPlayerTakeDamage;
 
     public int Energy = 8;
@@ -126,7 +123,7 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
     private float prevMoveSpeed = 5f;
     private float prevSprintSpeed = 10f;
 
-    protected override void OnEntityEnable()
+    private void OnEnable()
     {
         HitboxManager.Register(this);
         Player existing = GameObject.FindObjectOfType<Player>();
@@ -136,10 +133,8 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
             Destroy(gameObject);
             return;
         }
-
-        base.OnEntityEnable();
     }
-    protected override void OnEntityDisable()
+    private void OnDisable()
     {
         HitboxManager.Unregister(this);
 
@@ -147,10 +142,8 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         parryManager.OnParryEnd -= HandleParryEnd;
         parryManager.OnParryCooldownEnd -= HandleParryCooldownEnd;
         parryManager.OnParried -= Parried;
-
-        base.OnEntityDisable();
     }
-    protected override void OnStart()
+    private void Start()
     {
         GameObject spawnPoint = GameObject.FindGameObjectWithTag("Respawn");
         if (spawnPoint != null)
@@ -168,7 +161,6 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         }
         controller = GetComponent<CharacterController>();
         Companion = FindObjectOfType<Companion>();
-        material = Companion.Body.GetComponent<Renderer>().sharedMaterials.Where(m => m.name == "CrystalBall").FirstOrDefault();
 
         _camera = GameObject.FindObjectOfType<CameraMovement>();
 
@@ -193,7 +185,7 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         prevMoveSpeed = walkSpeed;
     }
 
-    protected override void OnUpdate()
+    private void Update()
     {
         if (Health <= 0 && !Dead)
         {
@@ -560,7 +552,9 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         Invisible = true;
 
         if (changeColor)
-            material.SetColor("_BaseColor", new Color(0.5f, 0.5f, 1f, 0.25f));
+        {
+            //material.SetColor("_BaseColor", new Color(0.5f, 0.5f, 1f, 0.25f));
+        }
     }
 
     private void UpdateInvisibility()
@@ -575,7 +569,7 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
 
                 if (invisibilityColorActive)
                 {
-                    material.SetColor("_BaseColor", Color.blue);
+                    //material.SetColor("_BaseColor", Color.blue);
                     invisibilityColorActive = false;
                 }
             }
@@ -586,7 +580,7 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
     {
         Dead = true;
         sceneAtDeath = SceneManager.GetActiveScene().name;
-        material.SetColor("_BaseColor", Color.magenta);
+        //material.SetColor("_BaseColor", Color.magenta);
         DamageCollider.enabled = false;
         MainCollider.enabled = false;
         parryManager.ParryCollider.enabled = false;
@@ -597,6 +591,21 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         animator.SetLayerWeight(2, 0f);
         Tail.enabled = false;
         Tail.gameObject.SetActive(false);
+
+        Companion.StopMovement();
+        Companion.movementOverride = true;
+        Companion.agent.enabled = false;
+        Companion._animator.updateMode = AnimatorUpdateMode.UnscaledTime;
+        Companion._animator.SetBool("Looking", false);
+        Companion._animator.SetBool("IdleAnimOverride", true);
+        Companion._animator.SetLayerWeight(0, 1f);
+        Companion._animator.SetLayerWeight(1, 1f);
+        Companion._animator.SetLayerWeight(2, 0f);
+        if (Companion.heldObject != null)
+        {
+            Companion.heldObject.SetActive(false);
+        }
+
         _camera.Actions.CancelAllActions();
         OnPlayerDie?.Invoke();
 
@@ -607,7 +616,7 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         Dead = false;
         Health = MaxHealth;
         StartInvisible(1.5f, true);
-        material.SetColor("_BaseColor", Color.blue);
+        //material.SetColor("_BaseColor", Color.blue);
         DamageCollider.enabled = true;
         MainCollider.enabled = true;
         parryManager.ParryCollider.enabled = true;
@@ -615,6 +624,15 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         Tail.enabled = true;
         Tail.gameObject.SetActive(true);
         Tail.User_ReposeTail();
+
+        Companion._animator.updateMode = AnimatorUpdateMode.Normal;
+        if (Companion.heldObject != null)
+        {
+            Companion.heldObject.SetActive(true);
+        }
+        Companion.ResumeMovement();
+        Companion.movementOverride = false;
+
         OnPlayerResurrect?.Invoke();
     }
 
@@ -671,15 +689,15 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
     private void HandleParryStart()
     {
         animator.SetBool("Blocked", true);
-        material.SetColor("_BaseColor", Color.red);
+        //material.SetColor("_BaseColor", Color.red);
     }
     private void HandleParryEnd()
     {
-        material.SetColor("_BaseColor", Color.green);
+        //material.SetColor("_BaseColor", Color.green);
     }
     private void HandleParryCooldownEnd()
     {
-        material.SetColor("_BaseColor", Color.blue);
+        //material.SetColor("_BaseColor", Color.blue);
     }
 
     private IEnumerator AirTimeTimer(float length)
@@ -791,24 +809,24 @@ public class Player : Entity, IHurtbox, IPushbackReceiver
         if (Companion == null)
             return;
 
-        //if (UserInput.InteractPressed && !Parrying)
-        //{
-        //    if (!Companion.isCarrying)
-        //    {
-        //        GameObject pickup = GameObject.Find("Pickup");
+        if (UserInput.InteractPressed && !Parrying && !Companion.SlamAttacking)
+        {
+            if (!Companion.isCarrying)
+            {
+                GameObject pickup = GameObject.Find("Pickup");
 
-        //        if (pickup != null)
-        //        {
-        //            Companion.StartCarry(pickup.transform);
-        //        }               
-        //        return;
-        //    }
-        //    else
-        //    {
-        //        Companion.StopCarry();
-        //        return;
-        //    }
-        //}
+                if (pickup != null)
+                {
+                    Companion.StartCarry(pickup.transform);
+                }
+                return;
+            }
+            else
+            {
+                Companion.StopCarry();
+                return;
+            }
+        }
     }
 
     void EnterPushState()

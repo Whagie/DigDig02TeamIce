@@ -1,4 +1,5 @@
 using FIMSpace.Basics;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -8,6 +9,8 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
+using static UnityEditor.PlayerSettings;
 using static UnityEngine.GraphicsBuffer;
 
 public class Companion : MonoBehaviour
@@ -32,7 +35,7 @@ public class Companion : MonoBehaviour
     private bool canAttack = true;
     public bool SlamAttacking { get; private set; } = false;
     private bool shouldMove = true;
-    private bool movementOverride = false;
+    [HideInInspector] public bool movementOverride = false;
 
     public Animator _animator;
     public float ActionInterval = 5f;
@@ -78,8 +81,14 @@ public class Companion : MonoBehaviour
     [SerializeField] float probeRadius = 0.35f;
     [SerializeField] LayerMask obstacleMask;
 
-    bool[] orbitBlocked;
-    Vector3[] orbitProbeWorld;
+    private bool[] orbitBlocked;
+    private Vector3[] orbitProbeWorld;
+    private int probesBlocked;
+
+    private bool[] ghostOrbitBlocked;
+    private Vector3[] ghostOrbitProbeWorld;
+    private int ghostWallCheckProbesBlocked;
+    private int ghostWallCheckProbeCount = 12;
 
     private float orbitAngle;
     private float bobTime;
@@ -92,6 +101,7 @@ public class Companion : MonoBehaviour
     private bool isLooking = false;
     private float? prevCirclingSpeed;
     private float? overrideCirclingSpeed;
+    private float? prevBaseYHeight;
     private int orbitDirection = 1; // +1 = CCW, -1 = CW
 
     enum CompanionMovementMode
@@ -104,26 +114,36 @@ public class Companion : MonoBehaviour
     private bool playerMoving;
     private bool playerSprinting;
     private bool playerTooFarAway;
+    private bool clearAbovePlayer;
     private Vector3 followVelocity;
     Vector3 sprintFacing;
     Vector3? forcedWorldTarget;
 
     private Transform grabPosition;
-    private GameObject heldObject;
+    public GameObject heldObject;
     private int heldObjectPrevLayer;
-    private float? carriedObjectExtentsY;
-    private float carryOffsetDistance = 1.5f;
-    public bool isCarrying = false;
-    private bool isPlayingGrabAnim = false;
-    private float agentSpeedBeforeGrab = 24f;
-    private float agentAccelerationBeforeGrab = 24f;
-    private float carryBobTime = 0f;
+    public float? carriedObjectExtentsY;
+    private float carryOffsetDistance = 1.35f;
+    [HideInInspector] public bool isCarrying = false;
+    [HideInInspector] public bool isPlayingGrabAnim = false;
+    [HideInInspector] public float agentSpeedBeforeGrab = 24f;
+    [HideInInspector] public float agentAccelerationBeforeGrab = 24f;
+    [HideInInspector] public float carryBobTime = 0f;
+    [HideInInspector] public bool disableAgentOnReachTarget = false;
+
+    [SerializeField] private bool drawGhostProbesGizmo = false;
     private bool isPlayingEntranceAnim = false;
+
+    public Material CrystalBallMaterial;
+    public Color OrigCrystalColor;
+    public Color DeadCrystalColor = new Color32(22, 34, 89, 255);
 
     private Coroutine behaviorRoutine;
     private Coroutine attackCooldownRoutine;
     private Coroutine outOfEnergyShakeRoutine;
     public Coroutine DoorEntranceAnimRoutine;
+    public Coroutine PickUpRoutine;
+    public Coroutine PutDownRoutine;
 
     private void OnEnable()
     {
@@ -139,6 +159,9 @@ public class Companion : MonoBehaviour
     {
         orbitBlocked = new bool[orbitProbeCount];
         orbitProbeWorld = new Vector3[orbitProbeCount];
+
+        ghostOrbitBlocked = new bool[ghostWallCheckProbeCount];
+        ghostOrbitProbeWorld = new Vector3[ghostWallCheckProbeCount];
     }
 
     private void Start()
@@ -154,9 +177,20 @@ public class Companion : MonoBehaviour
         agentSpeedBeforeGrab = agent.speed;
         agentAccelerationBeforeGrab = agent.acceleration;
 
-        grabPosition = transform.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == "GrabPosition");
-        if (grabPosition == null)
-            Debug.LogWarning("Construct GrabPosition bone could not be found!");
+        Renderer renderer = Body.GetComponent<Renderer>();
+
+        // Cache once
+        int crystalIndex = Array.FindIndex(renderer.sharedMaterials,
+            m => m.name.Contains("CrystalBall"));
+
+        if (crystalIndex == -1)
+        {
+            Debug.LogError("CrystalBall material not found.");
+            return;
+        }
+
+        CrystalBallMaterial = renderer.materials[crystalIndex];
+        OrigCrystalColor = CrystalBallMaterial.GetColor("_EmissionColor");
 
         IdleActions = new[]
         {
@@ -185,7 +219,7 @@ public class Companion : MonoBehaviour
             {
                 TriggerName = "Idle_Spin",
                 Weight = 0.2f,
-                CanUse = () => !movementOverride && clearOverhead && !isLooking && !playerMoving,
+                CanUse = () => !movementOverride && clearOverhead && !isLooking && !playerMoving && clearAbovePlayer,
                 CustomData = new []
                 {
                     "stop", 
@@ -207,7 +241,112 @@ public class Companion : MonoBehaviour
         // -----------------------------
         // 1. NON-MOVEMENT LOGIC (always runs)
         // -----------------------------
+
+        probesBlocked = 0;
+        for (int i = 0; i < orbitProbeCount; i++)
+        {
+            if (orbitBlocked[i] == true)
+            {
+                probesBlocked++;
+            }
+        }
+
+        ghostWallCheckProbesBlocked = 0;
+        for (int i = 0; i < ghostWallCheckProbeCount; i++)
+        {
+            if (ghostOrbitBlocked[i] == true)
+            {
+                ghostWallCheckProbesBlocked++;
+            }
+        }
+
+        Vector3 playerTop = player.transform.position + (Vector3.up * player.MainCollider.height);
+        float roofCheckRayLength;
+        float origBaseHeight;
+
+        if (prevBaseYHeight.HasValue)
+        {
+            origBaseHeight = prevBaseYHeight.Value;
+        }
+        else
+        {
+            origBaseHeight = baseYHeight;
+        }
+
+        float probeHalfHeight = (1 + probeRadius * 2f) / 2;
+        roofCheckRayLength = (origBaseHeight + probeHalfHeight) - player.MainCollider.height;
+
+        float checkExtent = 0.75f; // Half size of square
+
+        LayerMask mask = LayerMask.GetMask("Default", "Enemy", "LightReflector", "Pushable", "Shrouders");
+
+        Vector3[] offsets =
+        {
+            Vector3.zero, // center
+            new Vector3( checkExtent, 0f,  checkExtent),
+            new Vector3(-checkExtent, 0f,  checkExtent),
+            new Vector3( checkExtent, 0f, -checkExtent),
+            new Vector3(-checkExtent, 0f, -checkExtent),
+        };
+
+        bool allHit = true;
+        float lowestHitY = float.MaxValue;
+
+        for (int v = 0; v < offsets.Length; v++)
+        {
+            Vector3 offset = offsets[v];
+
+            if (v != 0)
+            {
+                if (Physics.Raycast(playerTop, offset.normalized, out RaycastHit hit, offset.magnitude, mask))
+                {
+                    offset = hit.point - player.transform.position;
+                    offset.y = 0f;
+                }
+            }
+
+            Vector3 origin = playerTop + offset;
+
+            if (Physics.Raycast(origin, Vector3.up, out RaycastHit hit2, roofCheckRayLength, mask))
+            {
+                lowestHitY = Mathf.Min(lowestHitY, hit2.point.y);
+
+                Debug.DrawLine(origin, hit2.point, Color.magenta);
+            }
+            else
+            {
+                allHit = false;
+                Debug.DrawLine(origin, origin + Vector3.up * roofCheckRayLength, Color.cyan);
+            }
+        }
+
+        if (allHit)
+        {
+            clearAbovePlayer = false;
+
+            if (!prevBaseYHeight.HasValue)
+                prevBaseYHeight = baseYHeight;
+
+            DrawUI.Draw($"Lowering probe ring height...",
+                new Vector2(1200, 50),
+                Color.white,
+                8);
+
+            baseYHeight = lowestHitY - probeHalfHeight - player.transform.position.y - 0.15f;
+        }
+        else
+        {
+            clearAbovePlayer = true;
+
+            if (prevBaseYHeight.HasValue)
+            {
+                baseYHeight = prevBaseYHeight.Value;
+                prevBaseYHeight = null;
+            }
+        }
+
         UpdateOrbitProbes();
+        UpdateGhostProbes();
 
         if (isPlayingEntranceAnim)
             return;
@@ -227,12 +366,12 @@ public class Companion : MonoBehaviour
         if (Physics.Raycast(
             transform.position + dirToPlayer.normalized,
             dirToPlayer,
-            out RaycastHit hit,
+            out RaycastHit hit3,
             float.MaxValue,
             LayerMask.GetMask("Default", "Player", "Pushable", "LightReflector")))
         {
             playerCanNotBeSeen =
-                hit.collider.gameObject.layer != LayerMask.NameToLayer("Player");
+                hit3.collider.gameObject.layer != LayerMask.NameToLayer("Player");
         }
 
         playerMoving =
@@ -345,7 +484,7 @@ public class Companion : MonoBehaviour
         }
     }
 
-    void EnterNavMove(Vector3 destination, float stoppingDistance = 0f)
+    public void EnterNavMove(Vector3 destination, float stoppingDistance = 0f)
     {
         if (movementMode == CompanionMovementMode.NavMove)
             return;
@@ -358,15 +497,20 @@ public class Companion : MonoBehaviour
         shouldMove = false;
 
         // Reset agent state
+        agent.enabled = true;
         agent.ResetPath();
         agent.isStopped = false;
         agent.SetDestination(destination);
         agent.stoppingDistance = stoppingDistance;
     }
-    void ExitNavMove()
+    public void ExitNavMove(bool disableAgent = true)
     {
         agent.isStopped = true;
         agent.ResetPath();
+        if (disableAgent)
+        {
+            agent.enabled = false;
+        }
 
         movementMode = CompanionMovementMode.Orbit;
 
@@ -379,9 +523,7 @@ public class Companion : MonoBehaviour
     private void UpdateOrbitProbes()
     {
         Vector3 center = player.transform.position;
-
-        float probeY =
-            center.y + baseYHeight; // IMPORTANT
+        float probeY = center.y + baseYHeight;
 
         for (int i = 0; i < orbitProbeCount; i++)
         {
@@ -395,8 +537,36 @@ public class Companion : MonoBehaviour
 
             orbitProbeWorld[i] = pos;
 
-            orbitBlocked[i] = Physics.CheckSphere(
-                pos,
+            orbitBlocked[i] = Physics.CheckCapsule(
+                pos + (0.5f * Vector3.up),
+                pos - (0.5f * Vector3.up),
+                probeRadius,
+                obstacleMask,
+                QueryTriggerInteraction.Ignore
+            );
+        }
+    }
+
+    private void UpdateGhostProbes()
+    {
+        Vector3 center = player.transform.position;
+        float probeY = center.y + baseYHeight;
+
+        for (int i = 0; i < ghostWallCheckProbeCount; i++)
+        {
+            float angle = (i / (float)ghostWallCheckProbeCount) * Mathf.PI * 2f;
+
+            Vector3 pos =
+                center +
+                new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * normalCirclingRadius;
+
+            pos.y = probeY;
+
+            ghostOrbitProbeWorld[i] = pos;
+
+            ghostOrbitBlocked[i] = Physics.CheckCapsule(
+                pos + (0.5f * Vector3.up),
+                pos - (0.5f * Vector3.up),
                 probeRadius,
                 obstacleMask,
                 QueryTriggerInteraction.Ignore
@@ -608,6 +778,10 @@ public class Companion : MonoBehaviour
                 radius = normalCirclingRadius;
             }
         }
+        if (ghostWallCheckProbesBlocked >= ghostWallCheckProbeCount * 0.5f)
+        {
+            radius = normalCirclingRadius * 0.65f;
+        }
 
         orbitAngle += speed * orbitDirection * Time.deltaTime;
         circlingRadius = radius;
@@ -620,7 +794,15 @@ public class Companion : MonoBehaviour
             pos.y = forcedWorldTarget.Value.y;
             if ((pos - forcedWorldTarget.Value).sqrMagnitude < 0.5f)
             {
-                forcedWorldTarget = null;
+                if (probesBlocked < orbitProbeCount)
+                {
+                    forcedWorldTarget = null;
+                }
+                if (disableAgentOnReachTarget)
+                {
+                    agent.enabled = false;
+                    disableAgentOnReachTarget = false;
+                }
             }
         }
 
@@ -640,8 +822,9 @@ public class Companion : MonoBehaviour
             1f / followLerpSpeed
         );
         desiredPos.y = GetCurrentBobbingY(GetBobbingStrengthMultiplier());
-
         transform.position = desiredPos;
+
+        agent.baseOffset = transform.position.y - player.transform.position.y;
 
         // Look / return has priority
         if (isLooking || isReturning)
@@ -684,7 +867,7 @@ public class Companion : MonoBehaviour
         transform.rotation = Quaternion.Slerp(
             transform.rotation,
             target,
-            rotationSpeed * 1.4f * Time.deltaTime
+            rotationSpeed * Time.deltaTime
         );
     }
     void UpdateIdleFollow()
@@ -712,18 +895,6 @@ public class Companion : MonoBehaviour
         transform.position = finalPos;
     }
 
-    void InterruptLookAndResume()
-    {
-        StopMovement();                // Stops BehaviorLoop (kills look)
-        StartCoroutine(ResumeNextFrame());
-    }
-
-    IEnumerator ResumeNextFrame()
-    {
-        yield return null;             // wait exactly one frame
-        ResumeMovement();
-    }
-
     private void ApplyBobbing()
     {
         bobTime += Time.deltaTime * bobbingSpeed;
@@ -746,7 +917,7 @@ public class Companion : MonoBehaviour
     {
         forcedWorldTarget = null;
 
-        int lookCount = Random.Range(
+        int lookCount = UnityEngine.Random.Range(
             lookDirectionCountRange.x,
             lookDirectionCountRange.y + 1
         );
@@ -756,7 +927,7 @@ public class Companion : MonoBehaviour
         for (int i = 0; i < lookCount; i++)
         {
             float targetYaw = GetValidRandomYaw();
-            float duration = Random.Range(
+            float duration = UnityEngine.Random.Range(
                 lookDurationRange.x,
                 lookDurationRange.y
             );
@@ -765,7 +936,7 @@ public class Companion : MonoBehaviour
             yield return new WaitForSeconds(duration);
         }
 
-        if (Random.value <= chanceToFlipOrbitDirection)
+        if (UnityEngine.Random.value <= chanceToFlipOrbitDirection)
         {
             orbitDirection *= -1;
         }
@@ -871,7 +1042,7 @@ public class Companion : MonoBehaviour
 
         for (int i = 0; i < 10; i++)
         {
-            float randomYaw = Random.Range(0f, 360f);
+            float randomYaw = UnityEngine.Random.Range(0f, 360f);
             float delta = Mathf.Abs(Mathf.DeltaAngle(currentYaw, randomYaw));
 
             if (delta >= minLookAngleDelta)
@@ -919,7 +1090,7 @@ public class Companion : MonoBehaviour
         return (p2 - p1).normalized;
     }
 
-    void StopMovement()
+    public void StopMovement()
     {
         if (behaviorRoutine != null)
         {
@@ -936,7 +1107,7 @@ public class Companion : MonoBehaviour
         _animator.SetBool("Looking", false);
     }
 
-    void ResumeMovement()
+    public void ResumeMovement()
     {
         isLooking = false;
         isReturning = false;
@@ -1077,7 +1248,9 @@ public class Companion : MonoBehaviour
                 EnterNavMove(player.transform.position);
             }
 
-            StartCoroutine(PickUpObject(target));
+            if (PickUpRoutine != null)
+                StopCoroutine(PickUpRoutine);
+            PickUpRoutine = StartCoroutine(PickUpObject(target));
         }
     }
 
@@ -1085,7 +1258,9 @@ public class Companion : MonoBehaviour
     {
         if (!isPlayingGrabAnim && !movementOverride)
         {
-            StartCoroutine(PutDownObject(target));
+            if (PutDownRoutine != null)
+                StopCoroutine(PutDownRoutine);
+            PutDownRoutine = StartCoroutine(PutDownObject(target));
         }
     }
 
@@ -1094,6 +1269,7 @@ public class Companion : MonoBehaviour
         isCarrying = true;
         isPlayingGrabAnim = true;
         movementOverride = true;
+        agent.enabled = true;
 
         if (outOfEnergyShakeRoutine != null)
         {
@@ -1113,7 +1289,10 @@ public class Companion : MonoBehaviour
 
         if (TryGetMesh(target, out Mesh mesh))
         {
+            Debug.Log("Got mesh!");
+            print($"{carriedObjectExtentsY}");
             carriedObjectExtentsY = Mathf.Abs(mesh.bounds.min.y) * transform.lossyScale.y;
+            print($"{carriedObjectExtentsY}");
         }
 
         if (target.TryGetComponent<Collider>(out Collider col))
@@ -1142,19 +1321,20 @@ public class Companion : MonoBehaviour
 
         agent.isStopped = true;
         agent.ResetPath();
+        agent.enabled = false;
 
         transform.position = new Vector3(target.position.x, transform.position.y, target.position.z);
 
         yield return new WaitForSeconds(0.5f);
 
-        float startHeight = agent.baseOffset;
-        float endHeight = carryOffsetDistance;
+        //float startHeight = agent.baseOffset;
+        //float endHeight = carryOffsetDistance;
 
         Vector3 start = transform.position;
         Vector3 end = target.position;
         end.y += carryOffsetDistance;
 
-        float sinkDuration = 1f;
+        float sinkDuration = 0.8f;
         float t = 0f;
 
         while (t < 1f)
@@ -1163,7 +1343,7 @@ public class Companion : MonoBehaviour
             t = Mathf.Clamp01(t);
 
             transform.position = Vector3.Lerp(start, end, t);
-            agent.baseOffset = Mathf.Lerp(startHeight, endHeight, t);
+            //agent.baseOffset = Mathf.Lerp(startHeight, endHeight, t);
 
             yield return null;
         }
@@ -1178,12 +1358,12 @@ public class Companion : MonoBehaviour
         heldObjectPrevLayer = heldObject.layer;
         heldObject.layer = LayerMask.NameToLayer("Player");
 
-        float startHeight2 = agent.baseOffset;
-        float endHeight2 = startHeight;
+        //float startHeight2 = agent.baseOffset;
+        //float endHeight2 = startHeight;
         Vector3 start2 = transform.position;
         Vector3 end2 = start;
 
-        float riseDuration = 1.5f;
+        float riseDuration = 1.2f;
         float t2 = 0f;
 
         while (t2 < 1f)
@@ -1192,13 +1372,14 @@ public class Companion : MonoBehaviour
             t2 = Mathf.Clamp01(t2);
 
             transform.position = Vector3.Lerp(start2, end2, t2);
-            agent.baseOffset = Mathf.Lerp(startHeight2, endHeight2, t2);
+            //agent.baseOffset = Mathf.Lerp(startHeight2, endHeight2, t2);
 
             yield return null;
         }
 
         isPlayingGrabAnim = false;
         movementOverride = false;
+        agent.enabled = true;
         agent.isStopped = false;
 
         agentSpeedBeforeGrab = agent.speed;
@@ -1208,6 +1389,8 @@ public class Companion : MonoBehaviour
         agent.speed = 12f;
         agent.acceleration = 12f;
         carryBobTime = 0f;
+
+        PickUpRoutine = null;
     }
 
     private IEnumerator PutDownObject(Transform target = null)
@@ -1220,6 +1403,7 @@ public class Companion : MonoBehaviour
         isCarrying = true;
         isPlayingGrabAnim = true;
         movementOverride = true;
+        agent.enabled = true;
 
         if (outOfEnergyShakeRoutine != null)
         {
@@ -1260,6 +1444,7 @@ public class Companion : MonoBehaviour
 
         agent.isStopped = true;
         agent.ResetPath();
+        agent.enabled = false;
 
         bool isStation = false;
         if (target != null)
@@ -1277,11 +1462,11 @@ public class Companion : MonoBehaviour
             if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, float.MaxValue, LayerMask.GetMask("Default")))
             {
                 end = hit.point;
+                Debug.Log($"{hit.collider.gameObject.name}");
 
                 if (carriedObjectExtentsY.HasValue)
                 {
                     end.y += carriedObjectExtentsY.Value;
-                    carriedObjectExtentsY = null;
                 }
             }
             else // Nowhere to place object, break out of loop
@@ -1306,12 +1491,12 @@ public class Companion : MonoBehaviour
             throw new System.Exception("How");
         }
 
-        float startHeight = agent.baseOffset;
-        float endHeight = carryOffsetDistance;
+        //float startHeight = agent.baseOffset;
+        //float endHeight = carryOffsetDistance;
         Vector3 start = transform.position;
         end.y += carryOffsetDistance;
 
-        float sinkDuration = 1f;
+        float sinkDuration = 0.8f;
         float t = 0f;
 
         while (t < 1f)
@@ -1320,7 +1505,7 @@ public class Companion : MonoBehaviour
             t = Mathf.Clamp01(t);
 
             transform.position = Vector3.Lerp(start, end, t);
-            agent.baseOffset = Mathf.Lerp(startHeight, endHeight, t);
+            //agent.baseOffset = Mathf.Lerp(startHeight, endHeight, t);
 
             yield return null;
         }
@@ -1339,14 +1524,25 @@ public class Companion : MonoBehaviour
             {
                 col.enabled = true;
             }
+
+            for (int i = 0; i < SceneManager.loadedSceneCount; i++)
+            {
+                string sceneName = SceneManager.GetSceneAt(i).name;
+                if (sceneName != "DeathScene" && sceneName != "MainMenu")
+                {
+                    SceneManager.MoveGameObjectToScene(heldObject, SceneManager.GetSceneAt(i));
+                    heldObject = null;
+                    break;
+                }
+            }
         }
 
-        float startHeight2 = agent.baseOffset;
-        float endHeight2 = 3.5f;
+        //float startHeight2 = agent.baseOffset;
+        //float endHeight2 = 3.5f;
         Vector3 start2 = transform.position;
         Vector3 end2 = start;
 
-        float riseDuration = 1.5f;
+        float riseDuration = 0.8f;
         float t2 = 0f;
 
         while (t2 < 1f)
@@ -1355,7 +1551,7 @@ public class Companion : MonoBehaviour
             t2 = Mathf.Clamp01(t2);
 
             transform.position = Vector3.Lerp(start2, end2, t2);
-            agent.baseOffset = Mathf.Lerp(startHeight2, endHeight2, t2);
+            //agent.baseOffset = Mathf.Lerp(startHeight2, endHeight2, t2);
 
             yield return null;
         }
@@ -1364,24 +1560,28 @@ public class Companion : MonoBehaviour
         isPlayingGrabAnim = false;
         isCarrying = false;
         movementOverride = false;
+        agent.enabled = true;
         agent.isStopped = false;
         agent.stoppingDistance = 0f;
         agent.speed = agentSpeedBeforeGrab;
         agent.acceleration = agentAccelerationBeforeGrab;
-        ExitNavMove();
+        disableAgentOnReachTarget = true;
+        ExitNavMove(false);
+
+        PutDownRoutine = null;
     }
 
     bool TryGetMesh(Transform t, out Mesh mesh)
     {
         // MeshFilter
-        if (t.TryGetComponent(out MeshFilter mf) && mf.sharedMesh != null)
+        if (t.gameObject.TryGetComponent(out MeshFilter mf) && mf.sharedMesh != null)
         {
             mesh = mf.sharedMesh;
             return true;
         }
 
         // Skinned mesh
-        if (t.TryGetComponent(out SkinnedMeshRenderer smr) && smr.sharedMesh != null)
+        if (t.gameObject.TryGetComponent(out SkinnedMeshRenderer smr) && smr.sharedMesh != null)
         {
             mesh = smr.sharedMesh;
             return true;
@@ -1723,7 +1923,7 @@ public class Companion : MonoBehaviour
         canAttack = true;
     }
 
-    public IEnumerator DoorEntranceAnimation(Vector3 spawnPos, Vector3 targetPos, Vector3 direction)
+    public IEnumerator DoorEntranceAnimation(Vector3 spawnPos, Vector3 targetPos, Vector3 direction, bool shouldPlaySpinAnim)
     {
         StopMovement();
         _animator.SetBool("Looking", false);
@@ -1751,7 +1951,7 @@ public class Companion : MonoBehaviour
         float startY = start.y;
         float targetY = target.y;
 
-        float duration = 0.6f;
+        float duration = shouldPlaySpinAnim ? 0.45f : 0.6f;
         float t = 0f;
 
         bool playedSpinAnim = false;
@@ -1764,8 +1964,19 @@ public class Companion : MonoBehaviour
             float yWeight = t * t * t;      // cubic rise
             float xzWeight = 1f - yWeight;
 
+            float finalTargetY;
+            if (shouldPlaySpinAnim)
+            {
+                float dip = Mathf.Sin(t * Mathf.PI);
+                finalTargetY = targetY - 1f * dip;
+            }
+            else
+            {
+                finalTargetY = targetY;
+            }
+
             Vector3 xzPos = Vector3.Lerp(startXZ, targetXZ, t);
-            float yPos = Mathf.Lerp(startY, targetY, yWeight);
+            float yPos = Mathf.Lerp(startY, finalTargetY, yWeight);
 
             Vector3 desiredPos = new Vector3(
                 xzPos.x,
@@ -1781,7 +1992,7 @@ public class Companion : MonoBehaviour
                 Mathf.Infinity
             );
 
-            if (t >= 0.5f && !playedSpinAnim)
+            if (t >= 0.5f && !playedSpinAnim && shouldPlaySpinAnim)
             {
                 playedSpinAnim = true;
                 _animator.speed *= 1.2f;
@@ -1792,7 +2003,7 @@ public class Companion : MonoBehaviour
             yield return null;
         }
 
-        float inertiaTime = 0.75f;
+        float inertiaTime = shouldPlaySpinAnim ? 0.55f : 0.75f;
         float inertiaT = 0f;
 
         while (inertiaT < inertiaTime)
@@ -1807,14 +2018,17 @@ public class Companion : MonoBehaviour
             yield return null;
         }
 
-        yield return new WaitForSeconds(0.6f); // Small wait for animation finish
-        _animator.speed *= 1f / 1.2f;
-        _animator.SetLayerWeight(1, 1f);
+        if (shouldPlaySpinAnim)
+        {
+            yield return new WaitForSeconds(0.6f); // Small wait for animation finish
+            _animator.speed *= 1f / 1.2f;
+            _animator.SetLayerWeight(1, 1f);
+        }
 
         Vector3 start2 = transform.position;
         Vector3 target2 = player.transform.position;
 
-        float duration2 = 0.75f;
+        float duration2 = shouldPlaySpinAnim ? 0.55f : 0.75f;
         float t2 = 0f;
 
         while (t2 < 1f)
@@ -1870,11 +2084,26 @@ public class Companion : MonoBehaviour
 
         for (int i = 0; i < orbitProbeCount; i++)
         {
-            Gizmos.color = orbitBlocked[i] ? Color.red : Color.green;
-            Gizmos.DrawWireSphere(
-                orbitProbeWorld[i],
-                probeRadius
-            );
+            Color color = orbitBlocked[i] ? Color.red : Color.green;
+            DrawMethods.DrawCapsuleGizmo(
+                orbitProbeWorld[i] + (Vector3.up * 0.5f),
+                orbitProbeWorld[i] - (Vector3.up * 0.5f),
+                probeRadius,
+                color);
+        }
+
+        if (!drawGhostProbesGizmo)
+            return;
+
+        if (ghostOrbitProbeWorld == null)
+            return;
+
+        for (int i = 0; i < ghostWallCheckProbeCount; i++)
+        {
+            Color prev = Gizmos.color;
+            Gizmos.color = ghostOrbitBlocked[i] ? Color.yellow : Color.blue;
+            Gizmos.DrawWireSphere(ghostOrbitProbeWorld[i], probeRadius);
+            Gizmos.color = prev;
         }
     }
 }

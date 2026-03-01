@@ -19,13 +19,13 @@ public class Spiderling : Enemy
     [SerializeField] private LegsAnimator legsAnimator;
     private Coroutine legBlendRoutine;
 
-    protected override void OnEntityEnable()
+    protected override void OnEnable()
     {
-        base.OnEntityEnable();
+        base.OnEnable();
     }
-    protected override void OnEntityDisable()
+    protected override void OnDisable()
     {
-        base.OnEntityDisable();
+        base.OnDisable();
     }
     protected override void InitializeActions()
     {
@@ -50,9 +50,9 @@ public class Spiderling : Enemy
         };
     }
 
-    protected override void OnStart()
+    protected override void Start()
     {
-        base.OnStart();
+        base.Start();
 
         Collider = MainCollider;
 
@@ -71,9 +71,9 @@ public class Spiderling : Enemy
         BiteCollider.enabled = false;
     }
 
-    protected override void OnUpdate()
+    protected override void Update()
     {
-        base.OnUpdate();
+        base.Update();
         
         //for (int i = 0; i < Actions.Length; i++)
         //{
@@ -103,6 +103,9 @@ public class Spiderling : Enemy
 
     public void AlterBite(int activate = 1)
     {
+        if (bite == null || lunge == null)
+            return; 
+
         if (activate == 1)
         {
             bite.Activate();
@@ -175,8 +178,23 @@ public class Spiderling : Enemy
     {
         _animator.SetBool("Died", true);
         legsAnimator.LegsAnimatorBlend = 0f;
-        bite.Deactivate();
-        lunge.Deactivate();
+
+        // If dead is set to true before base.Die(), it means the enemy was dead in save data,
+        // hence player has already killed them and no death animation
+        if (Dead)
+        {
+            _animator.Play("KnockedOver", -1, 1f);
+            _animator.Update(0f);
+        }
+
+        if (bite != null)
+        {
+            bite.Deactivate();
+        }
+        if (lunge != null)
+        {
+            lunge.Deactivate();
+        }
         MainCollider.enabled = false;
         BiteCollider.enabled = false;
         base.Die();

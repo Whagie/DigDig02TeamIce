@@ -89,7 +89,7 @@ public class CustomWindZone : MonoBehaviour
             prevToggle = Main;
             if (Main == true)
             {
-                OnToggleChanged();
+                //OnToggleChanged();
             }
         }
     }
@@ -234,28 +234,28 @@ public class CustomWindZone : MonoBehaviour
 #endif
     }
 
-    private void OnToggleChanged()
-    {
-        var winds = EditorObjectFinder.FindWindObjectsInEditor(this);
-        if (winds.Count >= 1)
-        {
-            Main = false;
-            prevToggle = false;
-            if (winds.Count > 1)
-            {
-                Debug.LogError($"Somehow found {winds.Count} main wind objects! Listing below...");
-                foreach (var w in winds)
-                {
-                    Debug.LogWarning($" - {w.name}", w);
-                }
-            }
-            Debug.LogWarning($"Wind object {winds[0].name} is already marked as Main!", winds[0]);
-        }
-        else
-        {
-            //Debug.Log($"Marked {this.name} as Main wind");
-        }
-    }
+    //private void OnToggleChanged()
+    //{
+    //    var winds = EditorObjectFinder.FindWindObjectsInEditor(this);
+    //    if (winds.Count >= 1)
+    //    {
+    //        Main = false;
+    //        prevToggle = false;
+    //        if (winds.Count > 1)
+    //        {
+    //            Debug.LogError($"Somehow found {winds.Count} main wind objects! Listing below...");
+    //            foreach (var w in winds)
+    //            {
+    //                Debug.LogWarning($" - {w.name}", w);
+    //            }
+    //        }
+    //        Debug.LogWarning($"Wind object {winds[0].name} is already marked as Main!", winds[0]);
+    //    }
+    //    else
+    //    {
+    //        //Debug.Log($"Marked {this.name} as Main wind");
+    //    }
+    //}
 
     void OnDrawGizmos()
     {

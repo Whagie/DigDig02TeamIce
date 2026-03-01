@@ -2,13 +2,15 @@ using Game.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.SceneManagement;
 using static UnityEngine.EventSystems.EventTrigger;
 
-public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
+public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
 {
     public GameObject Owner => gameObject;
     public Collider Collider { get; protected set; }
@@ -18,7 +20,10 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
 
     [SerializeField] public EnemyStats stats;
 
+    private SessionSaveData.EnemyDeathData DeathData;
+
     public LayerMask LayerMask => stats.layers;
+    private static LayerMask Obstacles;
     [SerializeField] public EnemyUI enemyUI;
 
     public int Health => stats.health;
@@ -65,6 +70,8 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
     private bool tryingFirstAttack = false;
     private bool canForceIdle = false;
 
+    private float intervalTimer = 0f;
+
     private bool firstDamage = true;
 
     public Animator _animator;
@@ -89,17 +96,15 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
     private Vector3 pushVelocity = Vector3.zero;
     private float pushTimer = 0f;
 
-    protected override void OnEntityEnable()
+    protected virtual void OnEnable()
     {
         HitboxManager.Register(this);
-        base.OnEntityEnable();
     }
-    protected override void OnEntityDisable()
+    protected virtual void OnDisable()
     {
         HitboxManager.Unregister(this);
-        base.OnEntityDisable();
     }
-    protected override void OnAwake()
+    protected virtual void Awake()
     {
         _animator = GetComponent<Animator>();
         if (_animator != null)
@@ -115,7 +120,7 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
             Collider = col;
         }
     }
-    protected override void OnStart()
+    protected virtual void Start()
     {
         if (player == null)
         {
@@ -126,6 +131,8 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
                 player = new GameObject("tempPlayer").AddComponent<Player>();
             }
         }
+
+        Obstacles = LayerMask.GetMask("Default", "Walls", "Pushable", "LightReflector", "Shrouders");
 
         VisionCones.Add(new VisionCone(Vector3.zero, Vector3.zero, stats.visionAngle, stats.visionLength));
         foreach (var cone in VisionCones)
@@ -155,9 +162,23 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
                 }
             }
         }
+
+        if (SessionSaveData.Instance.TryGet(ID, out DeathData))
+        {
+            if (DeathData.Dead)
+            {
+                Dead = true;
+                transform.SetPositionAndRotation(DeathData.Position, DeathData.Rotation);
+                Die();
+            }
+        }
+        else
+        {
+            SessionSaveData.Instance.AddOrUpdateData(ID, Dead, transform.position, transform.rotation);
+        }
     }
 
-    protected override void OnUpdate()
+    protected virtual void Update()
     {
         if (Dead || !IsAwake)
             return;
@@ -207,12 +228,19 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
         int playerMask = LayerMask.GetMask("Player");
         Collider[] hits = Physics.OverlapSphere(transform.position, AlertRadius, playerMask);
         bool playerInAlertRadius = false;
+        Vector3 dirToPlayer = player.transform.position - transform.position;
 
         foreach (var c in hits)
         {
             if (c.GetComponent<Player>() != null)
             {
-                playerInAlertRadius = true;
+                if (Physics.Raycast(transform.position, dirToPlayer, out RaycastHit hit, AlertRadius + 1.5f, LayerMask.GetMask("Default", "Walls", "Player", "Pushable", "LightReflector", "Shrouders")))
+                {
+                    if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Player"))
+                    {
+                        playerInAlertRadius = true;
+                    }
+                }
                 break;
             }
         }
@@ -437,6 +465,29 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
         //DrawMethods.Line(transform.position, player.transform.position, lineColor);
     }
 
+    public static void RotateTowardsY(Transform obj, Vector3 targetPosition, float rotationSpeed)
+    {
+        // direction to target, flattened
+        Vector3 direction = targetPosition - obj.position;
+        direction.y = 0;
+
+        if (direction.sqrMagnitude < 0.001f) return; // avoid zero-length
+
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        obj.rotation = Quaternion.RotateTowards(obj.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+    }
+
+    protected void OnInterval(float interval, Action action)
+    {
+        intervalTimer += Time.deltaTime;
+
+        if (intervalTimer >= interval)
+        {
+            intervalTimer -= interval; // keep leftover time
+            action?.Invoke();
+        }
+    }
+
     public bool IsTargetInVision(Collider target)
     {
         Vector3 enemyPos = transform.position;
@@ -488,7 +539,7 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
 
                 if (angleToPoint <= halfAngle)
                 {
-                    if (!Physics.Raycast(coneOrigin, toPoint.normalized, toPoint.magnitude, LayerMask.GetMask("Obstacles")))
+                    if (!Physics.Raycast(coneOrigin, toPoint.normalized, toPoint.magnitude, Obstacles))
                         return true;
                 }
             }
@@ -538,6 +589,7 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
     protected virtual void Die()
     {
         Dead = true;
+        SessionSaveData.Instance.AddOrUpdateData(ID, Dead, transform.position, transform.rotation);
     }
 
     public virtual void HandleParried(IHurtbox by)
@@ -736,16 +788,24 @@ public abstract class Enemy : Entity, IHurtbox, IPushbackReceiver
     private IEnumerator StunRoutine(float duration)
     {
         Stunned = true;
-        _animator.SetBool("Stunned", true);
 
-        yield return null;
-        _animator.SetBool("AnyStateLock", true);
+        if (_animator != null)
+        {
+            _animator.SetBool("Stunned", true);
+
+            yield return null;
+            _animator.SetBool("AnyStateLock", true);
+        }
 
         yield return new WaitForSeconds(duration);
 
         Stunned = false;
-        _animator.SetBool("Stunned", false);
-        _animator.SetBool("AnyStateLock", false);
+        
+        if (_animator != null)
+        {
+            _animator.SetBool("Stunned", false);
+            _animator.SetBool("AnyStateLock", false);
+        }
     }
 
     /// <summary>

@@ -94,4 +94,43 @@ public static class DrawMethods
             Debug.DrawLine(coneOrigin, coneOrigin + dir * cone.length, color);
         }
     }
+
+    public static void DrawCapsuleGizmo(Vector3 start, Vector3 end, float radius, Color color)
+    {
+        Gizmos.color = color;
+
+        Vector3 center = (start + end) * 0.5f;
+        float height = Vector3.Distance(start, end) + radius * 2f;
+
+        DrawCapsuleGizmo(center, height, radius, color);
+    }
+
+    public static void DrawCapsuleGizmo(Vector3 center, float height, float radius, Color color)
+    {
+        Color prev = Gizmos.color;
+        Gizmos.color = color;
+
+        // Clamp height so it doesn't get weird
+        height = Mathf.Max(height, radius * 2f);
+
+        float cylinderHeight = height - (radius * 2f);
+
+        Vector3 topSphere = center + Vector3.up * (cylinderHeight * 0.5f);
+        Vector3 bottomSphere = center - Vector3.up * (cylinderHeight * 0.5f);
+
+        // Draw spheres
+        Gizmos.DrawWireSphere(topSphere, radius);
+        Gizmos.DrawWireSphere(bottomSphere, radius);
+
+        // Draw cylinder lines
+        Vector3 right = Vector3.right * radius;
+        Vector3 forward = Vector3.forward * radius;
+
+        Gizmos.DrawLine(topSphere + right, bottomSphere + right);
+        Gizmos.DrawLine(topSphere - right, bottomSphere - right);
+        Gizmos.DrawLine(topSphere + forward, bottomSphere + forward);
+        Gizmos.DrawLine(topSphere - forward, bottomSphere - forward);
+
+        Gizmos.color = prev;
+    }
 }

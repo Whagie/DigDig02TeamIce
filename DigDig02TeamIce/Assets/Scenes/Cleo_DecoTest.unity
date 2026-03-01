@@ -314,6 +314,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 168037972}
     m_Modifications:
+    - target: {fileID: 1199822215406352156, guid: b03005feb022ff446ac006cf92e924c3, type: 3}
+      propertyPath: m_Name
+      value: Castle_Pillar (3)
+      objectReference: {fileID: 0}
     - target: {fileID: 2012351874528357798, guid: b03005feb022ff446ac006cf92e924c3, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -353,10 +357,6 @@ PrefabInstance:
     - target: {fileID: 2012351874528357798, guid: b03005feb022ff446ac006cf92e924c3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1199822215406352156, guid: b03005feb022ff446ac006cf92e924c3, type: 3}
-      propertyPath: m_Name
-      value: Castle_Pillar (3)
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -741,6 +741,22 @@ PrefabInstance:
     - target: {fileID: 5654503337984866086, guid: 3a56f591f127a5247aa0db3cb53a82d0, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6972622007948268031, guid: 3a56f591f127a5247aa0db3cb53a82d0, type: 3}
+      propertyPath: m_Color.b
+      value: 0.5964706
+      objectReference: {fileID: 0}
+    - target: {fileID: 6972622007948268031, guid: 3a56f591f127a5247aa0db3cb53a82d0, type: 3}
+      propertyPath: m_Color.g
+      value: 0.8783665
+      objectReference: {fileID: 0}
+    - target: {fileID: 6972622007948268031, guid: 3a56f591f127a5247aa0db3cb53a82d0, type: 3}
+      propertyPath: m_Color.r
+      value: 0.91764706
+      objectReference: {fileID: 0}
+    - target: {fileID: 6972622007948268031, guid: 3a56f591f127a5247aa0db3cb53a82d0, type: 3}
+      propertyPath: m_Intensity
+      value: 1.5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1148,6 +1164,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 168037972}
     m_Modifications:
+    - target: {fileID: 1199822215406352156, guid: b03005feb022ff446ac006cf92e924c3, type: 3}
+      propertyPath: m_Name
+      value: Castle_Pillar (2)
+      objectReference: {fileID: 0}
     - target: {fileID: 2012351874528357798, guid: b03005feb022ff446ac006cf92e924c3, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1187,10 +1207,6 @@ PrefabInstance:
     - target: {fileID: 2012351874528357798, guid: b03005feb022ff446ac006cf92e924c3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1199822215406352156, guid: b03005feb022ff446ac006cf92e924c3, type: 3}
-      propertyPath: m_Name
-      value: Castle_Pillar (2)
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1690,6 +1706,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 168037972}
     m_Modifications:
+    - target: {fileID: 1199822215406352156, guid: b03005feb022ff446ac006cf92e924c3, type: 3}
+      propertyPath: m_Name
+      value: Castle_Pillar (1)
+      objectReference: {fileID: 0}
     - target: {fileID: 2012351874528357798, guid: b03005feb022ff446ac006cf92e924c3, type: 3}
       propertyPath: m_LocalPosition.x
       value: 15
@@ -1729,10 +1749,6 @@ PrefabInstance:
     - target: {fileID: 2012351874528357798, guid: b03005feb022ff446ac006cf92e924c3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1199822215406352156, guid: b03005feb022ff446ac006cf92e924c3, type: 3}
-      propertyPath: m_Name
-      value: Castle_Pillar (1)
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5691,6 +5707,10 @@ PrefabInstance:
       propertyPath: DoorToSpawnTo
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 1589701534572780243, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
+      propertyPath: CameraRotationY
+      value: -45
+      objectReference: {fileID: 0}
     - target: {fileID: 1820693724143983038, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: m_LocalPosition.x
       value: 2.9999998
@@ -5706,6 +5726,18 @@ PrefabInstance:
     - target: {fileID: 2805958724549887426, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: m_LocalPosition.z
       value: -0.00000023841858
+      objectReference: {fileID: 0}
+    - target: {fileID: 3086767945025372524, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 3086767945025372524, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3086767945025372524, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4137821689702020246, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: m_Size.x

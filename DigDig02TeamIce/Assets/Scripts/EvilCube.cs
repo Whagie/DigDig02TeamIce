@@ -9,18 +9,18 @@ public class EvilCube : Enemy
 
     [SerializeField] private float shootInterval = 2f;
 
-    protected override void OnAwake()
+    protected override void Awake()
     {
-        base.OnAwake();
+        base.Awake();
 
         ShouldWander = false;
         ShouldMove = false;
         ProjectileDamage = 2;
     }
 
-    protected override void OnStart()
+    protected override void Start()
     {
-        base.OnStart();
+        base.Start();
 
         if (MainCollider != null)
         {
@@ -28,9 +28,9 @@ public class EvilCube : Enemy
         }
     }
 
-    protected override void OnUpdate()
+    protected override void Update()
     {
-        base.OnUpdate();
+        base.Update();
 
         if (DetectedPlayer)
         {
@@ -46,6 +46,7 @@ public class EvilCube : Enemy
     protected override void Die()
     {
         base.Die();
+
         Destroy(gameObject);
     }
 }

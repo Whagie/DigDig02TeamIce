@@ -22,16 +22,21 @@ public class DoorTriggerInteraction : TriggerInteractionBase
     public DoorToSpawnAt CurrentDoorPosition;
     public Transform SpawnPosition;
     public Transform ConstructTargetPos;
+    public Transform ConstructTargetSpinPos;
+    public float CameraRotationY = 45f;
+    public bool AllowSpinEntrance = true;
+    public bool ForceSpinEntrance = false;
 
     private bool haveExited = false;
     private bool firstEnter = true;
 
     public override void OnEnter()
     {
-        if (haveExited)
+        if (haveExited || firstEnter && !SceneSwapManager.LoadFromDoor)
         {
             SceneSwapManager.SwapSceneFromDoorUse(_sceneToLoad, DoorToSpawnTo);
             haveExited = false;
+            firstEnter = false;
         }
     }
 

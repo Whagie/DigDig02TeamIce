@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class DoorTriggerInteraction : TriggerInteractionBase
@@ -34,7 +32,7 @@ public class DoorTriggerInteraction : TriggerInteractionBase
     {
         if (haveExited || firstEnter && !SceneSwapManager.LoadFromDoor)
         {
-            SceneSwapManager.SwapSceneFromDoorUse(_sceneToLoad, DoorToSpawnTo);
+            SceneSwapManager.SwapSceneFromDoorUse(_sceneToLoad, DoorToSpawnTo, CurrentDoorPosition);
             haveExited = false;
             firstEnter = false;
         }

@@ -1,8 +1,8 @@
 namespace Dreamteck
 {
+    using System.Collections.Generic;
     using UnityEditor;
     using UnityEngine;
-    using System.Collections.Generic;
 
     public static class DreamteckEditorGUI
     {

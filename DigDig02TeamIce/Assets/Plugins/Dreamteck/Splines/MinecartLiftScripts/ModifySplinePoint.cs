@@ -1,7 +1,6 @@
-using System.Collections;
+using Dreamteck.Splines;
 using System.Collections.Generic;
 using UnityEngine;
-using Dreamteck.Splines;
 
 public class ModifySplinePoint : MonoBehaviour
 {

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class CameraMovement : MonoBehaviour
 {
@@ -8,7 +9,8 @@ public class CameraMovement : MonoBehaviour
     private Player player;
     private Transform target;
 
-    [SerializeField] private GameObject cameraObject;
+    public Camera _camera;
+    [HideInInspector] public AudioListener audioListener;
     private float cameraStartDistanceZ;
     private float cameraStartRotationX;
     private float cameraStartPositionY;
@@ -62,7 +64,17 @@ public class CameraMovement : MonoBehaviour
         {
             Instance = this;
         }
-        Actions = cameraObject.GetComponent<CameraActions>();
+        Actions = _camera.GetComponent<CameraActions>();
+
+        audioListener = _camera.GetComponent<AudioListener>();
+        if (SceneManager.GetActiveScene().name == "MainMenu")
+        {
+            audioListener.enabled = false;
+        }
+        else
+        {
+            audioListener.enabled = true;
+        }
     }
     void Start()
     {
@@ -82,10 +94,10 @@ public class CameraMovement : MonoBehaviour
         rotationX = startX;
         rotationY = NormalizeAngle(euler.y);
 
-        cameraStartDistanceZ = cameraObject.transform.localPosition.z;
-        cameraStartRotationX = cameraObject.transform.rotation.x;
-        cameraStartPositionY = cameraObject.transform.localPosition.y;
-        originalFOV = cameraObject.GetComponent<Camera>().fieldOfView;
+        cameraStartDistanceZ = _camera.transform.localPosition.z;
+        cameraStartRotationX = _camera.transform.rotation.x;
+        cameraStartPositionY = _camera.transform.localPosition.y;
+        originalFOV = _camera.GetComponent<Camera>().fieldOfView;
 
         transform.position = player.transform.position;
 
@@ -188,7 +200,7 @@ public class CameraMovement : MonoBehaviour
 
     private IEnumerator DeathCam()
     {
-        cameraObject.GetComponent<Camera>().fieldOfView = originalFOV;
+        _camera.GetComponent<Camera>().fieldOfView = originalFOV;
 
         float delay = 0.5f;
         float totalTime = player.animator.runtimeAnimatorController.animationClips.Where(c => c.name == "Die").FirstOrDefault().length;
@@ -202,15 +214,9 @@ public class CameraMovement : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(delay);
 
-        // --- Start state
         Quaternion startRot = transform.rotation;
+        Quaternion targetRot = Quaternion.AngleAxis(player.transform.eulerAngles.y + yOffset, Vector3.up) * Quaternion.AngleAxis(xAngle, Vector3.right);
 
-        // --- Target rotation (relative to player)
-        Quaternion targetRot =
-            Quaternion.AngleAxis(player.transform.eulerAngles.y + yOffset, Vector3.up) *
-            Quaternion.AngleAxis(xAngle, Vector3.right);
-
-        // --- Child movement
         Transform child = transform.GetChild(0);
         Vector3 childStart = child.localPosition;
         Vector3 childTarget = childStart + new Vector3(0f, childMoveY, childMoveZ);
@@ -220,15 +226,15 @@ public class CameraMovement : MonoBehaviour
 
         Vector3 offset = new Vector3(2f, 3f, -2f);
 
-        Vector3 constructTargetPos = player.transform.TransformPoint(offset);
         Vector3 constructStartPos = player.Companion.transform.position;
-        Quaternion constructTargetRot = player.transform.rotation * Quaternion.Euler(0f, 180f, 0f);
+        Vector3 constructTargetPos = player.transform.TransformPoint(offset);
+
         Quaternion constructStartRot = player.Companion.transform.rotation;
+        Quaternion constructTargetRot = player.transform.rotation * Quaternion.Euler(0f, 180f, 0f);
 
         Vector3 playerPos = player.transform.position;
         playerPos.y = 0f;
 
-        // Offsets in XZ plane
         Vector3 startOffset = constructStartPos - playerPos;
         Vector3 targetOffset = constructTargetPos - playerPos;
 
@@ -238,21 +244,14 @@ public class CameraMovement : MonoBehaviour
         float startAngle = Mathf.Atan2(startOffset.z, startOffset.x) * Mathf.Rad2Deg;
         float targetAngle = Mathf.Atan2(targetOffset.z, targetOffset.x) * Mathf.Rad2Deg;
 
-        Vector3 previousPos = constructStartPos;
-
-        float clockwiseDelta = startAngle - targetAngle;
-        clockwiseDelta = Mathf.Repeat(clockwiseDelta, 360f);
-
+        float clockwiseDelta = Mathf.Repeat(startAngle - targetAngle, 360f);
         if (clockwiseDelta < 45f)
-        {
             clockwiseDelta += 360f;
-        }
 
         bool constructStartedAnim = false;
 
         float timer = 0f;
         float constructAnimTimer = 0f;
-        float amountThroughConstructAnim = 0f;
 
         while (timer < totalTime)
         {
@@ -260,54 +259,53 @@ public class CameraMovement : MonoBehaviour
             constructAnimTimer += Time.unscaledDeltaTime;
 
             AmountThroughDeathAnim = Mathf.Clamp01(timer / totalTime);
-            amountThroughConstructAnim = Mathf.Clamp01(constructAnimTimer / constructAnimTotalTime);
+            float amountThroughConstructAnim = Mathf.Clamp01(constructAnimTimer / constructAnimTotalTime);
 
             float t = Mathf.SmoothStep(0f, 1f, AmountThroughDeathAnim);
             float t2 = Mathf.Clamp01(t / 0.4f);
-            float t3 = Mathf.Clamp01((t - 0.9f) / (0.98f - 0.9f));
+            float t3 = Mathf.Clamp01((t - 0.92f) / 0.06f);
+            float t4 = Mathf.Clamp01(t / 0.8f);
+
+            float cubicT2 = t2 * t2 * t2;
+            float quadraticT4 = t4 * t4;
 
             float currentAngle = startAngle - clockwiseDelta * t2;
-
-            float startRadius = startOffset.magnitude;
-            float targetRadius = targetOffset.magnitude;
-            float currentRadius = Mathf.Lerp(startRadius, targetRadius, t2);
+            float currentRadius = Mathf.Lerp(startOffset.magnitude, targetOffset.magnitude, t2);
 
             float rad = currentAngle * Mathf.Deg2Rad;
 
-            Vector3 newOffset = new Vector3(
-                Mathf.Cos(rad) * currentRadius,
-                0f,
-                Mathf.Sin(rad) * currentRadius
-            );
-
-            Vector3 finalPos = playerPos + newOffset;
+            Vector3 finalPos = playerPos + new Vector3(Mathf.Cos(rad) * currentRadius, 0f, Mathf.Sin(rad) * currentRadius);
             finalPos.y = Mathf.Lerp(constructStartPos.y, constructTargetPos.y, t2);
 
+            Vector3 smoothed = Vector3.SmoothDamp(
+                player.Companion.transform.position, 
+                finalPos, 
+                ref player.Companion.followVelocity, 
+                0.15f
+            );
+            finalPos = Vector3.Lerp(smoothed, finalPos, quadraticT4);
+
             player.Companion.transform.position = finalPos;
+
             if (!constructStartedAnim)
             {
-                // True velocity-based direction
-                Vector3 velocity = finalPos - previousPos;
+                Vector3 companionOffset = finalPos - player.transform.position;
+                float orbitAngle = Mathf.Atan2(companionOffset.z, companionOffset.x);
+                Vector3 forward = player.Companion.GetOrbitTangent(orbitAngle, -1f);
 
-                if (velocity.sqrMagnitude > 0.0001f)
+                if (forward.sqrMagnitude > 0.001f)
                 {
-                    Quaternion orbitRotation =
-                        Quaternion.LookRotation(velocity.normalized, Vector3.up);
-
-                    player.Companion.transform.rotation =
-                        Quaternion.Slerp(orbitRotation, constructTargetRot, t2);
+                    Quaternion orbitRot = Quaternion.LookRotation(forward.normalized);
+                    player.Companion.transform.rotation = Quaternion.Lerp(orbitRot, constructTargetRot, cubicT2);
                 }
-
-                previousPos = finalPos;
             }
 
-            // --- Rotation
             transform.rotation = Quaternion.Slerp(startRot, targetRot, t);
 
-            // --- Child movement starts halfway
             if (t >= 0.4f)
             {
                 float tHalf = Mathf.SmoothStep(0f, 1f, (t - 0.5f) / 0.5f);
+
                 child.localPosition = Vector3.Lerp(childStart, childTarget, tHalf);
                 transform.localPosition = Vector3.Lerp(parentStartPos, parentTargetPos, tHalf);
 
@@ -319,31 +317,27 @@ public class CameraMovement : MonoBehaviour
                 }
             }
 
-            if (t >= 0.9f)
-            {
+            if (t >= 0.92f)
                 player.Companion._animator.SetLayerWeight(1, 1f - t3);
-            }
 
             yield return null;
         }
 
-        float duration2 = 0.8f;
+        float duration2 = 1.2f;
         float timer2 = 0f;
 
         while (timer2 < duration2)
         {
             timer2 += Time.unscaledDeltaTime;
 
-            float amountThrough = Mathf.Clamp01(timer / totalTime);
-            float t = Mathf.SmoothStep(0f, 1f, amountThrough);
-
+            float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(timer2 / duration2));
             Color newColor = Color.Lerp(player.Companion.OrigCrystalColor, player.Companion.DeadCrystalColor, t);
+
             player.Companion.CrystalBallMaterial.SetColor("_EmissionColor", newColor);
 
             yield return null;
         }
 
-        // Snap to final state
         transform.rotation = targetRot;
         child.localPosition = childTarget;
         player.Companion.CrystalBallMaterial.SetColor("_EmissionColor", player.Companion.DeadCrystalColor);

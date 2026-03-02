@@ -1,8 +1,8 @@
 #if UNITY_EDITOR
 namespace Dreamteck {
-    using UnityEngine;
-    using UnityEditor;
     using System.IO;
+    using UnityEditor;
+    using UnityEngine;
 
     public static class ScriptableObjectUtility
     {

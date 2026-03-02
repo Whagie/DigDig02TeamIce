@@ -1,6 +1,4 @@
 using UnityEngine;
-using System.Collections;
-using System.Threading;
 namespace Dreamteck.Splines
 {
     [AddComponentMenu("Dreamteck/Splines/Users/Edge Collider Generator")]

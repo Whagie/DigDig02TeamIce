@@ -3,12 +3,8 @@ using Game.Core;
 using System;
 using System.Collections;
 using System.Linq;
-using System.Text.RegularExpressions;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
-using UnityEngine.UIElements;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 {
@@ -35,7 +31,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 
     private ParryManager parryManager;
 
-    CharacterController controller;
+    public CharacterController controller;
 
     public TailAnimator2 Tail;
 
@@ -63,6 +59,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
     public Vector3 moveInput;
 
     private bool stopMovement = false;
+    public bool MovementOverride { get; set; } = false;
 
     // Pushback
     private Vector3 pushbackVelocity = Vector3.zero;
@@ -187,6 +184,9 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 
     private void Update()
     {
+        if (MovementOverride)
+            return;
+
         if (Health <= 0 && !Dead)
         {
             Die();
@@ -628,10 +628,16 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         Companion._animator.updateMode = AnimatorUpdateMode.Normal;
         if (Companion.heldObject != null)
         {
+            Companion.ResumeMovement(true);
             Companion.heldObject.SetActive(true);
+            Companion.agent.enabled = true;
         }
-        Companion.ResumeMovement();
+        else
+        {
+            Companion.ResumeMovement();
+        }
         Companion.movementOverride = false;
+        Companion.circlingSpeed = 0.6f;
 
         OnPlayerResurrect?.Invoke();
     }

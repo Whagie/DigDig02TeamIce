@@ -1,8 +1,7 @@
 namespace Dreamteck.Splines
 {
-    using UnityEngine;
-    using System.Collections;
     using System.Collections.Generic;
+    using UnityEngine;
 
     [ExecuteInEditMode]
     [AddComponentMenu("Dreamteck/Splines/Users/Particle Controller")]

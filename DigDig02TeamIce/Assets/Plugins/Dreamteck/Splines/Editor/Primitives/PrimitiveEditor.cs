@@ -1,9 +1,8 @@
 ﻿namespace Dreamteck.Splines.Primitives
 {
-    using UnityEngine;
-    using UnityEditor;
-    using System.Collections;
     using Dreamteck.Splines.Editor;
+    using UnityEditor;
+    using UnityEngine;
 
     [System.Serializable]
     public class PrimitiveEditor

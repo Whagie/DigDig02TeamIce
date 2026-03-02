@@ -1,7 +1,7 @@
 namespace Dreamteck.Splines.Editor
 {
-    using UnityEngine;
     using System.IO;
+    using UnityEngine;
 
     [System.Serializable]
     public struct S_Vector3

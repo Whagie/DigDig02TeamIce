@@ -12,6 +12,7 @@ TagManager:
   - PlayerUI
   - MoveUntilStop
   - ConstructSpawn
+  - Fog
   layers:
   - Default
   - TransparentFX
@@ -35,7 +36,7 @@ TagManager:
   - 
   - LightReflector
   - 
-  - LightMask
+  - 
   - EmissionCubes
   - 
   - 

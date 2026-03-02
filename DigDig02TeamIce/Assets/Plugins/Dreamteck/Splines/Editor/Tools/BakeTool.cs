@@ -1,10 +1,9 @@
 namespace Dreamteck.Splines.Editor
 {
-    using UnityEngine;
-    using System.Collections;
-    using UnityEditor;
     using System.Collections.Generic;
     using System.IO;
+    using UnityEditor;
+    using UnityEngine;
 
     public class BakeTool : SplineTool
     {

@@ -8,10 +8,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/MainMenu.unity
     guid: 7fac2ac9593d8ce43beffbb9446e3032
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Tunic_Guardhouse.unity
     guid: b5330e2e7520f6c4b8675fa2e310f652
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Dungeon_LightPuzzle01.unity
     guid: 44d0b7eca841dd745b48b28bcaa874f0
   - enabled: 1

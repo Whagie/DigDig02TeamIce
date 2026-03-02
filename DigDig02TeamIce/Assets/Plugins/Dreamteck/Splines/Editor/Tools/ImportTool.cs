@@ -1,11 +1,10 @@
 namespace Dreamteck.Splines.Editor
 {
-    using UnityEngine;
-    using System.Collections;
-    using System.Collections.Generic;
-    using UnityEditor;
-    using System.IO;
     using Dreamteck.Splines.IO;
+    using System.Collections.Generic;
+    using System.IO;
+    using UnityEditor;
+    using UnityEngine;
 
     public class ImportExportTool : SplineTool
     {

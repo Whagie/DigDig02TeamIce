@@ -1,9 +1,7 @@
 namespace Dreamteck.Splines
 {
-    using System.Collections;
     using System.Collections.Generic;
     using UnityEngine;
-    using UnityEngine.SceneManagement;
 #if !UNITY_WSA
     using System.Threading;
 #endif

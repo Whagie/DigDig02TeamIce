@@ -1,11 +1,10 @@
 namespace Dreamteck.Splines.Editor
 {
-    using System.Collections;
-    using System.Collections.Generic;
     using Dreamteck.Editor;
-    using UnityEngine;
-    using UnityEditor;
     using Dreamteck.Splines;
+    using System.Collections.Generic;
+    using UnityEditor;
+    using UnityEngine;
 
     public class SplineEditor : SplineEditorBase
     {

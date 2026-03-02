@@ -1,6 +1,6 @@
 ﻿#if UNITY_EDITOR
-using System.Diagnostics;
 using FIMSpace.FEditor;
+using System.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 #endif

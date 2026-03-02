@@ -1,5 +1,5 @@
-using UnityEngine;
 using UnityEditor;
+using UnityEngine;
 
 [CustomEditor(typeof(DoorTriggerInteraction))]
 public class DoorTriggerInteractionGizmo : Editor

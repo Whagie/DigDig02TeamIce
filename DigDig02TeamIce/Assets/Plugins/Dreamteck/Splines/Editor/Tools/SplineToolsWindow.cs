@@ -1,9 +1,9 @@
 namespace Dreamteck.Splines.Editor
 {
-    using UnityEngine;
     using System;
     using System.Collections.Generic;
     using UnityEditor;
+    using UnityEngine;
 
     public class SplineToolsWindow : EditorWindow
     {

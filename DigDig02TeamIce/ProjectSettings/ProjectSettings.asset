@@ -829,7 +829,13 @@ PlayerSettings:
   XboxOneOverrideIdentityPublisher: 
   vrEditorSettings: {}
   cloudServicesEnabled:
+    Build: 0
+    Game Performance: 0
+    Legacy Analytics: 0
+    Purchasing: 0
+    UDP: 0
     UNet: 1
+    Unity Ads: 0
   luminIcon:
     m_Name: 
     m_ModelFolderPath: 
@@ -849,11 +855,11 @@ PlayerSettings:
   apiCompatibilityLevel: 6
   activeInputHandler: 2
   windowsGamepadBackendHint: 0
-  cloudProjectId: 3add66d6-b60e-4617-ab78-e1afe2d40f22
+  cloudProjectId: b67c307e-02a3-4deb-b01c-63f0c6e7bf7c
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
   projectName: DigDig02TeamIce
-  organizationId: whagie
+  organizationId: korre_ollonborre
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}

@@ -227,6 +227,7 @@ GameObject:
   - component: {fileID: 770796046032243651}
   - component: {fileID: 8590856406397615567}
   - component: {fileID: 6595625942169305273}
+  - component: {fileID: 159980217711857311}
   m_Layer: 8
   m_Name: Player
   m_TagString: Untagged
@@ -325,7 +326,6 @@ MonoBehaviour:
   InvisibilityLength: 0.6
   debugInvisible: 0
   Parrying: 0
-  body: {fileID: 0}
   Energy: 8
   MaxEnergy: 8
   energyTimer: 1
@@ -911,6 +911,25 @@ MonoBehaviour:
   LegsAnimatorBlend: 1
   _Editor_DefaultModuleOnStart: {fileID: 11400000, guid: 7d9bd86d54a7a594cb1793f9533e2e00, type: 2}
   _Editor_LegHelperModule: {fileID: 11400000, guid: 0645fbea8059aec47aa6ae9d2c93c1d4, type: 2}
+--- !u!114 &159980217711857311
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4804014977240423186}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d38cb7559fe9a3949a6eed99f79e4478, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fogSystem: {fileID: 0}
+  radius: 2
+  force: 2
+  settleStrength: 1
+  damping: 0.95
+  boxMargin: {x: 0.5, y: 0.5, z: 0.5}
+  fadeDistance: 1
 --- !u!1 &6243908406630300275
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,4 +1,3 @@
-using System.Linq;
 using UnityEngine;
 
 [ExecuteAlways]
@@ -66,7 +65,7 @@ public class CustomWindZone : MonoBehaviour
     public float TotalGustLength { get; private set; }
 
     [field: SerializeField]
-    public bool Main { get; private set; } = false;
+    public bool Main { get; private set; } = true;
     private bool prevToggle;
 
 

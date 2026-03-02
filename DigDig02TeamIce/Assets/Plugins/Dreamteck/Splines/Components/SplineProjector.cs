@@ -1,7 +1,4 @@
 using UnityEngine;
-using UnityEngine.Events;
-using System.Collections;
-using UnityEngine.Serialization;
 
 namespace Dreamteck.Splines
 {

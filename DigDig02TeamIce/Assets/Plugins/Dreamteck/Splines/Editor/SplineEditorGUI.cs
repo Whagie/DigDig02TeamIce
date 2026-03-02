@@ -1,8 +1,8 @@
 namespace Dreamteck.Splines.Editor
 {
-    using UnityEngine;
-    using UnityEditor;
     using System.Text.RegularExpressions;
+    using UnityEditor;
+    using UnityEngine;
 
 
     public static class SplineEditorGUI

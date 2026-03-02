@@ -1,5 +1,4 @@
-﻿using FIMSpace.FEditor;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 namespace FIMSpace.FProceduralAnimation

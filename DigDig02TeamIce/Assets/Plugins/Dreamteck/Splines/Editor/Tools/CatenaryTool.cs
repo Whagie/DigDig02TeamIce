@@ -1,8 +1,6 @@
-using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
-using System.IO;
+using UnityEngine;
 
 namespace Dreamteck.Splines
 {

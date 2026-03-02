@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using UnityEditor;
+﻿using UnityEditor;
+using UnityEngine;
 
 [CustomPropertyDrawer(typeof(FPD_FixedCurveWindowAttribute))]
 public class FPD_FixedCurveWindow : PropertyDrawer

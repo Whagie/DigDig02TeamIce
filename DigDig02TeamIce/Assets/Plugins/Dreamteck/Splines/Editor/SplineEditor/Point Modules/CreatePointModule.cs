@@ -1,9 +1,7 @@
 namespace Dreamteck.Splines.Editor
 {
-using UnityEngine;
-using UnityEditor;
-using System.Collections;
-using System.Collections.Generic;
+    using UnityEditor;
+    using UnityEngine;
 
     public class CreatePointModule : PointModule
     {

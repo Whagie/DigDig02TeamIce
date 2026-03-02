@@ -1,12 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.GlobalIllumination;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using static UnityEditor.Experimental.GraphView.GraphView;
-using static UnityEngine.GraphicsBuffer;
 
 public class DeathSceneManager : MonoBehaviour
 {
@@ -103,6 +96,10 @@ public class DeathSceneManager : MonoBehaviour
     private void OnDisable()
     {
         _camera.OnResurrectionRespawn -= OnResurrectionRespawn;
+        fadeTriggered = false;
+        fadeGroup.alpha = 0f;
+        IsFadingIn = false;
+        IsFadingOut = false;
     }
 
     private void OnResurrectionRespawn()

@@ -6,7 +6,6 @@ using FIMSpace.FEditor;
 #endif
 using UnityEngine;
 using static FIMSpace.FProceduralAnimation.LegsAnimator;
-using System.Linq;
 
 namespace FIMSpace.FProceduralAnimation
 {

@@ -45,7 +45,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7febbc60f1be9c44395f82d71f73c040, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cameraObject: {fileID: 6225760297483182791}
+  _camera: {fileID: 7657725137219846885}
+  audioListener: {fileID: 0}
   maxDistance: 1
   moveSmoothSpeed: 2
   recenterSmoothSpeed: 2
@@ -125,7 +126,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 81230839
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0

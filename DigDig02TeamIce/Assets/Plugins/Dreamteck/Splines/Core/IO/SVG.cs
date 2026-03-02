@@ -1,13 +1,11 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System.IO;
-using System.Xml;
-using System.Xml.Serialization;
-using System.Text.RegularExpressions;
-using System.Linq;
-using Dreamteck.Splines.Primitives;
+﻿using Dreamteck.Splines.Primitives;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Xml;
+using UnityEngine;
 
 namespace Dreamteck.Splines.IO
 {

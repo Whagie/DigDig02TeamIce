@@ -1,7 +1,5 @@
-using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using Dreamteck;
+using UnityEngine;
 
 namespace Dreamteck.Splines {
     //The Spline class defines a spline with world coordinates. It comes with various sampling methods

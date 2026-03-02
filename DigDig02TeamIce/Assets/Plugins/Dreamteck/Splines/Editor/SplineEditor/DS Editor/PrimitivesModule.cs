@@ -1,12 +1,11 @@
 namespace Dreamteck.Splines.Editor
 {
-    using System;
-    using UnityEngine;
     using Dreamteck.Splines;
     using Dreamteck.Splines.Primitives;
-    using UnityEditor;
-    using System.Collections;
+    using System;
     using System.Collections.Generic;
+    using UnityEditor;
+    using UnityEngine;
 
     public class PrimitivesModule : PointTransformModule
     {

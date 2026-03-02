@@ -1,6 +1,5 @@
 namespace Dreamteck.Splines.Editor
 {
-    using UnityEngine;
     using UnityEditor;
 
     [CustomEditor(typeof(CapsuleColliderGenerator), true)]

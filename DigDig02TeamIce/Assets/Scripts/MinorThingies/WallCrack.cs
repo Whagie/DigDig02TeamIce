@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteAlways]
@@ -28,6 +26,17 @@ public class WallCrack : MonoBehaviour
         MeshFilter mf = GetComponent<MeshFilter>();
         Vector3 localCenter = mf.sharedMesh.bounds.center;
         center = transform.TransformPoint(localCenter);
+    }
+    private void Start()
+    {
+        if (wallCrackMaterial != null)
+        {
+            wallCrackMaterial = new Material(wallCrackMaterial);
+        }
+        if (crackMaterial != null)
+        {
+            crackMaterial = new Material(crackMaterial);
+        }
     }
     private void ApplyProperties()
     {

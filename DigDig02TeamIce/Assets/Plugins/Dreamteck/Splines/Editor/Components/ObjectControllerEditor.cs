@@ -1,9 +1,8 @@
 namespace Dreamteck.Splines.Editor
 {
-    using UnityEngine;
-    using System.Collections;
-    using UnityEditor;
     using Dreamteck.Splines;
+    using UnityEditor;
+    using UnityEngine;
 
     [CustomEditor(typeof(ObjectController))]
     [CanEditMultipleObjects]

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 [ExecuteInEditMode] //Disable if you don't care about previewing outside of play mode
 public class WorldSpaceOverlayUI : MonoBehaviour

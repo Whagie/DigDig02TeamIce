@@ -3739,6 +3739,101 @@ MonoBehaviour:
   m_SelectedFaces: 
   m_SelectedEdges: []
   m_SelectedVertices: 
+--- !u!21 &265398675
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: WallCrack
+  m_Shader: {fileID: -6465566751694194690, guid: 4821f34e8ed40424a8a25d8142fde0f6, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 2
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _AmbientOcclusionTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _HeightMap:
+        m_Texture: {fileID: 2800000, guid: b2a2b1ada06ac6d4badf063ba2564d71, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalTexture:
+        m_Texture: {fileID: 2800000, guid: b78dbfd534287824785b341f2ce60214, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OtherTexture:
+        m_Texture: {fileID: 2800000, guid: f2fc2c8f06b45334caf892fa822f51a9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Texture2DAsset_00fd00ae44c94d978852760cf7a11609_Out_0_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 2ddf7e4a0ae042e43905545468080ee5, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WallMetallicTexture:
+        m_Texture: {fileID: 2800000, guid: 3d282cdf1cca645469c95a3d91543e7f, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WallNormalTexture:
+        m_Texture: {fileID: 2800000, guid: 2fbfd1eaee97ef1459b3762b9838dd82, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WallTexture:
+        m_Texture: {fileID: 2800000, guid: 287682858d0557e4792321b6eb827bc3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AmbientOcclusionValue: 1
+    - _CrackNormalStrength: 1.5
+    - _GlowIntensity: 1.5
+    - _MetallicValue: 0
+    - _NormalStrength: 1
+    - _ParallaxSteps: 20
+    - _ParallaxStrength: -3.5
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _Smoothness: 0.1
+    - _UseEmission: 1
+    - _UseMetallicTex: 1
+    - _UseOcclusion: 0
+    m_Colors:
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 0}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}
+    - _GlowColor: {r: 1, g: 0.972549, b: 0.7490196, a: 0}
+    - _Offset: {r: 0.7, g: 0.1, b: 0, a: 0}
+    - _Tiling: {r: 0.2, g: 0.2, b: 0, a: 0}
+    - _WallTextureOffset: {r: 0, g: 0, b: 0, a: 0}
+    - _WallTextureTiling: {r: 0.2, g: 0.17, b: 0, a: 0}
+  m_BuildTextureStacks: []
 --- !u!4 &271408248 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7343068942999128347, guid: b62aae7a66a2b0c42976985b81b2c4d1, type: 3}
@@ -16360,6 +16455,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Bookshelf_End_B
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 8215f247db8541f4c86858885d542de2, type: 3}
+      propertyPath: m_Layer
+      value: 26
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -26556,7 +26655,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1820693724143983038, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -4
+      value: -3
       objectReference: {fileID: 0}
     - target: {fileID: 1820693724143983038, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: m_LocalPosition.z
@@ -29294,7 +29393,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1314923522}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cd626779b6b19df4480222660fcc15e9, type: 3}
   m_Name: 
@@ -29307,7 +29406,7 @@ MonoBehaviour:
   glowColor: {r: 1, g: 0.972549, b: 0.75392675, a: 0}
   glowIntensity: 1.5
   crackNormalStrength: 1.5
-  wallCrackMaterial: {fileID: 2100000, guid: 4d161643a1afc0b41ae6f700915b719c, type: 2}
+  wallCrackMaterial: {fileID: 265398675}
 --- !u!64 &1314923524
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -29358,7 +29457,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4d161643a1afc0b41ae6f700915b719c, type: 2}
+  - {fileID: 265398675}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -31000,6 +31099,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Bookshelf_Start_C
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 9c711b6a7aa634041869206a62446f5e, type: 3}
+      propertyPath: m_Layer
+      value: 26
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -32088,7 +32191,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4d161643a1afc0b41ae6f700915b719c, type: 2}
+  - {fileID: 2094975817}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -32425,7 +32528,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1422475830}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cd626779b6b19df4480222660fcc15e9, type: 3}
   m_Name: 
@@ -32438,7 +32541,7 @@ MonoBehaviour:
   glowColor: {r: 1, g: 0.972549, b: 0.75392675, a: 0}
   glowIntensity: 1.5
   crackNormalStrength: 1.5
-  wallCrackMaterial: {fileID: 2100000, guid: 4d161643a1afc0b41ae6f700915b719c, type: 2}
+  wallCrackMaterial: {fileID: 2094975817}
 --- !u!114 &1422475838
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -36489,7 +36592,7 @@ MonoBehaviour:
   m_VoxelSize: 0.16666667
   m_MinRegionArea: 2
   m_NavMeshData: {fileID: 23800000, guid: a5bb86281e7473242a2364837a17e3b3, type: 2}
-  m_BuildHeightMesh: 0
+  m_BuildHeightMesh: 1
 --- !u!4 &1777597986
 Transform:
   m_ObjectHideFlags: 0
@@ -41429,6 +41532,101 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b62aae7a66a2b0c42976985b81b2c4d1, type: 3}
+--- !u!21 &2094975817
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: WallCrack
+  m_Shader: {fileID: -6465566751694194690, guid: 4821f34e8ed40424a8a25d8142fde0f6, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 2
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _AmbientOcclusionTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _HeightMap:
+        m_Texture: {fileID: 2800000, guid: b2a2b1ada06ac6d4badf063ba2564d71, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalTexture:
+        m_Texture: {fileID: 2800000, guid: b78dbfd534287824785b341f2ce60214, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OtherTexture:
+        m_Texture: {fileID: 2800000, guid: f2fc2c8f06b45334caf892fa822f51a9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Texture2DAsset_00fd00ae44c94d978852760cf7a11609_Out_0_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 2ddf7e4a0ae042e43905545468080ee5, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WallMetallicTexture:
+        m_Texture: {fileID: 2800000, guid: 3d282cdf1cca645469c95a3d91543e7f, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WallNormalTexture:
+        m_Texture: {fileID: 2800000, guid: 2fbfd1eaee97ef1459b3762b9838dd82, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WallTexture:
+        m_Texture: {fileID: 2800000, guid: 287682858d0557e4792321b6eb827bc3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AmbientOcclusionValue: 1
+    - _CrackNormalStrength: 1.5
+    - _GlowIntensity: 1.5
+    - _MetallicValue: 0
+    - _NormalStrength: 1
+    - _ParallaxSteps: 20
+    - _ParallaxStrength: -3.5
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _Smoothness: 0.1
+    - _UseEmission: 1
+    - _UseMetallicTex: 1
+    - _UseOcclusion: 0
+    m_Colors:
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 0}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}
+    - _GlowColor: {r: 1, g: 0.972549, b: 0.7490196, a: 0}
+    - _Offset: {r: 0.7, g: 0.1, b: 0, a: 0}
+    - _Tiling: {r: 0.2, g: 0.2, b: 0, a: 0}
+    - _WallTextureOffset: {r: 0, g: 0, b: 0, a: 0}
+    - _WallTextureTiling: {r: 0.2, g: 0.17, b: 0, a: 0}
+  m_BuildTextureStacks: []
 --- !u!43 &2095729691
 Mesh:
   m_ObjectHideFlags: 0

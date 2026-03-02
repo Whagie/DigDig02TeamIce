@@ -1,7 +1,6 @@
 using Game.Core;
 using System.Collections;
 using UnityEngine;
-using static UnityEngine.Rendering.DebugUI;
 
 public class Projectile : MonoBehaviour, IHitbox
 {

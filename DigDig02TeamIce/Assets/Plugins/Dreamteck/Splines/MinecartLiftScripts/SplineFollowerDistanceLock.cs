@@ -1,5 +1,5 @@
-using UnityEngine;
 using Dreamteck.Splines;
+using UnityEngine;
 
 [RequireComponent(typeof(SplineFollower))]
 public class SplineFollowerPointLock : MonoBehaviour

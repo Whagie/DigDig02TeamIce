@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-
-namespace Dreamteck.Splines
+﻿namespace Dreamteck.Splines
 {
     //This is a blank SplineUser-derived class which you can use to build your custom SplineUser
     //You can safely delete any functions that you won't use

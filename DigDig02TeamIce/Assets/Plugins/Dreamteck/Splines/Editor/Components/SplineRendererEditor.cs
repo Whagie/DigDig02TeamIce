@@ -1,7 +1,5 @@
 namespace Dreamteck.Splines.Editor
 {
-    using UnityEngine;
-    using System.Collections;
     using UnityEditor;
 
     [CustomEditor(typeof(SplineRenderer), true)]

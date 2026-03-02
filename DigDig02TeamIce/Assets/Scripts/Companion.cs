@@ -1,17 +1,11 @@
-using FIMSpace.Basics;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Security.Cryptography;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
-using static UnityEditor.PlayerSettings;
-using static UnityEngine.GraphicsBuffer;
 
 public class Companion : MonoBehaviour
 {
@@ -115,7 +109,7 @@ public class Companion : MonoBehaviour
     private bool playerSprinting;
     private bool playerTooFarAway;
     private bool clearAbovePlayer;
-    private Vector3 followVelocity;
+    public Vector3 followVelocity;
     Vector3 sprintFacing;
     Vector3? forcedWorldTarget;
 
@@ -1073,7 +1067,7 @@ public class Companion : MonoBehaviour
     }
 
 
-    private Vector3 GetOrbitOffset(float angle)
+    public Vector3 GetOrbitOffset(float angle)
     {
         return new Vector3(
             Mathf.Cos(angle),
@@ -1082,9 +1076,16 @@ public class Companion : MonoBehaviour
         ) * circlingRadius;
     }
 
-    private Vector3 GetOrbitTangent(float angle)
+    public Vector3 GetOrbitTangent(float angle)
     {
         float delta = 0.01f * orbitDirection;
+        Vector3 p1 = GetOrbitOffset(angle);
+        Vector3 p2 = GetOrbitOffset(angle + delta);
+        return (p2 - p1).normalized;
+    }
+    public Vector3 GetOrbitTangent(float angle, float direction)
+    {
+        float delta = 0.01f * direction;
         Vector3 p1 = GetOrbitOffset(angle);
         Vector3 p2 = GetOrbitOffset(angle + delta);
         return (p2 - p1).normalized;
@@ -1107,22 +1108,28 @@ public class Companion : MonoBehaviour
         _animator.SetBool("Looking", false);
     }
 
-    public void ResumeMovement()
+    public void ResumeMovement(bool onlyStartCoroutine = false)
     {
-        isLooking = false;
-        isReturning = false;
-        isCircling = true;
+        if (!onlyStartCoroutine)
+        {
+            isLooking = false;
+            isReturning = false;
+            isCircling = true;
+        }
 
         if (behaviorRoutine == null)
             behaviorRoutine = StartCoroutine(BehaviorLoop());
 
-        if (prevCirclingSpeed.HasValue)
+        if (!onlyStartCoroutine)
         {
-            circlingSpeed = prevCirclingSpeed.Value;
-        }
-        else if (circlingSpeed <= 0.05f)
-        {
-            circlingSpeed = origCirclingSpeed;
+            if (prevCirclingSpeed.HasValue)
+            {
+                circlingSpeed = prevCirclingSpeed.Value;
+            }
+            else if (circlingSpeed <= 0.05f)
+            {
+                circlingSpeed = origCirclingSpeed;
+            }
         }
     }
 
@@ -1290,7 +1297,6 @@ public class Companion : MonoBehaviour
         if (TryGetMesh(target, out Mesh mesh))
         {
             Debug.Log("Got mesh!");
-            print($"{carriedObjectExtentsY}");
             carriedObjectExtentsY = Mathf.Abs(mesh.bounds.min.y) * transform.lossyScale.y;
             print($"{carriedObjectExtentsY}");
         }
@@ -1307,7 +1313,7 @@ public class Companion : MonoBehaviour
         {
             if (!agent.pathPending)
             {
-                if (agent.remainingDistance <= agent.stoppingDistance)
+                if (agent.remainingDistance <= agent.stoppingDistance + 0.05f)
                 {
                     if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
                     {
@@ -1325,7 +1331,19 @@ public class Companion : MonoBehaviour
 
         transform.position = new Vector3(target.position.x, transform.position.y, target.position.z);
 
-        yield return new WaitForSeconds(0.5f);
+        float rotateDuration = 0.5f;
+        float rotateTimer = 0f;
+        Quaternion startRot = transform.rotation;
+        Quaternion targetRot = Quaternion.Euler(startRot.x, target.transform.rotation.y, startRot.z);
+
+        while (rotateTimer < rotateDuration)
+        {
+            rotateTimer += Time.deltaTime;
+            float tRot = Mathf.Clamp01(rotateTimer / rotateDuration);
+
+            transform.rotation = Quaternion.Slerp(startRot, targetRot, tRot);
+            yield return null;
+        }
 
         //float startHeight = agent.baseOffset;
         //float endHeight = carryOffsetDistance;
@@ -2068,8 +2086,7 @@ public class Companion : MonoBehaviour
         isReturning = false;
         isCircling = true;
 
-        if (behaviorRoutine == null)
-            behaviorRoutine = StartCoroutine(BehaviorLoop());
+        ResumeMovement(true);
 
         isPlayingEntranceAnim = false;
         agent.enabled = true;

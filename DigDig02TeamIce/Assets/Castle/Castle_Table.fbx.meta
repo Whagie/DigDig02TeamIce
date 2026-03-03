@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: ed4fd62e3fe53764281c50a90964642e
+guid: 29b64e46170e937478aadb273483e666
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -7,12 +7,12 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: lambert5
-    second: {fileID: 2100000, guid: 4e6c4331b144a6b4fab6b92e6c53f1b1, type: 2}
+      name: standardSurface1
+    second: {fileID: 2100000, guid: 35aa430feed004d4aa4e9b652a1edf9f, type: 2}
   materials:
-    materialImportMode: 1
-    materialName: 1
-    materialSearch: 0
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
     materialLocation: 1
   animations:
     legacyGenerateAnimations: 4
@@ -40,7 +40,7 @@ ModelImporter:
     isReadable: 0
   meshes:
     lODScreenPercentages: []
-    globalScale: 50
+    globalScale: 10
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
@@ -95,7 +95,7 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    globalScale: 50
+    globalScale: 10
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0

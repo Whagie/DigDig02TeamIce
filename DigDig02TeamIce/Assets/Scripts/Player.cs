@@ -229,7 +229,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
             if (!airTimerActive)
             {
                 airTimerActive = true;
-                StartCoroutine(AirTimeTimer(0.075f));
+                StartCoroutine(AirTimeTimer(0.15f));
             }
         }
 

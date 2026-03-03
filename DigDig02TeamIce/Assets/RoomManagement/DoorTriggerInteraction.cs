@@ -21,6 +21,7 @@ public class DoorTriggerInteraction : TriggerInteractionBase
     public Transform SpawnPosition;
     public Transform ConstructTargetPos;
     public Transform ConstructTargetSpinPos;
+    public float AmountToWalkOut = 6.5f;
     public float CameraRotationY = 45f;
     public bool AllowSpinEntrance = true;
     public bool ForceSpinEntrance = false;

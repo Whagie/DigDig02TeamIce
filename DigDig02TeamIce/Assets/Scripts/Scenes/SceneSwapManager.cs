@@ -16,6 +16,7 @@ public class SceneSwapManager : MonoBehaviour
     private Transform _constructDoorTargetSpinPos;
     private Transform _constructDoorTargetPos;
     private Vector3 _playerSpawnPosition;
+    private float amountToWalk;
     private float cameraRotY;
     private bool allowSpinEntrance;
     private bool forceSpinEntrance;
@@ -111,7 +112,7 @@ public class SceneSwapManager : MonoBehaviour
         while (SceneFadeManager.instance.IsFadingOut)
         {
             float delta = Vector3.Distance(_player.transform.position, startPos);
-            if (delta < 5f)
+            if (delta < 6f)
             {
                 float t = delta / 4f;
                 Vector3 finalMove = dir * speed;
@@ -278,6 +279,14 @@ public class SceneSwapManager : MonoBehaviour
             cameraObject.audioListener.enabled = true;
         }
 
+        GameObject spawnPoint = GameObject.FindGameObjectWithTag("Respawn");
+        if (spawnPoint != null)
+        {
+            _player.transform.position = spawnPoint.transform.position;
+            cameraObject.transform.position = spawnPoint.transform.position;
+            _construct.transform.position = _player.transform.position + _construct.Offset;
+        }
+
         SceneFadeManager.instance.StartFadeIn();
 
         if (LoadFromDoor)
@@ -297,6 +306,7 @@ public class SceneSwapManager : MonoBehaviour
                 _doorSpawnPos = doors[i].SpawnPosition;
                 _constructDoorTargetPos = doors[i].ConstructTargetPos;
                 _constructDoorTargetSpinPos = doors[i].ConstructTargetSpinPos;
+                amountToWalk = doors[i].AmountToWalkOut;
                 cameraRotY = doors[i].CameraRotationY;
                 allowSpinEntrance = doors[i].AllowSpinEntrance;
                 forceSpinEntrance = doors[i].ForceSpinEntrance;
@@ -393,6 +403,7 @@ public class SceneSwapManager : MonoBehaviour
         dir.y = 0f;
 
         Vector3 playerStartPos = _player.transform.position;
+        _player.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
         float speed = playerSprinted ? _player.sprintSpeed : _player.walkSpeed;
 
         while (SceneFadeManager.instance._fadeOutStartColor.a > 0.9f)
@@ -406,7 +417,7 @@ public class SceneSwapManager : MonoBehaviour
         while (shouldMove)
         {
             float delta = Vector3.Distance(_player.transform.position, playerStartPos);
-            if (delta < 6.5f)
+            if (delta < amountToWalk)
             {
                 Vector3 finalMove = dir * speed;
                 _player.controller.Move(finalMove * Time.deltaTime);

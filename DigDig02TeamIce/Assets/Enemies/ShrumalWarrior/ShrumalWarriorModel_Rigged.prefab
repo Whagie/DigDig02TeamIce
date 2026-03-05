@@ -615,6 +615,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e1a8c67fcd69bf41adfd84767a1d54c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _id:
+    Value: 
   stats:
     layers:
       serializedVersion: 2
@@ -637,8 +639,8 @@ MonoBehaviour:
   enemyUI: {fileID: 5853080125295517348}
   ChildrenWithFlashEffect: []
   Actions: []
-  _animator: {fileID: 0}
-  NavAgent: {fileID: 0}
+  _animator: {fileID: 4235964037585906212}
+  NavAgent: {fileID: 6947555937212546285}
   tempSpeed: 1
   speedOverride: 0
   VisionCones: []

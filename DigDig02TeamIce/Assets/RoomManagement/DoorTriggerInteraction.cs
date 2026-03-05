@@ -9,6 +9,8 @@ public class DoorTriggerInteraction : TriggerInteractionBase
         Two,
         Three,
         Four,
+        Five,
+        Six
     }
 
     [Header("Spawn TO")]

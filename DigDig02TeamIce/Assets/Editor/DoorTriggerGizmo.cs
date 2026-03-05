@@ -18,6 +18,8 @@ public class DoorTriggerInteractionGizmo : Editor
             case DoorTriggerInteraction.DoorToSpawnAt.Two: color = Color.green; break;
             case DoorTriggerInteraction.DoorToSpawnAt.Three: color = Color.yellow; break;
             case DoorTriggerInteraction.DoorToSpawnAt.Four: color = Color.cyan; break;
+            case DoorTriggerInteraction.DoorToSpawnAt.Five: color = Color.magenta; break;
+            case DoorTriggerInteraction.DoorToSpawnAt.Six: color = new Color(255f / 225f, 77f / 225f, 0f / 225f); break;
         }
 
         float extentsY = 0f;

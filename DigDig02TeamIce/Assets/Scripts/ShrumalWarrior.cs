@@ -32,7 +32,7 @@ public class ShrumalWarrior : Enemy
                 Weight = 0.4f,
                 CanUse = () => SeeingPlayer && FacingPlayer && DistanceToPlayer <= 4.5f,
                 Modifier = new ActionModifier()
-                    .StopAgent()
+                    .ChangeSpeed(0f)
             },
             new EnemyAction
             {
@@ -164,10 +164,17 @@ public class ShrumalWarrior : Enemy
             _animator.Update(0f);
         }
 
+        AlterHead(0);
+        AlterSword(0);
         MainCollider.enabled = false;
         SwordCollider.enabled = false;
         HeadCollider.enabled = false;
         base.Die();
         this.enabled = false;
+    }
+
+    public override void OnActionEnd()
+    {
+        base.OnActionEnd();
     }
 }

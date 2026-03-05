@@ -6,7 +6,7 @@ AvatarMask:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: PlayerAvatarMask
+  m_Name: BlinkAndDilate
   m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
   m_Elements:
   - m_Path: 
@@ -110,7 +110,7 @@ AvatarMask:
   - m_Path: Armature/Spine/Spine.001/Spine.002/Neck/Head/Nose
     m_Weight: 0
   - m_Path: Armature/Spine/Spine.001/Spine.002/Neck/Head/PupilControl
-    m_Weight: 0
+    m_Weight: 1
   - m_Path: Armature/Spine/Spine.001/Spine.002/Shoulder_L
     m_Weight: 0
   - m_Path: Armature/Spine/Spine.001/Spine.002/Shoulder_L/UpperArm_L

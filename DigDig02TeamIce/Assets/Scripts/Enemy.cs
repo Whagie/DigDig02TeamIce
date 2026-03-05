@@ -660,10 +660,6 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
                     OnActionStart(_currentAction);
                     return true;
                 }
-                else
-                {
-                    return false;
-                }
             }
         }
 

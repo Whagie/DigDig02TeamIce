@@ -279,12 +279,15 @@ public class SceneSwapManager : MonoBehaviour
             cameraObject.audioListener.enabled = true;
         }
 
-        GameObject spawnPoint = GameObject.FindGameObjectWithTag("Respawn");
-        if (spawnPoint != null)
+        if (scene.name != "DeathScene")
         {
-            _player.transform.position = spawnPoint.transform.position;
-            cameraObject.transform.position = spawnPoint.transform.position;
-            _construct.transform.position = _player.transform.position + _construct.Offset;
+            GameObject spawnPoint = GameObject.FindGameObjectWithTag("Respawn");
+            if (spawnPoint != null)
+            {
+                _player.transform.position = spawnPoint.transform.position;
+                cameraObject.transform.position = spawnPoint.transform.position;
+                _construct.transform.position = _player.transform.position + _construct.Offset;
+            }
         }
 
         SceneFadeManager.instance.StartFadeIn();

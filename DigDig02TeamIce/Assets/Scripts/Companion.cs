@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
@@ -118,6 +119,7 @@ public class Companion : MonoBehaviour
     private int heldObjectPrevLayer;
     public float? carriedObjectExtentsY;
     private float carryOffsetDistance = 1.35f;
+    private float prevCarryOffsetDistance;
     [HideInInspector] public bool isCarrying = false;
     [HideInInspector] public bool isPlayingGrabAnim = false;
     [HideInInspector] public float agentSpeedBeforeGrab = 24f;
@@ -128,9 +130,15 @@ public class Companion : MonoBehaviour
     [SerializeField] private bool drawGhostProbesGizmo = false;
     private bool isPlayingEntranceAnim = false;
 
+    public bool IsDoingRunePuzzle = false;
+    public bool CanExitRunePuzzleState = false;
+
     public Material CrystalBallMaterial;
     public Color OrigCrystalColor;
     public Color DeadCrystalColor = new Color32(22, 34, 89, 255);
+
+    public BlobShadowMesh BlobShadow;
+    private float? prevBlobShadowHeight;
 
     private Coroutine behaviorRoutine;
     private Coroutine attackCooldownRoutine;
@@ -185,6 +193,15 @@ public class Companion : MonoBehaviour
 
         CrystalBallMaterial = renderer.materials[crystalIndex];
         OrigCrystalColor = CrystalBallMaterial.GetColor("_EmissionColor");
+
+        if (BlobShadow == null)
+        {
+            BlobShadowMesh blob = GameObject.Find("ConstructBlobShadow").GetComponent<BlobShadowMesh>();
+            if (blob != null)
+            {
+                BlobShadow = blob;
+            }
+        }
 
         IdleActions = new[]
         {
@@ -1245,7 +1262,7 @@ public class Companion : MonoBehaviour
         outOfEnergyShakeRoutine = null;
     }
 
-    public void StartCarry(Transform target)
+    public void StartCarry(Transform target, bool runePuzzle = false)
     {
         if (!isPlayingGrabAnim && !movementOverride)
         {
@@ -1257,7 +1274,7 @@ public class Companion : MonoBehaviour
 
             if (PickUpRoutine != null)
                 StopCoroutine(PickUpRoutine);
-            PickUpRoutine = StartCoroutine(PickUpObject(target));
+            PickUpRoutine = StartCoroutine(PickUpObject(target, runePuzzle));
         }
     }
 
@@ -1271,12 +1288,24 @@ public class Companion : MonoBehaviour
         }
     }
 
-    private IEnumerator PickUpObject(Transform target)
+    private IEnumerator PickUpObject(Transform target, bool runePuzzle = false)
     {
         isCarrying = true;
         isPlayingGrabAnim = true;
         movementOverride = true;
         agent.enabled = true;
+        gameObject.GetComponent<Collider>().enabled = false;
+
+        if (BlobShadow != null)
+        {
+            StartCoroutine(FadeAwayBlobShadow());
+        }
+
+        if (runePuzzle)
+        {
+            IsDoingRunePuzzle = true;
+            CanExitRunePuzzleState = false;
+        }
 
         if (outOfEnergyShakeRoutine != null)
         {
@@ -1294,11 +1323,20 @@ public class Companion : MonoBehaviour
             playingIdleAnim = false;
         }
 
-        if (TryGetMesh(target, out Mesh mesh))
+        if (!runePuzzle)
         {
-            Debug.Log("Got mesh!");
-            carriedObjectExtentsY = Mathf.Abs(mesh.bounds.min.y) * transform.lossyScale.y;
-            print($"{carriedObjectExtentsY}");
+            if (TryGetMesh(target, out Mesh mesh))
+            {
+                Debug.Log("Got mesh!");
+                carriedObjectExtentsY = Mathf.Abs(mesh.bounds.min.y) * transform.lossyScale.y;
+                print($"{carriedObjectExtentsY}");
+            }
+        }
+        else
+        {
+            carriedObjectExtentsY = 0f;
+            prevCarryOffsetDistance = carryOffsetDistance;
+            carryOffsetDistance = 0f;
         }
 
         if (target.TryGetComponent<Collider>(out Collider col))
@@ -1367,17 +1405,68 @@ public class Companion : MonoBehaviour
         }
 
         transform.position = end;
-        _animator.SetBool("Grabbing", true);
+        if (!runePuzzle)
+        {
+            _animator.SetBool("Grabbing", true);
+            yield return new WaitForSeconds(1f);
 
-        yield return new WaitForSeconds(1f);
+            heldObject = target.gameObject;
+            heldObject.transform.SetParent(transform, true);
+            heldObjectPrevLayer = heldObject.layer;
+            heldObject.layer = LayerMask.NameToLayer("Player");
+        }
+        else
+        {
+            _animator.SetBool("RunePuzzle", true);
+            _animator.SetLayerWeight(1, 0f);
 
-        heldObject = target.gameObject;
-        heldObject.transform.SetParent(transform, true);
-        heldObjectPrevLayer = heldObject.layer;
-        heldObject.layer = LayerMask.NameToLayer("Player");
+            yield return new WaitForSeconds(0.25f);
+            float glowDuration = 1f;
+            float glowTimer = 0f;
 
-        //float startHeight2 = agent.baseOffset;
-        //float endHeight2 = startHeight;
+            while (glowTimer < glowDuration)
+            {
+                glowTimer += Time.deltaTime;
+                float t3 = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(glowTimer / glowDuration));
+
+                Color newColor = Color.Lerp(OrigCrystalColor, OrigCrystalColor * 1.75f, t3);
+
+                CrystalBallMaterial.SetColor("_EmissionColor", newColor);
+                yield return null;
+            }
+            CrystalBallMaterial.SetColor("_EmissionColor", OrigCrystalColor * 1.75f);
+
+            CanExitRunePuzzleState = true;
+
+            while (IsDoingRunePuzzle)
+            {
+                yield return null;
+            }
+
+            _animator.SetBool("RunePuzzle", false);
+
+            glowTimer = 0f;
+            bool activatedWings = false;
+            while (glowTimer < glowDuration)
+            {
+                glowTimer += Time.deltaTime;
+
+                float t3 = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(glowTimer / glowDuration));
+                Color newColor = Color.Lerp(OrigCrystalColor * 1.75f, OrigCrystalColor, t3);
+
+                CrystalBallMaterial.SetColor("_EmissionColor", newColor);
+
+                if (t3 >= 0.25f && !activatedWings)
+                {
+                    _animator.SetLayerWeight(1, 1f);
+                    activatedWings = true;
+                }
+
+                yield return null;
+            }
+            CrystalBallMaterial.SetColor("_EmissionColor", OrigCrystalColor);
+        }
+
         Vector3 start2 = transform.position;
         Vector3 end2 = start;
 
@@ -1390,24 +1479,44 @@ public class Companion : MonoBehaviour
             t2 = Mathf.Clamp01(t2);
 
             transform.position = Vector3.Lerp(start2, end2, t2);
-            //agent.baseOffset = Mathf.Lerp(startHeight2, endHeight2, t2);
 
             yield return null;
         }
 
-        isPlayingGrabAnim = false;
-        movementOverride = false;
-        agent.enabled = true;
-        agent.isStopped = false;
+        if (runePuzzle)
+        {
+            carriedObjectExtentsY = null;
+            isPlayingGrabAnim = false;
+            isCarrying = false;
+            movementOverride = false;
+            agent.enabled = true;
+            agent.isStopped = false;
+            agent.stoppingDistance = 0f;
+            disableAgentOnReachTarget = true;
+            ExitNavMove(false);
 
-        agentSpeedBeforeGrab = agent.speed;
-        agentAccelerationBeforeGrab = agent.acceleration;
+            if (BlobShadow != null && prevBlobShadowHeight.HasValue)
+            {
+                StartCoroutine(FadeBackBlobShadow());
+            }
+        }
+        else
+        {
+            isPlayingGrabAnim = false;
+            movementOverride = false;
+            agent.enabled = true;
+            agent.isStopped = false;
 
-        agent.stoppingDistance = 3f;
-        agent.speed = 12f;
-        agent.acceleration = 12f;
-        carryBobTime = 0f;
+            agentSpeedBeforeGrab = agent.speed;
+            agentAccelerationBeforeGrab = agent.acceleration;
 
+            agent.stoppingDistance = 3f;
+            agent.speed = 12f;
+            agent.acceleration = 12f;
+            carryBobTime = 0f;
+        }
+
+        gameObject.GetComponent<Collider>().enabled = true;
         PickUpRoutine = null;
     }
 
@@ -1586,6 +1695,11 @@ public class Companion : MonoBehaviour
         disableAgentOnReachTarget = true;
         ExitNavMove(false);
 
+        if (BlobShadow != null && prevBlobShadowHeight.HasValue)
+        {
+            StartCoroutine(FadeBackBlobShadow());
+        }
+
         PutDownRoutine = null;
     }
 
@@ -1614,6 +1728,48 @@ public class Companion : MonoBehaviour
 
         mesh = null;
         return false;
+    }
+
+    private IEnumerator FadeAwayBlobShadow()
+    {
+        prevBlobShadowHeight = BlobShadow.maxAirHeight;
+
+        float fadeDuration = 0.3f;
+        float t = 0f;
+
+        while (t < 1f)
+        {
+            t += Time.deltaTime / fadeDuration;
+            t = Mathf.Clamp01(t);
+
+            if (BlobShadow != null)
+            {
+                float height = Mathf.Lerp(prevBlobShadowHeight.Value, 0f, t);
+                BlobShadow.maxAirHeight = height;
+            }
+
+            yield return null;
+        }
+    }
+    private IEnumerator FadeBackBlobShadow()
+    {
+        float startHeight = BlobShadow.maxAirHeight;
+        float fadeDuration = 0.3f;
+        float t = 0f;
+
+        while (t < 1f)
+        {
+            t += Time.deltaTime / fadeDuration;
+            t = Mathf.Clamp01(t);
+
+            if (BlobShadow != null)
+            {
+                float height = Mathf.Lerp(startHeight, prevBlobShadowHeight.HasValue ? prevBlobShadowHeight.Value : 12f, t);
+                BlobShadow.maxAirHeight = height;
+            }
+
+            yield return null;
+        }
     }
 
     public void SpearAttack()

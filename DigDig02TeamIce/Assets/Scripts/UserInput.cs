@@ -30,6 +30,13 @@ public class UserInput : MonoBehaviour
 
     public static bool PausePressed;
 
+    public static bool EscapePressed;
+
+    public static bool RunePuzzleLeftPressed;
+    public static bool RunePuzzleRightPressed;
+    public static bool RunePuzzleNextDiskPressed;
+    public static bool RunePuzzlePreviousDiskPressed;
+
     private InputAction _moveAction;
     private InputAction _parryAction;
     private InputAction _jumpAction;
@@ -40,6 +47,11 @@ public class UserInput : MonoBehaviour
     private InputAction _meleeAttackAction;
     private InputAction _interactAction;
     private InputAction _pauseAction;
+    private InputAction _escapeAction;
+    private InputAction _runePuzzleLeftAction;
+    private InputAction _runePuzzleRightAction;
+    private InputAction _runePuzzleNextDiskAction;
+    private InputAction _runePuzzlePreviousDiskAction;
 
     private void Awake()
     {
@@ -55,6 +67,11 @@ public class UserInput : MonoBehaviour
         _meleeAttackAction = PlayerInput.actions["MeleeAttack"];
         _interactAction = PlayerInput.actions["Interact"];
         _pauseAction = PlayerInput.actions["Pause"];
+        _escapeAction = PlayerInput.actions["Escape"];
+        _runePuzzleLeftAction = PlayerInput.actions["RunePuzzleLeft"];
+        _runePuzzleRightAction = PlayerInput.actions["RunePuzzleRight"];
+        _runePuzzleNextDiskAction = PlayerInput.actions["RunePuzzleNextDisk"];
+        _runePuzzlePreviousDiskAction = PlayerInput.actions["RunePuzzlePreviousDisk"];
     }
 
     private void Update()
@@ -76,7 +93,6 @@ public class UserInput : MonoBehaviour
         LockOnReleased = _lockOnAction.WasReleasedThisFrame();
 
         SpearAttackPressed = _spearAttackAction.WasPressedThisFrame();
-
         SlamAttackPressed = _slamAttackAction.WasPressedThisFrame();
 
         MeleeAttackPressed = _meleeAttackAction.WasPressedThisFrame();
@@ -84,5 +100,12 @@ public class UserInput : MonoBehaviour
         InteractPressed = _interactAction.WasPressedThisFrame();
 
         PausePressed = _pauseAction.WasPressedThisFrame();
+
+        EscapePressed = _escapeAction.WasPressedThisFrame();
+
+        RunePuzzleLeftPressed = _runePuzzleLeftAction.WasPressedThisFrame();
+        RunePuzzleRightPressed = _runePuzzleRightAction.WasPressedThisFrame();
+        RunePuzzleNextDiskPressed = _runePuzzleNextDiskAction.WasPressedThisFrame();
+        RunePuzzlePreviousDiskPressed = _runePuzzlePreviousDiskAction.WasPressedThisFrame();
     }
 }

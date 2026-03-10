@@ -85,6 +85,12 @@ public class ShrumalWarrior : Enemy
 
     public void AlterSword(int activate = 1)
     {
+        if (swordSwing == null)
+        {
+            Debug.LogWarning("SwordSwing was null!");
+            return;
+        }
+
         if (activate == 1)
         {
             swordSwing.Activate();
@@ -98,6 +104,12 @@ public class ShrumalWarrior : Enemy
     }
     public void AlterHead(int activate = 1)
     {
+        if (headBash == null)
+        {
+            Debug.LogWarning("HeadBash was null!");
+            return;
+        }
+
         if (activate == 1)
         {
             headBash.Activate();

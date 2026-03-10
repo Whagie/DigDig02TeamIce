@@ -397,6 +397,12 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         Vector3 finalMove = moveDir;
         finalMove.y = verticalVelocity;
 
+        Vector3 localMove = transform.InverseTransformDirection(moveDir);
+        Vector2 animDir = new Vector2(localMove.x, localMove.z).normalized;
+
+        animator.SetFloat("MoveX", animDir.x);
+        animator.SetFloat("MoveZ", animDir.y);
+
         controller.Move(finalMove * Time.deltaTime);
     }
 

@@ -17,8 +17,12 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
 
     private SessionSaveData.EnemyDeathData DeathData;
 
+    public Transform Center;
+
     public LayerMask LayerMask => stats.layers;
     private static LayerMask Obstacles;
+
+    [SerializeField] private GameObject enemyUIObject;
     [SerializeField] public EnemyUI enemyUI;
 
     public int Health => stats.health;
@@ -45,6 +49,9 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
     public bool Wandering { get; set; } = false;
     public bool ShouldWander { get; set; } = true;
     public bool ShouldMove { get; set; } = true;
+
+    public bool ShouldRotate = true;
+    public bool AllowPushback = true;
 
     public List<HitFlash> ChildrenWithFlashEffect;
 
@@ -101,6 +108,9 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
     }
     protected virtual void Awake()
     {
+        if (Center == null)
+            Center = transform;
+
         _animator = GetComponent<Animator>();
         if (_animator != null)
         {
@@ -141,6 +151,11 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
         {
             NavAgent.angularSpeed = RotationSpeed;
         }
+
+        Vector3 delta = Center.position - transform.position;
+        delta.x = 0f;
+        delta.z = 0f;
+        enemyUI = Instantiate(enemyUIObject, Center.position + delta, transform.rotation, transform).GetComponent<EnemyUI>();
 
         if (enemyUI.EnemyOwner == null)
         {
@@ -336,9 +351,12 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
             InCombat = false;
         }
 
-        if (DetectedPlayer && NavAgent.updateRotation)
+        if (DetectedPlayer && ShouldRotate)
         {
-            RotateTowardsY(transform, player.transform.position, RotationSpeed * 3f);
+            if (NavAgent.updateRotation)
+            {
+                RotateTowardsY(transform, player.transform.position, RotationSpeed * 3f);
+            }
         }
 
         if (NavAgent != null)
@@ -543,7 +561,7 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
         return false;
     }
 
-    public void OnHit(IHitbox source)
+    public virtual void OnHit(IHitbox source)
     {
         TakeDamage(source.Damage);
         if (source.Owner.CompareTag("Projectile"))
@@ -585,6 +603,10 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
     {
         Dead = true;
         SessionSaveData.Instance.AddOrUpdateData(ID, Dead, transform.position, transform.rotation);
+        if (player.currentTarget == this.gameObject)
+        {
+            player.currentTarget = null;
+        }
     }
 
     public virtual void HandleParried(IHurtbox by)
@@ -715,9 +737,9 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
             NavAgent.speed = speed;
         }
     }
-    protected void FireProjectile(Transform target, bool seeking = false)
+    protected void FireProjectile(Transform spawnPoint, Transform target, bool seeking = false)
     {
-        GameObject projObj = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
+        GameObject projObj = Instantiate(projectilePrefab, spawnPoint.position, Quaternion.identity);
         Projectile proj = projObj.GetComponent<Projectile>();
 
         proj.Parent = gameObject;
@@ -731,13 +753,16 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
         else
         {
             proj.Seeking = false;
-            Vector3 direction = (target.position - transform.position).normalized;
+            Vector3 direction = (target.position - spawnPoint.position).normalized;
             proj.Direction = direction;
         }
     }
 
     public void ApplyPushback(Vector3 direction, float force, float duration)
     {
+        if (!AllowPushback)
+            return;
+
         pushVelocity += direction.normalized * force;
         pushTimer = Mathf.Max(pushTimer, duration);
 
@@ -808,7 +833,7 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
     {
         player.GiveEnergy();
 
-        ParticleSpawner.SpawnEnergy(transform, true, middlePosDistance);
+        ParticleSpawner.SpawnEnergy(Center, true, middlePosDistance);
     }
 }
 

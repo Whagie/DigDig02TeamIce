@@ -35,6 +35,9 @@ public class HitFlash : MonoBehaviour
 
     public void Flash()
     {
+        if (!rend.gameObject.activeSelf)
+            return;
+
         hitFlash.color = Tint;
         // Apply your temporary override
         rend.material = hitFlash;

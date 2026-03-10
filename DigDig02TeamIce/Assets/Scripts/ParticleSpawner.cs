@@ -9,6 +9,16 @@ public static class ParticleSpawner
         Object.Instantiate(prefab, position, rotation);
     }
 
+    public static void Spawn(GameObject prefab, Transform parent)
+    {
+        Object.Instantiate(prefab, parent);
+    }
+
+    public static void Spawn(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent)
+    {
+        Object.Instantiate(prefab, position, rotation, parent);
+    }
+
     public static void SpawnEnergy(Transform start, bool companionRecieveEnergy = true, float middlePosDistance = 4f)
     {
         GameObject prefab = VFX.EnergyRibbons;

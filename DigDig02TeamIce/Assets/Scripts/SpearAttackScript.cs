@@ -55,10 +55,10 @@ public class SpearAttackScript : MeleeAttack
         vfx.SetFloat("Lifetime", lifetimeAmount);
         vfx.playRate = playRate;
 
-        if (Player.currentTarget != null)
+        if (companion.player.currentTarget != null)
         {
-            target = Player.currentTarget.transform;
-            colliderHeight = Player.currentTarget.GetComponent<Collider>().bounds.extents.y;
+            target = companion.player.currentTarget.transform;
+            colliderHeight = companion.player.currentTarget.GetComponent<Collider>().bounds.extents.y;
             targetOffset = new Vector3(0f, colliderHeight, 0f);
             targetPos = target.position + targetOffset;
         }
@@ -87,12 +87,23 @@ public class SpearAttackScript : MeleeAttack
             StartCoroutine(LifespanTimer(0.1f));
         }
 
-        if (Player.currentTarget != null)
+        if (companion.player.currentTarget != null)
         {
-            target = Player.currentTarget.transform;
-            colliderHeight = Player.currentTarget.GetComponent<Collider>().bounds.extents.y;
+            target = companion.player.currentTarget.transform;
+            colliderHeight = companion.player.currentTarget.GetComponent<Collider>().bounds.extents.y;
             targetOffset = new Vector3(0f, colliderHeight, 0f);
             targetPos = target.position + targetOffset;
+        }
+        else
+        {
+            GameObject closest = companion.player.FindClosestEnemy();
+            if (closest != null)
+            {
+                target = closest.transform;
+                colliderHeight = closest.GetComponent<Collider>().bounds.extents.y;
+                targetOffset = new Vector3(0f, colliderHeight, 0f);
+                targetPos = target.position + targetOffset;
+            }
         }
 
         if (!hasStartedAttack)

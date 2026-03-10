@@ -8,6 +8,8 @@ public class EnemyUI : MonoBehaviour
     public CanvasGroup group;
     public Transform cam;
 
+    public bool RemoveOnDead = true;
+
     private void Start()
     {
         cam = Camera.main.transform;
@@ -25,6 +27,11 @@ public class EnemyUI : MonoBehaviour
         {
             healthBar.maxValue = EnemyOwner.MaxHealth;
             healthBar.value = EnemyOwner.Health;
+
+            if (EnemyOwner.Health <= 0)
+            {
+                Destroy(gameObject);
+            }
         }
     }
 

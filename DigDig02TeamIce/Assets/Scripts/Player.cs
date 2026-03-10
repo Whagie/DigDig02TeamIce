@@ -23,7 +23,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
     public Transform Center;
 
     private Collider[] colliders = new Collider[50];
-    public static GameObject currentTarget;
+    public GameObject currentTarget;
     [SerializeField] private GameObject LockOnIcon;
     private GameObject iconCopy;
 
@@ -440,14 +440,53 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 
     public void LockOn()
     {
-        if (UserInput.LockOnHeld)
+        if (UserInput.LockOnPressed)
         {
             TargetEnemy();
+        }
+
+        if (currentTarget != null)
+        {
+            if (Vector3.Distance(transform.position, currentTarget.transform.position) > 15f)
+            {
+                currentTarget = null;
+                if (iconCopy != null)
+                {
+                    Destroy(iconCopy);
+                    iconCopy = null;
+                }
+            }
+        }
+    }
+
+    private void TargetEnemy()
+    {
+        if (currentTarget == null)
+        {
+            currentTarget = FindClosestEnemy();
+
+            if (currentTarget != null && LockOnIcon != null)
+            {
+                if (iconCopy == null)
+                {
+                    iconCopy = Instantiate(LockOnIcon, currentTarget.transform);
+                }
+
+                var billboard = iconCopy.GetComponent<BillboardSprite>();
+                if (currentTarget.TryGetComponent<Enemy>(out Enemy enemy))
+                {
+                    Vector3 delta = enemy.Center.position - enemy.transform.position;
+                    billboard.target = delta + new Vector3(0f, delta.y * 2.5f, 0f);
+                }
+                else
+                {
+                    billboard.target = currentTarget.transform.position + new Vector3(0, 5f, 0);
+                }
+            }
         }
         else
         {
             currentTarget = null;
-
             if (iconCopy != null)
             {
                 Destroy(iconCopy);
@@ -456,7 +495,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         }
     }
 
-    private void TargetEnemy()
+    public GameObject FindClosestEnemy()
     {
         int count = Physics.OverlapSphereNonAlloc(
             transform.position,
@@ -467,8 +506,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 
         if (count == 0)
         {
-            currentTarget = null;
-            return;
+            return null;
         }
 
         Collider closest = null;
@@ -495,27 +533,11 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 
         if (closest != null)
         {
-            currentTarget = closest.gameObject;
+            return closest.gameObject;
         }
         else
         {
-            currentTarget = null;
-        }
-
-        if (currentTarget != null && LockOnIcon != null)
-        {
-            if (iconCopy == null)
-            {
-                iconCopy = Instantiate(LockOnIcon, currentTarget.transform);
-            }
-
-            var billboard = iconCopy.GetComponent<BillboardSprite>();
-            billboard.target = currentTarget.transform.position + new Vector3(0, 5f, 0);
-        }
-        else if (iconCopy != null)
-        {
-            Destroy(iconCopy);
-            iconCopy = null;
+            return null;
         }
     }
 

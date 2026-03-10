@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class BillboardSprite : MonoBehaviour
 {
+    private Player player;
     private Transform cam;
     public Vector3 target;
 
@@ -9,6 +10,7 @@ public class BillboardSprite : MonoBehaviour
     void Start()
     {
         cam = Camera.main.transform;
+        player = FindObjectOfType<Player>();
     }
 
     void LateUpdate()
@@ -16,10 +18,10 @@ public class BillboardSprite : MonoBehaviour
         // Make the quad face the cam
         transform.LookAt(cam);
 
-        if (LockOnTarget && Player.currentTarget != null)
+        if (LockOnTarget && player.currentTarget != null)
         {
             transform.localScale = Vector3.one * 0.75f;
-            transform.position = Player.currentTarget.transform.position + new Vector3(0, Player.currentTarget.GetComponent<Collider>().bounds.size.y * 2f, 0);
+            transform.position = player.currentTarget.transform.position + new Vector3(0, player.currentTarget.GetComponent<Collider>().bounds.size.y * 2f, 0);
             //transform.rotation = new Quaternion(transform.rotation.x, transform.rotation.y, 180f, transform.rotation.w);
         }
         else

@@ -844,7 +844,7 @@ public class Companion : MonoBehaviour
         Vector3 forward;
 
         // Sprint override
-        if (player.Sprinting)
+        if (player.Sprinting && playerMoving)
         {
             Vector3 desired = player.transform.forward;
             desired.y = 0f;
@@ -1844,18 +1844,29 @@ public class Companion : MonoBehaviour
     {
         GameObject prefab = VFX.Construct_GainEnergy;
 
-        Vector3 dir = senderPos - transform.position;
-        Quaternion rotation = Quaternion.LookRotation(dir);
-        rotation *= Quaternion.Euler(0f, -90f, 0f);
-        StartCoroutine(EnergyCollectEffectTimer(0.5f, prefab, transform, rotation, 1f));
+        StartCoroutine(EnergyCollectEffectTimer(0.5f, prefab, transform, senderPos, 1f));
     }
 
-    private IEnumerator EnergyCollectEffectTimer(float time, GameObject instance, Transform transform, Quaternion dir, float lifetime)
+    private IEnumerator EnergyCollectEffectTimer(float time, GameObject instance, Transform transform, Vector3 senderPos, float lifetime)
     {
         yield return new WaitForSeconds(time);
 
-        var instance2 = Instantiate(instance, transform.position, dir, transform);
-        Destroy(instance2, lifetime);
+        var instance2 = Instantiate(instance, transform.position, transform.rotation, transform);
+
+        float timer = 0f;
+        while (timer < lifetime)
+        {
+            timer += Time.deltaTime;
+
+            Vector3 dir = senderPos - transform.position;
+            Quaternion rotation = Quaternion.LookRotation(dir);
+            rotation *= Quaternion.Euler(0f, -90f, 0f);
+
+            instance2.transform.rotation = rotation;
+
+            yield return null;
+        }
+        Destroy(instance2);
     }
 
     private IEnumerator SlamAttackRoutine()

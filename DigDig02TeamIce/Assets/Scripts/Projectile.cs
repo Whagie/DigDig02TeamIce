@@ -43,6 +43,7 @@ public class Projectile : MonoBehaviour, IHitbox
     private void Update()
     {
         Vector3 currentPos = transform.position;
+        Quaternion rotation = Quaternion.LookRotation(Direction);
 
         if (Seeking && Target)
             currentPos = Vector3.MoveTowards(currentPos, Target.position, Speed * Time.deltaTime);
@@ -50,6 +51,7 @@ public class Projectile : MonoBehaviour, IHitbox
             currentPos += Speed * Time.deltaTime * Direction;
 
         transform.position = currentPos;
+        transform.rotation = rotation;
         prevPos = currentPos;
     }
 

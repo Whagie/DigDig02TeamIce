@@ -610,6 +610,10 @@ PrefabInstance:
       propertyPath: Offset.x
       value: -3
       objectReference: {fileID: 0}
+    - target: {fileID: 5722167588601302875, guid: a1799f23ddba4df4383271c01bf5fc05, type: 3}
+      propertyPath: BlobShadow
+      value: 
+      objectReference: {fileID: 155839622494239780}
     - target: {fileID: 7473114078359347693, guid: a1799f23ddba4df4383271c01bf5fc05, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.75
@@ -858,6 +862,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
+--- !u!114 &155839622494239780 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5647199914955635245, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
+  m_PrefabInstance: {fileID: 5509948709732402697}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 927f3c0428a58534d994a9fe554b2e9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &6427114017045763186 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}

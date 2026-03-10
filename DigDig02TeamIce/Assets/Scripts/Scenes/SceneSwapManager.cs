@@ -18,6 +18,7 @@ public class SceneSwapManager : MonoBehaviour
     private Vector3 _playerSpawnPosition;
     private float amountToWalk;
     private float cameraRotY;
+    private float cameraDistanceZ;
     private bool allowSpinEntrance;
     private bool forceSpinEntrance;
 
@@ -86,9 +87,9 @@ public class SceneSwapManager : MonoBehaviour
         if (_player.Sprinting)
         {
             _player.animator.SetBool("Sprinting", true);
-            if (!_player.animator.GetCurrentAnimatorStateInfo(0).IsName("Run"))
+            if (!_player.animator.GetCurrentAnimatorStateInfo(0).IsName("RunTree"))
             {
-                _player.animator.Play("Run");
+                _player.animator.Play("RunTree");
             }
             speed = _player.sprintSpeed;
             playerSprinted = true;
@@ -96,9 +97,9 @@ public class SceneSwapManager : MonoBehaviour
         else
         {
             _player.animator.SetBool("Sprinting", false);
-            if (!_player.animator.GetCurrentAnimatorStateInfo(0).IsName("Walk"))
+            if (!_player.animator.GetCurrentAnimatorStateInfo(0).IsName("WalkTree"))
             {
-                _player.animator.Play("Walk");
+                _player.animator.Play("WalkTree");
             }
             speed = _player.walkSpeed;
             playerSprinted = false;
@@ -279,12 +280,15 @@ public class SceneSwapManager : MonoBehaviour
             cameraObject.audioListener.enabled = true;
         }
 
-        GameObject spawnPoint = GameObject.FindGameObjectWithTag("Respawn");
-        if (spawnPoint != null)
+        if (scene.name != "DeathScene" && !LoadFromDoor)
         {
-            _player.transform.position = spawnPoint.transform.position;
-            cameraObject.transform.position = spawnPoint.transform.position;
-            _construct.transform.position = _player.transform.position + _construct.Offset;
+            GameObject spawnPoint = GameObject.FindGameObjectWithTag("Respawn");
+            if (spawnPoint != null)
+            {
+                _player.transform.position = spawnPoint.transform.position;
+                cameraObject.transform.position = spawnPoint.transform.position;
+                _construct.transform.position = _player.transform.position + _construct.Offset;
+            }
         }
 
         SceneFadeManager.instance.StartFadeIn();
@@ -308,6 +312,7 @@ public class SceneSwapManager : MonoBehaviour
                 _constructDoorTargetSpinPos = doors[i].ConstructTargetSpinPos;
                 amountToWalk = doors[i].AmountToWalkOut;
                 cameraRotY = doors[i].CameraRotationY;
+                cameraDistanceZ = doors[i].CameraDistanceZ;
                 allowSpinEntrance = doors[i].AllowSpinEntrance;
                 forceSpinEntrance = doors[i].ForceSpinEntrance;
 
@@ -358,6 +363,8 @@ public class SceneSwapManager : MonoBehaviour
         Vector3 angles = cameraObject.transform.localEulerAngles;
         angles.y = cameraRotY;
         cameraObject.transform.localEulerAngles = angles;
+        Vector3 camPos = cameraObject._camera.transform.localPosition;
+        cameraObject._camera.transform.localPosition = new Vector3(camPos.x, camPos.y, cameraDistanceZ);
 
         Vector3 pos = _playerSpawnPosition + (Vector3.up * 2f);
 

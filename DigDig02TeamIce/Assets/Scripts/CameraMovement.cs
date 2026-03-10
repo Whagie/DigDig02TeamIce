@@ -39,6 +39,13 @@ public class CameraMovement : MonoBehaviour
     private Vector3 originalChildLocalPos;
     private float originalFOV;
 
+    private float? targetZoomDistance = null;
+    private float? prevDistance;
+    float zoomT = 0f;
+    float zoomDuration = 0.4f;
+    float zoomStart;
+    private bool zoomingBack = false;
+
     public CameraActions Actions { get; private set; }
 
     private void OnEnable()
@@ -98,6 +105,8 @@ public class CameraMovement : MonoBehaviour
         cameraStartRotationX = _camera.transform.rotation.x;
         cameraStartPositionY = _camera.transform.localPosition.y;
         originalFOV = _camera.GetComponent<Camera>().fieldOfView;
+
+        prevDistance = _camera.transform.localPosition.z;
 
         transform.position = player.transform.position;
 
@@ -162,6 +171,29 @@ public class CameraMovement : MonoBehaviour
             Vector3 newPosition = Vector3.SmoothDamp(transform.position, desiredPosition, ref velocity, 1f / smooth);
 
             transform.position = newPosition;
+        }
+
+        if (targetZoomDistance.HasValue)
+        {
+            Vector3 camPos = _camera.transform.localPosition;
+
+            zoomT += Time.deltaTime / zoomDuration;
+            zoomT = Mathf.Clamp01(zoomT);
+
+            float t = Mathf.SmoothStep(0f, 1f, zoomT);
+
+            float posZ = Mathf.Lerp(zoomStart, targetZoomDistance.Value, t);
+            _camera.transform.localPosition = new Vector3(camPos.x, camPos.y, posZ);
+
+            if (zoomT >= 1f)
+            {
+                _camera.transform.localPosition =
+                    new Vector3(camPos.x, camPos.y, targetZoomDistance.Value);
+
+                targetZoomDistance = null;
+                if (zoomingBack)
+                    prevDistance = null;
+            }
         }
     }
 
@@ -388,5 +420,30 @@ public class CameraMovement : MonoBehaviour
         originalRotation = transform.rotation;
         originalParentLocalPos = transform.localPosition;
         originalChildLocalPos = transform.GetChild(0).localPosition;
+    }
+
+    public void ZoomIn(float desiredDistanceZ, float duration)
+    {
+        zoomStart = _camera.transform.localPosition.z;
+        if (!prevDistance.HasValue)
+        {
+            prevDistance = _camera.transform.localPosition.z;
+        }
+        targetZoomDistance = desiredDistanceZ;
+
+        zoomingBack = false;
+        zoomDuration = duration;
+        zoomT = 0f;
+    }
+
+    public void ZoomBack(float duration)
+    {
+        zoomStart = _camera.transform.localPosition.z;
+        if (prevDistance.HasValue)
+            targetZoomDistance = prevDistance.Value;
+
+        zoomingBack = true;
+        zoomDuration = duration;
+        zoomT = 0f;
     }
 }

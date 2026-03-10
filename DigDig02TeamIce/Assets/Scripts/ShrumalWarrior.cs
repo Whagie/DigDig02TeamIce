@@ -32,7 +32,7 @@ public class ShrumalWarrior : Enemy
                 Weight = 0.4f,
                 CanUse = () => SeeingPlayer && FacingPlayer && DistanceToPlayer <= 4.5f,
                 Modifier = new ActionModifier()
-                    .StopAgent()
+                    .ChangeSpeed(0f)
             },
             new EnemyAction
             {
@@ -85,6 +85,12 @@ public class ShrumalWarrior : Enemy
 
     public void AlterSword(int activate = 1)
     {
+        if (swordSwing == null)
+        {
+            Debug.LogWarning("SwordSwing was null!");
+            return;
+        }
+
         if (activate == 1)
         {
             swordSwing.Activate();
@@ -98,6 +104,12 @@ public class ShrumalWarrior : Enemy
     }
     public void AlterHead(int activate = 1)
     {
+        if (headBash == null)
+        {
+            Debug.LogWarning("HeadBash was null!");
+            return;
+        }
+
         if (activate == 1)
         {
             headBash.Activate();
@@ -164,10 +176,17 @@ public class ShrumalWarrior : Enemy
             _animator.Update(0f);
         }
 
+        AlterHead(0);
+        AlterSword(0);
         MainCollider.enabled = false;
         SwordCollider.enabled = false;
         HeadCollider.enabled = false;
         base.Die();
         this.enabled = false;
+    }
+
+    public override void OnActionEnd()
+    {
+        base.OnActionEnd();
     }
 }

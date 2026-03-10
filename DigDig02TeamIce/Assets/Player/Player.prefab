@@ -306,6 +306,7 @@ MonoBehaviour:
   Center: {fileID: 2029335714383779819}
   LockOnIcon: {fileID: 3403924031572140294, guid: 56c8b228d05cb174e936ef5127ae57c6, type: 3}
   _camera: {fileID: 0}
+  controller: {fileID: 0}
   Tail: {fileID: 7643493149723046821}
   groundCheckDistance: -0.1
   Grounded: 0
@@ -350,15 +351,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animator: {fileID: 8590856406397615567}
-  blinkLayerIndex: 1
-  blinkCloseTrigger: BlinkClose
-  blinkOpenTrigger: BlinkOpen
-  blinksPerMinute: 17
+  blinkParameter: BlinkValue
+  blinksPerMinute: 24
   tickInterval: 0.5
   blinkRateMultiplier: 1
-  skinnedMesh: {fileID: 5511122384930764767}
-  blinkBlendShapeIndex: 0
-  blinkDurationRange: {x: 0.125, y: 0.2}
+  baselineOpenValue: 12
+  blinkDurationRange: {x: 0.125, y: 0.175}
+  closeDuration: 0.08
+  openDuration: 0.11
 --- !u!95 &8590856406397615567
 Animator:
   serializedVersion: 5
@@ -859,7 +859,7 @@ MonoBehaviour:
   AnimationFloorLevel: 0.001
   _Editor_Foldout_Setup_LegsList: 1
   _Editor_EnsureCount: 0
-  _Editor_OnValidateTrigger: 1
+  _Editor_OnValidateTrigger: 0
   _EditorAllowAutoUpdateFeetParams: 1
   _EditorCategory: 0
   _EditorSetupCategory: 0
@@ -918,12 +918,11 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4804014977240423186}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d38cb7559fe9a3949a6eed99f79e4478, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fogSystem: {fileID: 0}
   radius: 2
   force: 2
   settleStrength: 1
@@ -2296,6 +2295,14 @@ PrefabInstance:
       propertyPath: m_RenderingLayerMask
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5828979002318216439, guid: 4a21d6fa92a623745b508760a0c44ea6, type: 3}
+      propertyPath: m_BlendShapeWeights.Array.data[0]
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5828979002318216439, guid: 4a21d6fa92a623745b508760a0c44ea6, type: 3}
+      propertyPath: m_BlendShapeWeights.Array.data[1]
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5950511382346643498, guid: 4a21d6fa92a623745b508760a0c44ea6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 23.850445
@@ -3424,11 +3431,6 @@ Transform:
 --- !u!4 &5494207996681457179 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -3413561353465748173, guid: 4a21d6fa92a623745b508760a0c44ea6, type: 3}
-  m_PrefabInstance: {fileID: 2062579466804341544}
-  m_PrefabAsset: {fileID: 0}
---- !u!137 &5511122384930764767 stripped
-SkinnedMeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 5828979002318216439, guid: 4a21d6fa92a623745b508760a0c44ea6, type: 3}
   m_PrefabInstance: {fileID: 2062579466804341544}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &5623790371345765122 stripped

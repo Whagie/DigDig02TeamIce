@@ -229,7 +229,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
             if (!airTimerActive)
             {
                 airTimerActive = true;
-                StartCoroutine(AirTimeTimer(0.15f));
+                StartCoroutine(AirTimeTimer(0.25f));
             }
         }
 
@@ -376,7 +376,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
             Jumping = false;
 
             if (verticalVelocity < -2f)
-                verticalVelocity = -2f;
+                verticalVelocity = Sprinting ? -4f : -2f;
 
             if (jumpQueued)
             {
@@ -396,6 +396,12 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 
         Vector3 finalMove = moveDir;
         finalMove.y = verticalVelocity;
+
+        Vector3 localMove = transform.InverseTransformDirection(moveDir);
+        Vector2 animDir = new Vector2(localMove.x, localMove.z).normalized;
+
+        animator.SetFloat("MoveX", animDir.x);
+        animator.SetFloat("MoveZ", animDir.y);
 
         controller.Move(finalMove * Time.deltaTime);
     }
@@ -588,6 +594,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         animator.SetBool("Dead", true);
         animator.SetBool("Attack", false);
         animator.SetBool("FollowUp", false);
+        animator.SetLayerWeight(1, 0f);
         animator.SetLayerWeight(2, 0f);
         Tail.enabled = false;
         Tail.gameObject.SetActive(false);
@@ -621,6 +628,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         MainCollider.enabled = true;
         parryManager.ParryCollider.enabled = true;
         animator.updateMode = AnimatorUpdateMode.Normal;
+        animator.SetLayerWeight(1, 1f);
         Tail.enabled = true;
         Tail.gameObject.SetActive(true);
         Tail.User_ReposeTail();

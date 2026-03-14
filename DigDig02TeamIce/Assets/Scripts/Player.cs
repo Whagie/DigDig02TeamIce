@@ -5,6 +5,8 @@ using System.Collections;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using static UnityEngine.EventSystems.EventTrigger;
+using static UnityEngine.Rendering.DebugUI;
 
 public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 {
@@ -23,7 +25,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
     public Transform Center;
 
     private Collider[] colliders = new Collider[50];
-    public GameObject currentTarget;
+    public Enemy currentTarget;
     [SerializeField] private GameObject LockOnIcon;
     private GameObject iconCopy;
 
@@ -59,6 +61,8 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
     public Vector3 moveInput;
 
     private bool stopMovement = false;
+    private Coroutine stopMovementRoutine;
+
     public bool MovementOverride { get; set; } = false;
 
     // Pushback
@@ -119,6 +123,8 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
     private float prevTurnSpeed = 8f;
     private float prevMoveSpeed = 5f;
     private float prevSprintSpeed = 10f;
+
+    private bool shouldTurn = true;
 
     private void OnEnable()
     {
@@ -335,9 +341,26 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
             targetSpeed = walkSpeed * 0.5f;
         }
 
-        if (animator.GetCurrentAnimatorStateInfo(0).IsName("BlockAbove"))
+        bool shouldStop = false;
+
+        if (animator.GetCurrentAnimatorStateInfo(0).IsTag("StopMovement"))
+        {
+            shouldStop = true;
+        }
+
+        if (stopMovement)
+        {
+            shouldStop = true;
+        }
+
+        if (shouldStop && pushbackTimer <= 0f)
         {
             targetSpeed = 0f;
+            shouldTurn = false;
+        }
+        else
+        {
+            shouldTurn = true;
         }
 
         Vector3 camForward = _camera.transform.forward;
@@ -350,14 +373,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         Vector3 move = camForward * moveInput.y + camRight * moveInput.x;
         move.Normalize();
 
-        if (!stopMovement)
-        {
-            moveDir = move * targetSpeed;
-        }
-        else
-        {
-            moveDir = Vector3.zero;
-        }
+        moveDir = move;
 
         // ----- PUSHBACK -----
         if (pushbackTimer > 0f)
@@ -367,7 +383,9 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 
             pushbackTimer -= Time.deltaTime;
             if (pushbackTimer <= 0f)
+            {
                 pushbackVelocity = Vector3.zero;
+            }
         }
 
         if (Grounded)
@@ -394,10 +412,10 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
             }
         }
 
-        Vector3 finalMove = moveDir;
+        Vector3 finalMove = moveDir * targetSpeed;
         finalMove.y = verticalVelocity;
 
-        Vector3 localMove = transform.InverseTransformDirection(moveDir);
+        Vector3 localMove = transform.InverseTransformDirection(finalMove);
         Vector2 animDir = new Vector2(localMove.x, localMove.z).normalized;
 
         animator.SetFloat("MoveX", animDir.x);
@@ -413,7 +431,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 
     void Turn()
     {
-        if (stopMovement)
+        if (stopMovement || !shouldTurn)
             return;
 
         if (currentTarget != null)
@@ -447,14 +465,19 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 
         if (currentTarget != null)
         {
-            if (Vector3.Distance(transform.position, currentTarget.transform.position) > 15f)
+            bool destroyIcon = false;
+            if (Vector3.Distance(Center.position, currentTarget.Center.position) > 15f)
             {
-                currentTarget = null;
-                if (iconCopy != null)
-                {
-                    Destroy(iconCopy);
-                    iconCopy = null;
-                }
+                destroyIcon = true;
+            }
+            if (currentTarget.Dead)
+            {
+                destroyIcon = true;
+            }
+
+            if (destroyIcon)
+            {
+                DestroyLockOnIcon();
             }
         }
     }
@@ -486,16 +509,11 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         }
         else
         {
-            currentTarget = null;
-            if (iconCopy != null)
-            {
-                Destroy(iconCopy);
-                iconCopy = null;
-            }
+            DestroyLockOnIcon();
         }
     }
 
-    public GameObject FindClosestEnemy()
+    public Enemy FindClosestEnemy()
     {
         int count = Physics.OverlapSphereNonAlloc(
             transform.position,
@@ -509,7 +527,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
             return null;
         }
 
-        Collider closest = null;
+        Enemy closestEnemy = null;
         float closestDist = float.MaxValue;
 
         for (int i = 0; i < count; i++)
@@ -526,18 +544,33 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
             float dist = Vector3.Distance(transform.position, enemy.transform.position);
             if (dist < closestDist)
             {
+                Enemy e = enemy.gameObject.GetComponentInParent<Enemy>();
+                if (e == null)
+                    continue;
+                if (e.Dead)
+                    continue;
+
                 closestDist = dist;
-                closest = enemy;
+                closestEnemy = e;
             }
         }
 
-        if (closest != null)
+        if (closestEnemy != null)
         {
-            return closest.gameObject;
+            return closestEnemy;
         }
         else
         {
             return null;
+        }
+    }
+    public void DestroyLockOnIcon()
+    {
+        currentTarget = null;
+        if (iconCopy != null)
+        {
+            Destroy(iconCopy);
+            iconCopy = null;
         }
     }
 
@@ -549,6 +582,12 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         if (!Parrying)
         {
             TakeDamage(source.Damage);
+            LockMovement(0.5f);
+            animator.SetTriggerOneFrame(this, "GotHit");
+            Vector3 pushDir = source.Owner.transform.position - transform.position;
+            Vector3 final = new Vector3(-pushDir.x, 0, -pushDir.z);
+            ApplyPushback(final, 1.75f, 0.35f);
+            verticalVelocity = Mathf.Sqrt(jumpHeight * 0.4f * gravity);
         }
     }
     public void TakeDamage(int amount)
@@ -725,6 +764,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
     private void HandleParryStart()
     {
         animator.SetBool("Blocked", true);
+        LockMovement(0.325f);
         //material.SetColor("_BaseColor", Color.red);
     }
     private void HandleParryEnd()
@@ -967,6 +1007,19 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         }
 
         ResetPushState();
+    }
+
+    public void LockMovement(float duration)
+    {
+        if (stopMovementRoutine != null)
+            StopCoroutine(stopMovementRoutine);
+        stopMovementRoutine = StartCoroutine(LockMovementRoutine(duration));
+    }
+    private IEnumerator LockMovementRoutine(float duration)
+    {
+        stopMovement = true;
+        yield return new WaitForSeconds(duration);
+        stopMovement = false;
     }
 
     void SnapRotationToObject()

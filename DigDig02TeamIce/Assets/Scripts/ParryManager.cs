@@ -50,6 +50,7 @@ public class ParryManager : MonoBehaviour, IHurtbox
     {
         if (UserInput.ParryPressed && CanParry && !player.Invisible)
         {
+            UserInput.ConsumeParry();
             ParryBegin();
             Instantiate(ParryAnimation, transform.position, Quaternion.identity);
         }

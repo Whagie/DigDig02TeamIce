@@ -3,6 +3,10 @@ using UnityEngine.InputSystem;
 
 public class UserInput : MonoBehaviour
 {
+    public static float ParryBufferTime = 0.15f;
+
+    private static float _parryBufferTimer = -1f;
+
     public static PlayerInput PlayerInput;
 
     public static Vector2 MoveInput;
@@ -78,7 +82,20 @@ public class UserInput : MonoBehaviour
     {
         MoveInput = _moveAction.ReadValue<Vector2>();
 
-        ParryPressed = _parryAction.WasPressedThisFrame();
+        if (_parryAction.WasPressedThisFrame())
+        {
+            _parryBufferTimer = ParryBufferTime;
+        }
+
+        if (_parryBufferTimer > 0f)
+        {
+            _parryBufferTimer -= Time.unscaledDeltaTime;
+            ParryPressed = true;
+        }
+        else
+        {
+            ParryPressed = false;
+        }
 
         JumpPressed = _jumpAction.WasPressedThisFrame();
         JumpHeld = _jumpAction.IsPressed();
@@ -107,5 +124,11 @@ public class UserInput : MonoBehaviour
         RunePuzzleRightPressed = _runePuzzleRightAction.WasPressedThisFrame();
         RunePuzzleNextDiskPressed = _runePuzzleNextDiskAction.WasPressedThisFrame();
         RunePuzzlePreviousDiskPressed = _runePuzzlePreviousDiskAction.WasPressedThisFrame();
+    }
+
+    public static void ConsumeParry()
+    {
+        _parryBufferTimer = 0f;
+        ParryPressed = false;
     }
 }

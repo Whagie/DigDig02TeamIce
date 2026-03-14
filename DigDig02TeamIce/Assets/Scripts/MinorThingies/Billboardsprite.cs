@@ -15,13 +15,15 @@ public class BillboardSprite : MonoBehaviour
 
     void LateUpdate()
     {
-        // Make the quad face the cam
         transform.LookAt(cam);
 
         if (LockOnTarget && player.currentTarget != null)
         {
-            transform.localScale = Vector3.one * 0.75f;
-            transform.position = player.currentTarget.transform.position + new Vector3(0, player.currentTarget.GetComponent<Collider>().bounds.size.y * 2f, 0);
+            if (player.currentTarget.Dead)
+                return;
+
+            transform.localScale = Vector3.one;
+            transform.position = player.currentTarget.Center.position;
             //transform.rotation = new Quaternion(transform.rotation.x, transform.rotation.y, 180f, transform.rotation.w);
         }
         else

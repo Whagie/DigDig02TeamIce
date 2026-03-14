@@ -1,0 +1,175 @@
+using System.Collections;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
+
+public class SpikeGate : MonoBehaviourID
+{
+    public List<GameObject> Stakes = new();
+    public List<Collider> StakeColliders = new();
+
+    private SessionSaveData.SpikeGateStateData spikeGateStateData;
+
+    public float RaiseHeight = 4f;
+
+    public float RaiseDuration = 0.4f;
+    public float DropDuration = 0.75f;
+
+    public bool Raised = true;
+
+    private Coroutine raiseRoutine;
+    private Coroutine dropRoutine;
+
+    private void Start()
+    {
+        if (SessionSaveData.Instance.TryGet(ID, out spikeGateStateData))
+        {
+            Raised = spikeGateStateData.Raised;
+        }
+        else
+        {
+            SessionSaveData.Instance.AddOrUpdateData(ID, Raised);
+        }
+
+        foreach (GameObject stake in Stakes)
+        {
+            if (stake.TryGetComponent<Collider>(out var col))
+            {
+                StakeColliders.Add(col);
+            }
+
+            if (Raised)
+            {
+                Vector3 pos = stake.transform.localPosition;
+                pos.y = 0f;
+
+                stake.transform.localPosition = pos + Vector3.up * RaiseHeight;
+            }
+            else
+            {
+                Vector3 pos = stake.transform.localPosition;
+                pos.y = 0f;
+
+                stake.transform.localPosition = pos;
+            }
+        }
+    }
+
+    private void Update()
+    {
+        if (UserInput.InteractPressed)
+        {
+            if (Raised)
+            {
+                DropGates();
+            }
+            else
+            {
+                RaiseGates();
+            }
+        }
+    }
+    public void RaiseGates()
+    {
+        if (raiseRoutine != null)
+            StopCoroutine(raiseRoutine);
+
+        if (dropRoutine != null)
+            StopCoroutine(dropRoutine);
+
+        raiseRoutine = StartCoroutine(RaiseGatesRoutine());
+    }
+
+    public void DropGates()
+    {
+        if (dropRoutine != null)
+            StopCoroutine(dropRoutine);
+
+        if (raiseRoutine != null)
+            StopCoroutine(raiseRoutine);
+
+        dropRoutine = StartCoroutine(DropGatesRoutine());
+    }
+
+    private IEnumerator RaiseGatesRoutine()
+    {
+        Raised = true;
+        SessionSaveData.Instance.AddOrUpdateData(ID, Raised);
+
+        foreach (Collider col in StakeColliders)
+        {
+            col.enabled = true;
+        }
+
+        float startHeight = Stakes[0].transform.localPosition.y;
+        float targetHeight = RaiseHeight;
+
+        float time = 0f;
+        while (time < RaiseDuration)
+        {
+            time += Time.deltaTime;
+            float t = Mathf.Clamp01(time / RaiseDuration);
+            float t2 = t * t * t;
+
+            float lerpY = Mathf.Lerp(startHeight, targetHeight, t2);
+
+            foreach (GameObject stake in Stakes)
+            {
+                Vector3 pos = stake.transform.localPosition;
+                pos.y = lerpY;
+                stake.transform.localPosition = pos;
+            }
+            yield return null;
+        }
+
+        foreach (GameObject stake in Stakes)
+        {
+            Vector3 pos = stake.transform.localPosition;
+            pos.y = targetHeight;
+            stake.transform.localPosition = pos;
+        }
+
+        raiseRoutine = null;
+    }
+
+    private IEnumerator DropGatesRoutine()
+    {
+        Raised = false;
+        SessionSaveData.Instance.AddOrUpdateData(ID, Raised);
+
+        float startHeight = Stakes[0].transform.localPosition.y;
+        float targetHeight = 0f;
+
+        float time = 0f;
+        while (time < DropDuration)
+        {
+            time += Time.deltaTime;
+            float t = Mathf.Clamp01(time / DropDuration);
+            float t2 = t * t * t;
+
+            float lerpY = Mathf.Lerp(startHeight, targetHeight, t2);
+
+            foreach (GameObject stake in Stakes)
+            {
+                Vector3 pos = stake.transform.localPosition;
+                pos.y = lerpY;
+                stake.transform.localPosition = pos;
+            }
+            yield return null;
+        }
+
+        foreach (GameObject stake in Stakes)
+        {
+            Vector3 pos = stake.transform.localPosition;
+            pos.y = targetHeight;
+            stake.transform.localPosition = pos;
+        }
+
+        foreach (Collider col in StakeColliders)
+        {
+            col.enabled = true;
+        }
+
+        dropRoutine = null;
+    }
+}

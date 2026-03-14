@@ -9,8 +9,6 @@ public class SpearAttackScript : MeleeAttack
 
     private Transform target;
     private Vector3 targetPos;
-    private Vector3 targetOffset;
-    private float colliderHeight;
     private Quaternion alignedRotation;
     private bool hasStartedAttack;
 
@@ -26,10 +24,7 @@ public class SpearAttackScript : MeleeAttack
     private float lifetimeAmount = 8f;
     private float elapsedLifetime = 0f;
     private float delayBeforeAttack = 0.75f;
-    private float playRate = 2f;
-
-    [SerializeField] private string vfxResourcePath = "EnergyEffect";
-    private static GameObject ribbonEffect;
+    private float playRate = 3f;
 
     public enum SpearSpawnState
     {
@@ -55,19 +50,16 @@ public class SpearAttackScript : MeleeAttack
         vfx.SetFloat("Lifetime", lifetimeAmount);
         vfx.playRate = playRate;
 
+        target = null;
+        targetPos = Vector3.zero;
+
         if (companion.player.currentTarget != null)
         {
-            target = companion.player.currentTarget.transform;
-            colliderHeight = companion.player.currentTarget.GetComponent<Collider>().bounds.extents.y;
-            targetOffset = new Vector3(0f, colliderHeight, 0f);
-            targetPos = target.position + targetOffset;
-        }
-        else
-        {
-            target = null;
-            targetPos = Vector3.zero;
-            colliderHeight = 0f;
-            targetOffset = new Vector3(0f, colliderHeight, 0f);
+            if (!companion.player.currentTarget.Dead)
+            {
+                target = companion.player.currentTarget.Center;
+                targetPos = target.position;
+            }
         }
 
         Vector3 direction = targetPos - transform.position;
@@ -89,20 +81,19 @@ public class SpearAttackScript : MeleeAttack
 
         if (companion.player.currentTarget != null)
         {
-            target = companion.player.currentTarget.transform;
-            colliderHeight = companion.player.currentTarget.GetComponent<Collider>().bounds.extents.y;
-            targetOffset = new Vector3(0f, colliderHeight, 0f);
-            targetPos = target.position + targetOffset;
+            target = companion.player.currentTarget.Center;
+            targetPos = target.position;
         }
         else
         {
-            GameObject closest = companion.player.FindClosestEnemy();
+            Enemy closest = companion.player.FindClosestEnemy();
             if (closest != null)
             {
-                target = closest.transform;
-                colliderHeight = closest.GetComponent<Collider>().bounds.extents.y;
-                targetOffset = new Vector3(0f, colliderHeight, 0f);
-                targetPos = target.position + targetOffset;
+                if (!closest.Dead)
+                {
+                    target = closest.Center;
+                    targetPos = target.position;
+                }
             }
         }
 
@@ -189,7 +180,7 @@ public class SpearAttackScript : MeleeAttack
             if (target != null)
             {
                 // Rotate smoothly toward target
-                targetPos = target.position + targetOffset;
+                targetPos = target.position;
                 alignedRotation = Quaternion.LookRotation(targetPos - transform.position);
                 transform.rotation = Quaternion.Slerp(startRot, alignedRotation, smoothT);
             }
@@ -219,51 +210,5 @@ public class SpearAttackScript : MeleeAttack
         yield return new WaitForSeconds(time);
         Deactivate();
         Destroy(gameObject);
-    }
-
-    public void SpawnEnergy(float middlePosDistance = 4f)
-    {
-        if (ribbonEffect == null)
-        {
-            ribbonEffect = GetVFXPrefab(vfxResourcePath);
-            if (ribbonEffect == null) return;
-        }
-
-        GameObject prefab = ribbonEffect;
-
-        var instance = Instantiate(prefab, transform);
-        EnergyParticleManager particleManager = instance.GetComponent<EnergyParticleManager>();
-        if (companion == null)
-        {
-            Debug.Log("Companion is null!");
-        }
-
-        Vector3 spearPos = transform.position;
-        Vector3 constructPos = companion.transform.position;
-
-        Vector3 middlePosOffset = companion.transform.rotation * new Vector3(-3f, 2f, 4f);
-        Vector3 middlePos = Vector3.Lerp(spearPos, constructPos, 0.5f) + middlePosOffset;
-
-        GameObject empty = new GameObject("EnergyCurveMidpoint");
-        empty.transform.position = middlePos;
-
-        particleManager.StartPos = companion.transform;
-        particleManager.EndPos = transform;
-        particleManager.MiddlePos = empty.transform;
-        particleManager.vfx.playRate = 0.5f;
-
-        // Optional: destroy the VFX prefab after its lifetime
-        float maxLifetime = 3; // match your particle lifetime
-        Destroy(empty, maxLifetime);
-        Destroy(instance, maxLifetime);
-    }
-
-    public GameObject GetVFXPrefab(string resourcePath)
-    {
-        var prefab = Resources.Load<GameObject>(resourcePath);
-        if (prefab == null)
-            Debug.LogWarning($"Failed to load VFX prefab at Resources/{resourcePath}");
-
-        return prefab;
     }
 }

@@ -19,8 +19,21 @@ public static class ParticleSpawner
         Object.Instantiate(prefab, position, rotation, parent);
     }
 
-    public static void SpawnEnergy(Transform start, bool companionRecieveEnergy = true, float middlePosDistance = 4f)
+    public static void SpawnEnergy(Transform origStart, bool companionRecieveEnergy = true, float middlePosDistance = 4f, bool cloneTransform = false)
     {
+        Transform start;
+        GameObject tempTransform = null;
+        if (cloneTransform)
+        {
+            tempTransform = new GameObject("TempEnergyCurveStartPoint");
+            tempTransform.transform.position = origStart.position;
+            start = tempTransform.transform;
+        }
+        else
+        {
+            start = origStart;
+        }
+
         GameObject prefab = VFX.EnergyRibbons;
 
         var instance = Object.Instantiate(prefab, start);
@@ -55,6 +68,8 @@ public static class ParticleSpawner
         float maxLifetime = 3; // match your particle lifetime
         Object.Destroy(empty, maxLifetime);
         Object.Destroy(instance, maxLifetime);
+        if (tempTransform != null)
+            Object.Destroy(tempTransform, maxLifetime);
 
         if (companionRecieveEnergy)
         {

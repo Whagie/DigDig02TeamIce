@@ -101,10 +101,10 @@ public class Companion : MonoBehaviour
 
     enum CompanionMovementMode
     {
-        Orbit,      // your existing circling / bobbing system
+        Orbit,      // Circling / bobbing movement
         NavMove,     // NavMeshAgent has full control
     }
-    CompanionMovementMode movementMode = CompanionMovementMode.NavMove;
+    CompanionMovementMode movementMode = CompanionMovementMode.Orbit;
 
     private bool playerMoving;
     private bool playerSprinting;
@@ -173,7 +173,7 @@ public class Companion : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         circlingTimer = minCirclingTime;
         origCirclingSpeed = circlingSpeed;
-        circlingRadius = walkingCirclingSpeed;
+        circlingRadius = normalCirclingRadius;
         sprintFacing = transform.forward;
 
         agentSpeedBeforeGrab = agent.speed;
@@ -764,7 +764,7 @@ public class Companion : MonoBehaviour
             }
         }
 
-        float speed;
+        float speed = origCirclingSpeed;
         float radius = normalCirclingRadius;
 
         if (overrideCirclingSpeed.HasValue)
@@ -773,7 +773,7 @@ public class Companion : MonoBehaviour
         }
         else
         {
-            speed = circlingSpeed;
+            speed = origCirclingSpeed;
         }
 
         if (playerMoving)
@@ -794,7 +794,8 @@ public class Companion : MonoBehaviour
             radius = normalCirclingRadius * 0.65f;
         }
 
-        orbitAngle += speed * orbitDirection * Time.deltaTime;
+        circlingSpeed = speed;
+        orbitAngle += circlingSpeed * orbitDirection * Time.deltaTime;
         circlingRadius = radius;
 
         Vector3 desiredPos;
@@ -970,7 +971,7 @@ public class Companion : MonoBehaviour
         }
         else
         {
-            prevValue = walkingCirclingSpeed;
+            prevValue = origCirclingSpeed;
         }
 
         float duration = returnDuration;
@@ -2118,6 +2119,8 @@ public class Companion : MonoBehaviour
         agent.enabled = false;
         previousSpears = new List<SpearAttackScript>();
         previousSpears.Clear();
+        circlingSpeed = origCirclingSpeed;
+        prevCirclingSpeed = null;
 
         transform.position = spawnPos;
         transform.rotation = Quaternion.LookRotation(direction, Vector3.up);

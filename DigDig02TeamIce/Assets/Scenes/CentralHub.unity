@@ -16857,10 +16857,6 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1589701534572780243, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
-      propertyPath: DoorToSpawnTo
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1589701534572780243, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: CameraDistanceZ
       value: -110
       objectReference: {fileID: 0}
@@ -16884,10 +16880,6 @@ PrefabInstance:
       propertyPath: m_LocalPosition.x
       value: 2.9999998
       objectReference: {fileID: 0}
-    - target: {fileID: 1820693724143983038, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2805958724549887426, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: m_LocalPosition.x
       value: 8
@@ -16903,10 +16895,6 @@ PrefabInstance:
     - target: {fileID: 3086767945025372524, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 3086767945025372524, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4137821689702020246, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: m_Size.x

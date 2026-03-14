@@ -108,6 +108,7 @@ public class SceneSwapManager : MonoBehaviour
         Vector3 startPos = _player.transform.position;
         Quaternion startRot = _player.transform.rotation;
         Quaternion targetRot = Quaternion.LookRotation(dir, Vector3.up);
+        Vector3 downForce= new Vector3(0f, playerSprinted ? -4f : -2f, 0f);
 
         SceneFadeManager.instance.StartFadeOut();
         while (SceneFadeManager.instance.IsFadingOut)
@@ -116,7 +117,7 @@ public class SceneSwapManager : MonoBehaviour
             if (delta < 6f)
             {
                 float t = delta / 4f;
-                Vector3 finalMove = dir * speed;
+                Vector3 finalMove = (dir * speed) + downForce;
                 _player.controller.Move(finalMove * Time.deltaTime);
                 _player.transform.rotation = Quaternion.Lerp(startRot, targetRot, t);
                 _player.animator.SetFloat("Move", _player.controller.velocity.magnitude);
@@ -412,6 +413,7 @@ public class SceneSwapManager : MonoBehaviour
         Vector3 playerStartPos = _player.transform.position;
         _player.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
         float speed = playerSprinted ? _player.sprintSpeed : _player.walkSpeed;
+        Vector3 downForce = new Vector3(0f, playerSprinted ? -4f : -2f, 0f);
 
         while (SceneFadeManager.instance._fadeOutStartColor.a > 0.9f)
         {
@@ -419,21 +421,32 @@ public class SceneSwapManager : MonoBehaviour
         }
         _player.animator.speed = 1f;
 
-        bool shouldMove = true;
+        Vector3 lastPos = _player.transform.position;
+        float stuckTimer = 0f;
+        float stuckThreshold = 0.08f; // ~80 ms tolerance
 
-        while (shouldMove)
+        while (true)
         {
             float delta = Vector3.Distance(_player.transform.position, playerStartPos);
-            if (delta < amountToWalk)
-            {
-                Vector3 finalMove = dir * speed;
-                _player.controller.Move(finalMove * Time.deltaTime);
-                _player.animator.SetFloat("Move", _player.controller.velocity.magnitude);
-            }
+            if (delta >= amountToWalk)
+                break;
+
+            Vector3 finalMove = dir * speed + downForce;
+            _player.controller.Move(finalMove * Time.deltaTime);
+
+            float moved = Vector3.Distance(_player.transform.position, lastPos);
+
+            if (moved < 0.005f)
+                stuckTimer += Time.deltaTime;
             else
-            {
-                shouldMove = false;
-            }
+                stuckTimer = 0f;
+
+            if (stuckTimer >= stuckThreshold)
+                break;
+
+            lastPos = _player.transform.position;
+
+            _player.animator.SetFloat("Move", _player.controller.velocity.magnitude);
 
             yield return null;
         }

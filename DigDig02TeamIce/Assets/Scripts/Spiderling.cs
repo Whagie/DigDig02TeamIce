@@ -173,6 +173,7 @@ public class Spiderling : Enemy
 
     protected override void Die()
     {
+        _animator.fireEvents = false;
         _animator.SetBool("Died", true);
         legsAnimator.LegsAnimatorBlend = 0f;
 
@@ -195,6 +196,7 @@ public class Spiderling : Enemy
         MainCollider.enabled = false;
         BiteCollider.enabled = false;
         base.Die();
+        StopAllCoroutines();
         this.enabled = false;
     }
 

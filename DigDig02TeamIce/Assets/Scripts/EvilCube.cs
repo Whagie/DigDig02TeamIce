@@ -66,12 +66,14 @@ public class EvilCube : Enemy
 
     private IEnumerator ChargeAndShoot()
     {
+        PauseIntervalTimer = true;
         chargeUpVFX = Object.Instantiate(Particles.P_EvilBallCharge, Center.position, CrystalBall.transform.rotation);
 
         yield return new WaitForSeconds(1f);
 
         chargeUpVFX.transform.rotation = CrystalBall.transform.rotation;
         FireProjectile(Center, player.Center.transform);
+        PauseIntervalTimer = false;
     }
 
     public override void OnHit(IHitbox source)
@@ -112,7 +114,7 @@ public class EvilCube : Enemy
 
             if (fracturedObject != null)
             {
-                fractObj = Instantiate(fracturedObject, transform.position, transform.rotation) as GameObject;
+                fractObj = Instantiate(fracturedObject, Center.position, transform.rotation) as GameObject;
 
                 foreach (Transform t in fractObj.transform)
                 {
@@ -121,7 +123,7 @@ public class EvilCube : Enemy
                     if (rb != null)
                         rb.AddExplosionForce(UnityEngine.Random.Range(epxlosionMinForce, explosionMaxForce), transform.position, explosionForceRadius);
 
-                    StartCoroutine(Shrink(t, ShrinkDelay));
+                    StartCoroutine(Shrink(rb, ShrinkDelay));
                 }
 
                 Destroy(fractObj, 5);
@@ -135,8 +137,9 @@ public class EvilCube : Enemy
         }
     }
 
-    private IEnumerator Shrink(Transform obj, float delay)
+    private IEnumerator Shrink(Rigidbody rb, float delay)
     {
+        Transform obj = rb.transform;
         yield return new WaitForSeconds(delay);
 
         Vector3 prevScale = obj.localScale;
@@ -148,6 +151,8 @@ public class EvilCube : Enemy
             float t = Mathf.Clamp01(time / ShrinkDuration);
 
             obj.localScale = Vector3.Lerp(prevScale, Vector3.zero, t);
+
+            rb.AddForce(Vector3.down * 0.5f, ForceMode.Acceleration);
 
             yield return null;
         }

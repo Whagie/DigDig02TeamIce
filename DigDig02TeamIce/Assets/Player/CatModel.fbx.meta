@@ -169,35 +169,6 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: Die
-      takeName: Die
-      internalID: -4630339522487117836
-      firstFrame: 0
-      lastFrame: 157
-      wrapMode: 0
-      orientationOffsetY: 0
-      level: 0
-      cycleOffset: 0
-      loop: 0
-      hasAdditiveReferencePose: 0
-      loopTime: 0
-      loopBlend: 0
-      loopBlendOrientation: 0
-      loopBlendPositionY: 0
-      loopBlendPositionXZ: 0
-      keepOriginalOrientation: 0
-      keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 0
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events: []
-      transformMask: []
-      maskType: 3
-      maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
-    - serializedVersion: 16
       name: Walk
       takeName: Walk
       internalID: 2667949614841947897
@@ -352,26 +323,26 @@ ModelImporter:
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 0.6378745
-        functionName: ActivateAttackHitbox
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
-        floatParameter: 0
-        intParameter: 1
-        messageOptions: 0
-      - time: 0.8435987
-        functionName: ActivateAttackHitbox
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.8672421
+      - time: 0.4644861
         functionName: AllowNextAttackBuffer
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
         floatParameter: 0
         intParameter: 1
+        messageOptions: 0
+      - time: 0.46960878
+        functionName: ActivateAttackHitbox
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
+        floatParameter: 0
+        intParameter: 1
+        messageOptions: 0
+      - time: 0.54249173
+        functionName: ActivateAttackHitbox
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
+        floatParameter: 0
+        intParameter: 0
         messageOptions: 0
       transformMask: []
       maskType: 3
@@ -403,39 +374,39 @@ ModelImporter:
       curves: []
       events:
       - time: 0
-        functionName: AllowNextAttackBuffer
+        functionName: ActivateAttackHitbox
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
       - time: 0
-        functionName: ActivateAttackHitbox
+        functionName: AllowNextAttackBuffer
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 0.6129264
-        functionName: ActivateAttackHitbox
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
-        floatParameter: 0
-        intParameter: 1
-        messageOptions: 0
-      - time: 0.7794352
-        functionName: ActivateAttackHitbox
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.81831247
+      - time: 0.546855
         functionName: AllowNextAttackBuffer
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
         floatParameter: 0
         intParameter: 1
+        messageOptions: 0
+      - time: 0.5548699
+        functionName: ActivateAttackHitbox
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
+        floatParameter: 0
+        intParameter: 1
+        messageOptions: 0
+      - time: 0.654466
+        functionName: ActivateAttackHitbox
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
+        floatParameter: 0
+        intParameter: 0
         messageOptions: 0
       transformMask: []
       maskType: 3
@@ -636,6 +607,35 @@ ModelImporter:
       hasAdditiveReferencePose: 0
       loopTime: 1
       loopBlend: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: HitStun
+      takeName: HitStun
+      internalID: -2965715083928651007
+      firstFrame: 0
+      lastFrame: 12
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
       loopBlendPositionXZ: 0

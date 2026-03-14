@@ -235,7 +235,7 @@ public class CameraMovement : MonoBehaviour
         _camera.GetComponent<Camera>().fieldOfView = originalFOV;
 
         float delay = 0.5f;
-        float totalTime = player.animator.runtimeAnimatorController.animationClips.Where(c => c.name == "Die").FirstOrDefault().length;
+        float totalTime = player.animator.runtimeAnimatorController.animationClips.Where(c => c.name == "Die_Weapon").FirstOrDefault().length;
         float constructAnimTotalTime = player.Companion._animator.runtimeAnimatorController.animationClips.Where(c => c.name == "DeathRest").FirstOrDefault().length;
 
         float xAngle = 15f;

@@ -980,11 +980,11 @@ MonoBehaviour:
   fracturedObject: {fileID: 8701161170803899581, guid: 6fb6b289e0b3ed640bf1e49342f71ac4, type: 3}
   explosionVFX: {fileID: 455912138913552013, guid: 043aa58517272b046801946b29cdd4b8, type: 3}
   epxlosionMinForce: 40
-  explosionMaxForce: 100
-  explosionForceRadius: 10
-  ShrinkDuration: 1
-  ShrinkDelay: 1
-  shootInterval: 2
+  explosionMaxForce: 70
+  explosionForceRadius: 7.5
+  ShrinkDuration: 0.75
+  ShrinkDelay: 0.75
+  shootInterval: 2.5
 --- !u!136 &94591003681965723
 CapsuleCollider:
   m_ObjectHideFlags: 0

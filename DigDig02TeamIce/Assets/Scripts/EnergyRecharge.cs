@@ -2,8 +2,9 @@ using Game.Core;
 using System.Collections;
 using UnityEngine;
 
-public class EnergyRecharge : MonoBehaviour, IHurtbox
+public class EnergyRecharge : MonoBehaviourID, IHurtbox
 {
+    private SessionSaveData.EnergyRechargeData RechargeData;
     public GameObject Owner => gameObject;
     public Collider Collider { get; set; }
     public bool UseMeshCollision { get; set; } = false;
@@ -30,7 +31,8 @@ public class EnergyRecharge : MonoBehaviour, IHurtbox
     private int origEnergyAmount;
 
     public bool Depleted = false;
-    private bool colorFaded = false;
+
+    public bool ShouldResetOnLoad = true;
 
     private void OnEnable()
     {
@@ -49,7 +51,6 @@ public class EnergyRecharge : MonoBehaviour, IHurtbox
         LayerMask = layerMask;
 
         player = GameObject.FindObjectOfType<Player>();
-        origEnergyAmount = energyAmount;
 
         crystalMaterials = new Material[crystalRenderers.Length];
         for (int i = 0; i < crystalRenderers.Length; i++)
@@ -59,18 +60,35 @@ public class EnergyRecharge : MonoBehaviour, IHurtbox
 
         origCrystalBaseColor = crystalMaterials[0].GetColor("_BaseColor");
         origCrystalTopColor = crystalMaterials[0].GetColor("_TopColor");
-    }
 
-    private void Update()
-    {
-        if (colorFaded && UserInput.InteractPressed)
+        if (!ShouldResetOnLoad)
         {
-            Restore();
+            if (SessionSaveData.Instance.TryGet(ID, out RechargeData))
+            {
+                energyAmount = RechargeData.HitsLeft;
+                if (energyAmount <= 0)
+                {
+                    Depleted = true;
+                    for (int i = 0; i < crystalMaterials.Length; i++)
+                    {
+                        crystalMaterials[i].SetColor("_BaseColor", depletedBaseColor);
+                        crystalMaterials[i].SetColor("_TopColor", depletedTopColor);
+                    }
+                }
+            }
+            else
+            {
+                origEnergyAmount = energyAmount;
+                SessionSaveData.Instance.AddOrUpdateData(ID, energyAmount, origEnergyAmount);
+            }
         }
     }
 
     public void OnHit(IHitbox source)
     {
+        if (energyAmount <= 0)
+            return;
+
         if (player == null)
             player = GameObject.FindObjectOfType<Player>();
 
@@ -84,9 +102,6 @@ public class EnergyRecharge : MonoBehaviour, IHurtbox
 
     private void SendEnergy()
     {
-        if (energyAmount <= 0)
-            return;
-
         player.GiveEnergy();
         ParticleSpawner.SpawnEnergy(transform);
         energyAmount--;
@@ -96,6 +111,11 @@ public class EnergyRecharge : MonoBehaviour, IHurtbox
             Depleted = true;
             if (depletedRoutine == null)
                 depletedRoutine = StartCoroutine(DepletedRoutine());
+        }
+
+        if (!ShouldResetOnLoad)
+        {
+            SessionSaveData.Instance.AddOrUpdateData(ID, energyAmount, origEnergyAmount);
         }
     }
 
@@ -127,12 +147,12 @@ public class EnergyRecharge : MonoBehaviour, IHurtbox
             crystalMaterials[i].SetColor("_TopColor", depletedTopColor);
         }
 
-        colorFaded = true;
         depletedRoutine = null;
     }
 
     public void Restore()
     {
+        Depleted = false;
         energyAmount = origEnergyAmount;
 
         for (int i = 0; i < crystalMaterials.Length; i++)
@@ -140,8 +160,5 @@ public class EnergyRecharge : MonoBehaviour, IHurtbox
             crystalMaterials[i].SetColor("_BaseColor", origCrystalBaseColor);
             crystalMaterials[i].SetColor("_TopColor", origCrystalTopColor);
         }
-
-        Depleted = false;
-        colorFaded = false;
     }
 }

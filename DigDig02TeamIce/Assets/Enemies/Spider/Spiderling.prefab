@@ -147,15 +147,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
       propertyPath: m_LocalScale.x
-      value: 2
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
       propertyPath: m_LocalScale.y
-      value: 2
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
       propertyPath: m_LocalScale.z
-      value: 2
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
       propertyPath: m_LocalPosition.x
@@ -554,6 +554,7 @@ MonoBehaviour:
   Center: {fileID: 1257644741605910565}
   enemyUIObject: {fileID: 8229018984756401585, guid: 4ad4b7aea6b7b2f46b2ec55d213e59eb, type: 3}
   enemyUI: {fileID: 0}
+  ShouldRotate: 1
   AllowPushback: 1
   ChildrenWithFlashEffect: []
   Actions: []

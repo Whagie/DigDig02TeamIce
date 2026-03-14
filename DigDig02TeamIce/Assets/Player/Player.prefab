@@ -51,7 +51,7 @@ MonoBehaviour:
   ParryAnimation: {fileID: 3948149851726289611, guid: f83e4f8127a43a94890c81805deb4b7e, type: 3}
   ParryCollider: {fileID: 6458915300154005128}
   player: {fileID: 7113094758777896580}
-  parryLength: 0.2
+  parryLength: 0.3
   parryCooldown: 0.35
   shortenedCooldownMultiplier: 0.4
 --- !u!65 &6458915300154005128
@@ -304,6 +304,7 @@ MonoBehaviour:
   MainCollider: {fileID: 8888541481896840772}
   DamageCollider: {fileID: 8189240473849887917}
   Center: {fileID: 2029335714383779819}
+  currentTarget: {fileID: 0}
   LockOnIcon: {fileID: 3403924031572140294, guid: 56c8b228d05cb174e936ef5127ae57c6, type: 3}
   _camera: {fileID: 0}
   controller: {fileID: 0}
@@ -859,7 +860,7 @@ MonoBehaviour:
   AnimationFloorLevel: 0.001
   _Editor_Foldout_Setup_LegsList: 1
   _Editor_EnsureCount: 0
-  _Editor_OnValidateTrigger: 0
+  _Editor_OnValidateTrigger: 1
   _EditorAllowAutoUpdateFeetParams: 1
   _EditorCategory: 0
   _EditorSetupCategory: 0

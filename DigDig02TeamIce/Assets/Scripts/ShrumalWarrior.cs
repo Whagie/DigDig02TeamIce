@@ -166,6 +166,7 @@ public class ShrumalWarrior : Enemy
 
     protected override void Die()
     {
+        _animator.fireEvents = false;
         _animator.SetBool("Died", true);
 
         // If dead is set to true before base.Die(), it means the enemy was dead in save data,
@@ -182,6 +183,7 @@ public class ShrumalWarrior : Enemy
         SwordCollider.enabled = false;
         HeadCollider.enabled = false;
         base.Die();
+        StopAllCoroutines();
         this.enabled = false;
     }
 

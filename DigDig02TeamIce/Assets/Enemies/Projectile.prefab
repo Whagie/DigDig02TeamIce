@@ -71,6 +71,7 @@ MonoBehaviour:
   layers:
     serializedVersion: 2
     m_Bits: 4294967295
+  ShouldRebound: 1
 --- !u!54 &8060746847917098461
 Rigidbody:
   m_ObjectHideFlags: 0

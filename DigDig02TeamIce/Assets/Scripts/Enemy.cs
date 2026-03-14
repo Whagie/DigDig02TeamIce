@@ -73,6 +73,7 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
     private bool canForceIdle = false;
 
     private float intervalTimer = 0f;
+    protected bool PauseIntervalTimer = false;
 
     private bool firstDamage = true;
 
@@ -207,8 +208,8 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
             player = GameObject.FindObjectOfType<Player>();
             if (player == null)
             {
-                Debug.LogWarning("Error, player not found! Adding temporary player object...");
-                player = new GameObject("tempPlayer").AddComponent<Player>();
+                Debug.LogWarning("Error, player not found!");
+                return;
             }
         }
 
@@ -492,12 +493,15 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
 
     protected void OnInterval(float interval, Action action)
     {
-        intervalTimer += Time.deltaTime;
-
-        if (intervalTimer >= interval)
+        if (!PauseIntervalTimer)
         {
-            intervalTimer -= interval; // keep leftover time
-            action?.Invoke();
+            intervalTimer += Time.deltaTime;
+
+            if (intervalTimer >= interval)
+            {
+                intervalTimer -= interval; // keep leftover time
+                action?.Invoke();
+            }
         }
     }
 
@@ -602,10 +606,15 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
     protected virtual void Die()
     {
         Dead = true;
+        HitboxManager.Unregister(this);
         SessionSaveData.Instance.AddOrUpdateData(ID, Dead, transform.position, transform.rotation);
         if (player.currentTarget == this.gameObject)
         {
-            player.currentTarget = null;
+            player.DestroyLockOnIcon();
+        }
+        if (_animator != null)
+        {
+            _animator.fireEvents = false;
         }
     }
 

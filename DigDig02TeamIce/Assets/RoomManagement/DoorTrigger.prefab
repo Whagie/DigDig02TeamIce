@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 773147807531867045}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5, y: 2, z: 0}
+  m_LocalPosition: {x: 8, y: 2, z: -0.00000023841858}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -56,7 +56,7 @@ Transform:
   m_GameObject: {fileID: 1439873385046847455}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5, y: 1, z: 0}
+  m_LocalPosition: {x: 7, y: 0.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -117,7 +117,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 4, z: 4}
+  m_Size: {x: 5, y: 6, z: 6}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &1589701534572780243
 MonoBehaviour:
@@ -133,14 +133,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DoorToSpawnTo: 1
   _sceneToLoad:
-    _sceneAsset: {fileID: 102900000, guid: 1a8bc919e0de67347b5ff04eb7484b9d, type: 3}
-    _sceneName: Outside01
+    _sceneAsset: {fileID: 0}
+    _sceneName: Cleo_DecoTest
   CurrentDoorPosition: 1
   SpawnPosition: {fileID: 1820693724143983038}
   ConstructTargetPos: {fileID: 3086767945025372524}
   ConstructTargetSpinPos: {fileID: 2805958724549887426}
-  CameraRotationY: 45
-  AllowForConstructSpinEntrance: 1
+  AmountToWalkOut: 6.5
+  CameraRotationY: -45
+  CameraDistanceZ: -85
+  AllowSpinEntrance: 1
+  ForceSpinEntrance: 0
 --- !u!1 &6810998305859065697
 GameObject:
   m_ObjectHideFlags: 0
@@ -166,7 +169,7 @@ Transform:
   m_GameObject: {fileID: 6810998305859065697}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.25, y: 0, z: 0}
+  m_LocalPosition: {x: 2.9999998, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

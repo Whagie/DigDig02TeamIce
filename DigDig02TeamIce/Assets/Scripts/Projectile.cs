@@ -20,6 +20,7 @@ public class Projectile : MonoBehaviour, IHitbox
     public bool Seeking { get; set; } = false;
 
     public bool Rebound { get; private set; }
+    public bool ShouldRebound = true;
     public Vector3 Direction { get; set; }
 
     private bool recentlyParried;
@@ -59,6 +60,16 @@ public class Projectile : MonoBehaviour, IHitbox
     {
         if (!Rebound)
             Reflect(-Direction);
+        if (!ShouldRebound)
+        {
+            Player player = GameObject.FindObjectOfType<Player>();
+            player.GiveEnergy();
+            ParticleSpawner.SpawnEnergy(transform, true, 4f, true);
+            ParticleSpawner.Spawn(Particles.P_PinkMagicHit, transform.position);
+            Collider.enabled = false;
+            this.enabled = false;
+            Destroy(gameObject, 0.01f);
+        }
     }
 
     public void OnHit(IHurtbox target)
@@ -68,6 +79,7 @@ public class Projectile : MonoBehaviour, IHitbox
         if (target.Owner.layer == LayerMask.NameToLayer("Player") && !Rebound)
         {
             target.OnHit(this);
+            ParticleSpawner.Spawn(Particles.P_PinkMagicHit, transform.position);
             Destroy(gameObject);
         }
         else if (target.Owner.layer == LayerMask.NameToLayer("Enemy") && Rebound)
@@ -79,9 +91,12 @@ public class Projectile : MonoBehaviour, IHitbox
 
     public void Reflect(Vector3 newDir)
     {
-        Direction = newDir.normalized;
-        Speed *= 2f;
-        Rebound = true;
+        if (ShouldRebound)
+        {
+            Direction = newDir.normalized;
+            Speed *= 2f;
+            Rebound = true;
+        }
         recentlyParried = true;
         StartCoroutine(ClearParryFlag());
     }

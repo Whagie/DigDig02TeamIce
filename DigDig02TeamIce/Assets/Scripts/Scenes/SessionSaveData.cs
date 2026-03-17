@@ -39,6 +39,7 @@ public class SessionSaveData : MonoBehaviour
     {
         public string ID;
         public bool Glowing;
+        public bool ReceiverActivated;
     }
 
     public Dictionary<string, EnemyDeathData> DeadEnemies = new();
@@ -99,11 +100,12 @@ public class SessionSaveData : MonoBehaviour
         };
     }
 
-    public void AddOrUpdateData(string id, bool glowing, bool isLightPuzzle)
+    public void AddOrUpdateData(string id, bool glowing, bool receiverActivated)
     {
         LightPuzzleObjects[id] = new LightPuzzleGeneralData
         {
-            Glowing = glowing
+            Glowing = glowing,
+            ReceiverActivated = receiverActivated
         };
     }
 

@@ -59,7 +59,7 @@ public class LightPassThrough : MonoBehaviourID
         }
         else
         {
-            SessionSaveData.Instance.AddOrUpdateData(ID, Glowing);
+            SessionSaveData.Instance.AddOrUpdateData(ID, Glowing, false);
         }
 
         if (Glowing)
@@ -178,6 +178,6 @@ public class LightPassThrough : MonoBehaviourID
 
     private void SaveData()
     {
-        SessionSaveData.Instance.AddOrUpdateData(ID, Glowing);
+        SessionSaveData.Instance.AddOrUpdateData(ID, Glowing, false);
     }
 }

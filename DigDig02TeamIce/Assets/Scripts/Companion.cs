@@ -776,7 +776,7 @@ public class Companion : MonoBehaviour
             speed = origCirclingSpeed;
         }
 
-        if (playerMoving)
+        if (playerMoving && !player.Pushing)
         {
             if (player.Sprinting)
             {
@@ -845,7 +845,7 @@ public class Companion : MonoBehaviour
         Vector3 forward;
 
         // Sprint override
-        if (player.Sprinting && playerMoving)
+        if (player.Sprinting && playerMoving && !player.Pushing)
         {
             Vector3 desired = player.transform.forward;
             desired.y = 0f;
@@ -1905,7 +1905,7 @@ public class Companion : MonoBehaviour
         Vector3 startXZ = new Vector3(start.x, 0f, start.z);
         Vector3 targetXZ = new Vector3(target.x, 0f, target.z);
 
-        Vector3 targetDir = transform.position - target;
+        Vector3 targetDir = target - transform.position;
         targetDir.y = 0f;
         Quaternion startRot = transform.rotation;
         Quaternion targetRot = Quaternion.LookRotation(targetDir, Vector3.up);

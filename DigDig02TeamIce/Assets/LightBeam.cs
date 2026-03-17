@@ -157,14 +157,20 @@ public class LightBeam : MonoBehaviour
 
         if (hitObject != null && hitObject.CompareTag("LightReceiver"))
         {
-            receiver = hitObject.GetComponentInParent<LightReceiver>();
+            var newReceiver = hitObject.GetComponentInParent<LightReceiver>();
 
-            if (receiver != null)
-                receiver.ReceivingLight = true;
+            if (newReceiver != null)
+            {
+                newReceiver.RegisterLightHit();
+                receiver = newReceiver;
+            }
+            else
+            {
+                receiver = null;
+            }
         }
-        else if (receiver != null)
+        else
         {
-            receiver.ReceivingLight = false;
             receiver = null;
         }
 
@@ -173,7 +179,7 @@ public class LightBeam : MonoBehaviour
 
         HandleParticles(hitPos, dir, crystal);
 
-        if (crystal != null)
+        if (crystal != null && receiver == null)
         {
             if (crystal.OccupyingBeam != null && crystal.OccupyingBeam != this)
             {
@@ -206,6 +212,7 @@ public class LightBeam : MonoBehaviour
 
         children.RemoveAll(c => c == null);
     }
+
 
     void SpawnChildBeam(Vector3 pos, Quaternion rot)
     {

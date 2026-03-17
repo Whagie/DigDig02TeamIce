@@ -10,7 +10,7 @@ public class LightPuzzleReflector : MonoBehaviourID
 
     public TriggerRelay PlayerDetectionTrigger;
 
-    [SerializeField] private float rotationDuration = 0.5f;
+    [SerializeField] private float rotationDuration = 0.25f;
     [SerializeField] private LayerMask playerLayer;
 
     private bool inRadius = false;

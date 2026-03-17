@@ -110,9 +110,9 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
     public Collider WrenchCollider;
     public MeleeAttack wrenchAttack;
 
-    private float timeUntilPushStart = 0.3f;
-    private float pushStartTimer = 0.3f;
-    private float timeUntilPushMove = 0.75f;
+    private float timeUntilPushStart = 0.25f;
+    private float pushStartTimer;
+    private float timeUntilPushMove = 0.583f;
     public bool Pushing = false;
     private bool prePushing;
     private PushableObject objectToPush;
@@ -186,6 +186,8 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 
         prevTurnSpeed = turnSpeed;
         prevMoveSpeed = walkSpeed;
+
+        pushStartTimer = timeUntilPushMove;
     }
 
     private void Update()

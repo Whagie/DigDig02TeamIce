@@ -308,11 +308,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fc488b69c7528b4094207832f3a0e2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _id:
+    Value: 
   Reflector: {fileID: 7377950771555233875}
   LightPos1: {fileID: 512840477350503143}
   LightPos2: {fileID: 1851359225941221824}
   PlayerDetectionTrigger: {fileID: 6314862355111817721}
-  rotationDuration: 0.5
+  rotationDuration: 0.35
   playerLayer:
     serializedVersion: 2
     m_Bits: 256
@@ -342,7 +344,7 @@ MonoBehaviour:
   CanPushX: 1
   CanPushZ: 1
   StepsToMove: 1
-  MoveDurationPerStep: 0.25
+  MoveDurationPerStep: 0.21
   HasOrigin: 0
   OriginCoord: {x: 0, y: 0}
   MovesUntilStop: 0

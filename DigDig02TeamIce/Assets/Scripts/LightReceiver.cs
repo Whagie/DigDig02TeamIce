@@ -13,6 +13,8 @@ public class LightReceiver : MonoBehaviourID
 
     public bool Activated = false;
 
+    private bool receivingLightThisFrame = false;
+
     public GameObject Crystal;
     private Material crystalMaterial;
     private Material glowMaterial;
@@ -64,10 +66,12 @@ public class LightReceiver : MonoBehaviourID
         if (SessionSaveData.Instance.TryGet(ID, out lightObjectData))
         {
             Glowing = lightObjectData.Glowing;
+            Activated = lightObjectData.ReceiverActivated;
+            ReceivingLight = lightObjectData.ReceiverActivated;
         }
         else
         {
-            SessionSaveData.Instance.AddOrUpdateData(ID, Glowing);
+            SessionSaveData.Instance.AddOrUpdateData(ID, Glowing, Activated);
         }
 
         if (Glowing)
@@ -87,6 +91,9 @@ public class LightReceiver : MonoBehaviourID
     {
         if (Activated)
             return;
+
+        ReceivingLight = receivingLightThisFrame;
+        receivingLightThisFrame = false;
 
         AllPassThroughsHit = true;
         foreach (var passThrough in PassThroughs)
@@ -118,6 +125,11 @@ public class LightReceiver : MonoBehaviourID
             StopCoroutine(stopGlowRoutine);
 
         startGlowRoutine = StartCoroutine(StartGlowRoutine());
+    }
+
+    public void RegisterLightHit()
+    {
+        receivingLightThisFrame = true;
     }
 
     public void StopGlow()
@@ -212,7 +224,7 @@ public class LightReceiver : MonoBehaviourID
 
     private void SaveData()
     {
-        SessionSaveData.Instance.AddOrUpdateData(ID, Glowing);
+        SessionSaveData.Instance.AddOrUpdateData(ID, Glowing, Activated);
     }
 }
 

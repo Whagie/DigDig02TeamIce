@@ -9,7 +9,7 @@ public class SpikeGate : MonoBehaviourID
     public List<GameObject> Stakes = new();
     public List<Collider> StakeColliders = new();
 
-    private SessionSaveData.SpikeGateStateData spikeGateStateData;
+    private SessionSaveData.SingleBoolData spikeGateStateData;
 
     public float RaiseHeight = 4f;
 
@@ -39,7 +39,7 @@ public class SpikeGate : MonoBehaviourID
 
         if (SessionSaveData.Instance.TryGet(ID, out spikeGateStateData))
         {
-            Raised = spikeGateStateData.Raised;
+            Raised = spikeGateStateData.IsTrue;
         }
         else
         {

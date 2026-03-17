@@ -92,6 +92,13 @@ public class LightPuzzleReflector : MonoBehaviourID
             {
                 pushable.OriginCoord = originCoord.Value;
                 originCoord = originCoord.Value;
+
+                pushable.Grid.SetOccupiedArea(
+                    pushable.OriginCoord,
+                    pushable.LengthOnGridX,
+                    pushable.LengthOnGridZ,
+                    pushable
+                );
             }
         }
         else

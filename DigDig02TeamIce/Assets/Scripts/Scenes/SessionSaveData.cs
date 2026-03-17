@@ -20,10 +20,10 @@ public class SessionSaveData : MonoBehaviour
         public int OriginalEnergyAmount;
     }
 
-    public struct SpikeGateStateData
+    public struct SingleBoolData
     {
         public string ID;
-        public bool Raised;
+        public bool IsTrue;
     }
 
     public struct LightReflectorData
@@ -46,7 +46,7 @@ public class SessionSaveData : MonoBehaviour
 
     public Dictionary<string, EnergyRechargeData> EnergyRechargeCrystals = new();
 
-    public Dictionary<string, SpikeGateStateData> SpikeGateStates = new();
+    public Dictionary<string, SingleBoolData> SpikeGateStates = new();
 
     public Dictionary<string, LightReflectorData> LightReflectors = new();
 
@@ -83,9 +83,9 @@ public class SessionSaveData : MonoBehaviour
     }
     public void AddOrUpdateData(string id, bool raised)
     {
-        SpikeGateStates[id] = new SpikeGateStateData
+        SpikeGateStates[id] = new SingleBoolData
         {
-            Raised = raised
+            IsTrue = raised
         };
     }
 
@@ -117,7 +117,7 @@ public class SessionSaveData : MonoBehaviour
     {
         return EnergyRechargeCrystals.TryGetValue(id, out data);
     }
-    public bool TryGet(string id, out SpikeGateStateData data)
+    public bool TryGet(string id, out SingleBoolData data)
     {
         return SpikeGateStates.TryGetValue(id, out data);
     }

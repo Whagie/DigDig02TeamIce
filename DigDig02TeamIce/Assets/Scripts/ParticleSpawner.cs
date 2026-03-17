@@ -76,4 +76,73 @@ public static class ParticleSpawner
             OnSendEnergy?.Invoke(empty.transform.position);
         }
     }
+
+    public static void SuckEnergy(Transform origTarget, bool cloneTransform = false)
+    {
+        Transform target;
+        GameObject tempTransform = null;
+        if (cloneTransform)
+        {
+            tempTransform = new GameObject("TempEnergyCurveTargetPoint");
+            tempTransform.transform.position = origTarget.position;
+            target = tempTransform.transform;
+        }
+        else
+        {
+            target = origTarget;
+        }
+
+        Companion companion = GameObject.FindObjectOfType<Companion>();
+        if (companion == null)
+        {
+            Debug.Log("Companion is null!");
+        }
+
+        GameObject prefab = VFX.EnergyRibbons;
+
+        Quaternion rot = target.rotation * Quaternion.Euler(90f, 0f, 0f);
+
+        var instance = Object.Instantiate(prefab, companion.transform.position, rot, target);
+        EnergyParticleManager particleManager = instance.GetComponent<EnergyParticleManager>();
+
+        GameObject empty = new GameObject("EnergyCurveMidpoint");
+        empty.transform.position = GetOffsetPoint(companion.transform, target, 1f, Random.Range(0f, 180f));
+
+        particleManager.StartPos = companion.transform;
+        particleManager.EndPos = target;
+        particleManager.MiddlePos = empty.transform;
+
+        // Optional: destroy the VFX prefab after its lifetime
+        float maxLifetime = 3; // match your particle lifetime
+        Object.Destroy(empty, maxLifetime);
+        Object.Destroy(instance, maxLifetime);
+        if (tempTransform != null)
+            Object.Destroy(tempTransform, maxLifetime);
+    }
+
+    private static Vector3 GetOffsetPoint(Transform a, Transform b, float radius, float angleDeg)
+    {
+        // 1. Midpoint
+        Vector3 center = Vector3.Lerp(a.position, b.position, 0.25f);
+
+        // 2. Direction between objects
+        Vector3 forward = (b.position - a.position).normalized;
+
+        // 3. Build perpendicular basis
+        Vector3 right = Vector3.Cross(forward, Vector3.up).normalized;
+
+        // Handle edge case (if forward is vertical)
+        if (right.sqrMagnitude < 0.001f)
+            right = Vector3.Cross(forward, Vector3.forward).normalized;
+
+        Vector3 up = Vector3.Cross(right, forward);
+
+        // 4. Circle offset
+        float rad = angleDeg * Mathf.Deg2Rad;
+        Vector3 offset =
+            Mathf.Cos(rad) * right * radius +
+            Mathf.Sin(rad) * up * radius;
+
+        return center + offset;
+    }
 }

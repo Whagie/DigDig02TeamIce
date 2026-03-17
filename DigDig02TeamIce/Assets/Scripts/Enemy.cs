@@ -72,7 +72,7 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
     private bool tryingFirstAttack = false;
     private bool canForceIdle = false;
 
-    private float intervalTimer = 0f;
+    protected float intervalTimer = 0f;
     protected bool PauseIntervalTimer = false;
 
     private bool firstDamage = true;

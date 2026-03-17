@@ -1,7 +1,8 @@
+using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
-[ExecuteAlways]
-public class WallCrack : MonoBehaviour
+public class WallCrack : MonoBehaviourID
 {
     [SerializeField] private GameObject Surface;
     [SerializeField] private bool liveTextureUpdate = false;
@@ -21,6 +22,11 @@ public class WallCrack : MonoBehaviour
     private MaterialPropertyBlock mpb;
     private Renderer cachedRenderer;
 
+    public bool ExplodeOnLoad;
+    public float explodeOnLoadTimer = 0.2f;
+
+    private SessionSaveData.SingleBoolData destroyedData;
+
     private void Awake()
     {
         MeshFilter mf = GetComponent<MeshFilter>();
@@ -29,6 +35,23 @@ public class WallCrack : MonoBehaviour
     }
     private void Start()
     {
+        if (SessionSaveData.Instance.TryGet(ID, out destroyedData))
+        {
+            if (destroyedData.IsTrue)
+            {
+                Destroy(gameObject);
+            }
+        }
+        else
+        {
+            SessionSaveData.Instance.AddOrUpdateData(ID, false);
+        }
+
+        if (ExplodeOnLoad)
+        {
+            StartCoroutine(WaitAndExplodeOnLoadRoutine(explodeOnLoadTimer));
+        }
+
         if (wallCrackMaterial != null)
         {
             wallCrackMaterial = new Material(wallCrackMaterial);
@@ -58,7 +81,7 @@ public class WallCrack : MonoBehaviour
         Material surfaceMat;
         if (runtime)
         {
-            surfaceMat = surfaceRenderer.sharedMaterial;
+            surfaceMat = surfaceRenderer.material;
         }
         else
         {
@@ -117,7 +140,7 @@ public class WallCrack : MonoBehaviour
         cachedRenderer.SetPropertyBlock(mpb);
     }
 
-    private void OnValidate()
+    private new void OnValidate()
     {
         EnsureMaterial();
         ApplyProperties();
@@ -151,7 +174,14 @@ public class WallCrack : MonoBehaviour
 
     public void Break()
     {
+        SessionSaveData.Instance.AddOrUpdateData(ID, true);
         ParticleSpawner.Spawn(Particles.P_BreakableWall, center, Quaternion.Euler(transform.eulerAngles.x, 180f, transform.eulerAngles.z));
         Destroy(this.gameObject, 0.075f);
+    }
+
+    private IEnumerator WaitAndExplodeOnLoadRoutine(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        Break();
     }
 }

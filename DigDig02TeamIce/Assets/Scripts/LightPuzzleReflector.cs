@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-public class LightPuzzleReflector : MonoBehaviour
+public class LightPuzzleReflector : MonoBehaviourID
 {
     public GameObject Reflector;
     public Transform LightPos1;
@@ -15,14 +15,18 @@ public class LightPuzzleReflector : MonoBehaviour
 
     private bool inRadius = false;
     private bool allowForInputs = true;
+    public bool Rotating = false;
 
     public GameObject Crystal;
     private Material crystalMaterial;
+    private Material glowMaterial;
     public Color origBaseColor;
     public Color origTopColor;
+    public Color origGlowColor;
 
     private Color depletedBaseColor = new Color32(51, 51, 128, 255);
     private Color depletedTopColor = new Color32(92, 113, 153, 255);
+    private Color depletedGlowColor;
 
     public float StartGlowDuration = 0.4f;
     public float DropDuration = 0.75f;
@@ -38,15 +42,22 @@ public class LightPuzzleReflector : MonoBehaviour
     private Coroutine startGlowRoutine;
     private Coroutine stopGlowRoutine;
 
+    private SessionSaveData.LightReflectorData reflectorData;
+
+    private PushableObject pushable;
+    private Vector2Int? originCoord = null;
+
     private void OnEnable()
     {
         PlayerDetectionTrigger.OnEnter += TriggerEnter;
         PlayerDetectionTrigger.OnExit += TriggerExit;
+        SceneSwapManager.instance.OnStartSceneSwap += SaveData;
     }
     private void OnDisable()
     {
         PlayerDetectionTrigger.OnEnter -= TriggerEnter;
         PlayerDetectionTrigger.OnExit -= TriggerExit;
+        SceneSwapManager.instance.OnStartSceneSwap -= SaveData;
     }
 
     private void Start()
@@ -54,14 +65,52 @@ public class LightPuzzleReflector : MonoBehaviour
         Renderer renderer1 = Crystal.GetComponent<Renderer>();
         Material[] mats1 = renderer1.materials;
         int matIndex1 = Array.FindIndex(mats1, m => m.name.Contains("ReflectorCrystal"));
+        int matIndex2 = Array.FindIndex(mats1, m => m.name.Contains("Glow"));
         crystalMaterial = mats1[matIndex1];
-        //crystalMaterial.EnableKeyword("_EMISSION");
+        glowMaterial = mats1[matIndex2];
+        glowMaterial.EnableKeyword("_EMISSION");
 
         origBaseColor = crystalMaterial.GetColor("_BaseColor");
         origTopColor = crystalMaterial.GetColor("_TopColor");
+        origGlowColor = glowMaterial.GetColor("_EmissionColor");
+        depletedGlowColor = origGlowColor * 0.0125f;
 
-        crystalMaterial.SetColor("_BaseColor", depletedBaseColor);
-        crystalMaterial.SetColor("_TopColor", depletedTopColor);
+        if (TryGetComponent<PushableObject>(out pushable))
+        {
+            if (pushable.Grid != null)
+            {
+                originCoord = pushable.OriginCoord;
+            }
+        }
+
+        if (SessionSaveData.Instance.TryGet(ID, out reflectorData))
+        {
+            transform.position = reflectorData.Position;
+            Reflector.transform.localRotation = reflectorData.ReflectorRotation;
+            Glowing = reflectorData.Glowing;
+            if (originCoord.HasValue)
+            {
+                pushable.OriginCoord = originCoord.Value;
+                originCoord = originCoord.Value;
+            }
+        }
+        else
+        {
+            SessionSaveData.Instance.AddOrUpdateData(ID, transform.position, Reflector.transform.localRotation, Glowing, originCoord);
+        }
+
+        if (Glowing)
+        {
+            crystalMaterial.SetColor("_BaseColor", origBaseColor);
+            crystalMaterial.SetColor("_TopColor", origTopColor);
+            glowMaterial.SetColor("_EmissionColor", origGlowColor);
+        }
+        else
+        {
+            crystalMaterial.SetColor("_BaseColor", depletedBaseColor);
+            crystalMaterial.SetColor("_TopColor", depletedTopColor);
+            glowMaterial.SetColor("_EmissionColor", depletedGlowColor);
+        }
     }
     private void Update()
     {
@@ -101,6 +150,7 @@ public class LightPuzzleReflector : MonoBehaviour
 
     private IEnumerator RotateReflectorRoutine(int direction)
     {
+        Rotating = true;
         float degrees = 45f * direction;
 
         Quaternion startRot = Reflector.transform.localRotation;
@@ -120,6 +170,7 @@ public class LightPuzzleReflector : MonoBehaviour
         }
 
         Reflector.transform.localRotation = targetRot;
+        Rotating = false;
 
         if (inputCooldownRoutine != null)
             StopCoroutine(inputCooldownRoutine);
@@ -154,6 +205,7 @@ public class LightPuzzleReflector : MonoBehaviour
 
         Color startBaseColor = crystalMaterial.GetColor("_BaseColor");
         Color startTopColor = crystalMaterial.GetColor("_TopColor");
+        Color startGlowColor = glowMaterial.GetColor("_EmissionColor");
 
         float time = 0f;
         while (time < StartGlowDuration)
@@ -164,15 +216,18 @@ public class LightPuzzleReflector : MonoBehaviour
 
             Color newBaseColor = Color.Lerp(startBaseColor, origBaseColor, t2);
             Color newTopColor = Color.Lerp(startTopColor, origTopColor, t2);
+            Color newGlowColor = Color.Lerp(startGlowColor, origGlowColor, t2);
 
             crystalMaterial.SetColor("_BaseColor", newBaseColor);
             crystalMaterial.SetColor("_TopColor", newTopColor);
+            glowMaterial.SetColor("_EmissionColor", newGlowColor);
 
             yield return null;
         }
 
         crystalMaterial.SetColor("_BaseColor", origBaseColor);
         crystalMaterial.SetColor("_TopColor", origTopColor);
+        glowMaterial.SetColor("_EmissionColor", origGlowColor);
 
         startGlowRoutine = null;
     }
@@ -182,6 +237,7 @@ public class LightPuzzleReflector : MonoBehaviour
         Glowing = false;
         Color startBaseColor = crystalMaterial.GetColor("_BaseColor");
         Color startTopColor = crystalMaterial.GetColor("_TopColor");
+        Color startGlowColor = glowMaterial.GetColor("_EmissionColor");
 
         float time = 0f;
         while (time < StartGlowDuration)
@@ -192,15 +248,18 @@ public class LightPuzzleReflector : MonoBehaviour
 
             Color newBaseColor = Color.Lerp(startBaseColor, depletedBaseColor, t2);
             Color newTopColor = Color.Lerp(startTopColor, depletedTopColor, t2);
+            Color newGlowColor = Color.Lerp(startGlowColor, depletedGlowColor, t2);
 
             crystalMaterial.SetColor("_BaseColor", newBaseColor);
             crystalMaterial.SetColor("_TopColor", newTopColor);
+            glowMaterial.SetColor("_EmissionColor", newGlowColor);
 
             yield return null;
         }
 
         crystalMaterial.SetColor("_BaseColor", depletedBaseColor);
         crystalMaterial.SetColor("_TopColor", depletedTopColor);
+        glowMaterial.SetColor("_EmissionColor", depletedGlowColor);
 
         stopGlowRoutine = null;
     }
@@ -250,6 +309,11 @@ public class LightPuzzleReflector : MonoBehaviour
         {
             inRadius = false;
         }
+    }
+
+    private void SaveData()
+    {
+        SessionSaveData.Instance.AddOrUpdateData(ID, transform.position, Reflector.transform.localRotation, Glowing, originCoord);
     }
 
     //private void OnDrawGizmosSelected()

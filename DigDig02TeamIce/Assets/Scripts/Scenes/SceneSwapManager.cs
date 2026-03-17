@@ -8,6 +8,8 @@ public class SceneSwapManager : MonoBehaviour
 
     public static bool LoadFromDoor { get; private set; }
 
+    public event System.Action OnStartSceneSwap;
+
     private Player _player;
     private CameraMovement cameraObject;
     private Companion _construct;
@@ -65,6 +67,8 @@ public class SceneSwapManager : MonoBehaviour
 
     private IEnumerator FadeOutThenChangeScene(SceneField myScene, DoorTriggerInteraction.DoorToSpawnAt doorToSpawnAt = DoorTriggerInteraction.DoorToSpawnAt.None, DoorTriggerInteraction.DoorToSpawnAt fromDoor = DoorTriggerInteraction.DoorToSpawnAt.None)
     {
+        OnStartSceneSwap?.Invoke();
+
         FindDoor(fromDoor);
         Vector3 dir = _doorSpawnPos.position - _constructDoorTargetPos.position;
         dir.Normalize();

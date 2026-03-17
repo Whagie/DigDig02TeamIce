@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -22,6 +23,20 @@ public class SpikeGate : MonoBehaviourID
 
     private void Start()
     {
+        if (Stakes.Count <= 0)
+        {
+            foreach (Transform t in transform.GetComponentsInChildren<Transform>())
+            {
+                if (t != transform)
+                {
+                    foreach (Transform t2 in t.GetComponentsInChildren<Transform>().Where(s => s.name == "stake"))
+                    {
+                        Stakes.Add(t2.gameObject);
+                    }
+                }
+            }
+        }
+
         if (SessionSaveData.Instance.TryGet(ID, out spikeGateStateData))
         {
             Raised = spikeGateStateData.Raised;

@@ -37,8 +37,10 @@ public class WallCrack : MonoBehaviour
         {
             crackMaterial = new Material(crackMaterial);
         }
+
+        ApplyProperties(true);
     }
-    private void ApplyProperties()
+    private void ApplyProperties(bool runtime = false)
     {
         if (!Surface) return;
 
@@ -53,7 +55,15 @@ public class WallCrack : MonoBehaviour
         var surfaceRenderer = Surface.GetComponent<Renderer>();
         if (!surfaceRenderer) return;
 
-        var surfaceMat = surfaceRenderer.sharedMaterial;
+        Material surfaceMat;
+        if (runtime)
+        {
+            surfaceMat = surfaceRenderer.sharedMaterial;
+        }
+        else
+        {
+            surfaceMat= surfaceRenderer.sharedMaterial;
+        }
 
         mpb.SetTexture("_WallTexture", surfaceMat.mainTexture);
         mpb.SetColor("_BaseColor", surfaceMat.color);
@@ -116,7 +126,7 @@ public class WallCrack : MonoBehaviour
     private void Update()
     {
         if (liveTextureUpdate)
-            ApplyProperties();
+            ApplyProperties(true);
     }
 
     private void EnsureMaterial()

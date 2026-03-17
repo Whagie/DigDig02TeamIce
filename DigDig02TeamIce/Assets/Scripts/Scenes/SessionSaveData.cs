@@ -26,11 +26,30 @@ public class SessionSaveData : MonoBehaviour
         public bool Raised;
     }
 
+    public struct LightReflectorData
+    {
+        public string ID;
+        public Vector3 Position;
+        public Quaternion ReflectorRotation;
+        public bool Glowing;
+        public Vector2Int? OriginCoord;
+    }
+
+    public struct LightPuzzleGeneralData
+    {
+        public string ID;
+        public bool Glowing;
+    }
+
     public Dictionary<string, EnemyDeathData> DeadEnemies = new();
 
     public Dictionary<string, EnergyRechargeData> EnergyRechargeCrystals = new();
 
     public Dictionary<string, SpikeGateStateData> SpikeGateStates = new();
+
+    public Dictionary<string, LightReflectorData> LightReflectors = new();
+
+    public Dictionary<string, LightPuzzleGeneralData> LightPuzzleObjects = new();
 
     private void Awake()
     {
@@ -69,6 +88,25 @@ public class SessionSaveData : MonoBehaviour
         };
     }
 
+    public void AddOrUpdateData(string id, Vector3 position, Quaternion reflectorRotation, bool glowing, Vector2Int? originCoord)
+    {
+        LightReflectors[id] = new LightReflectorData
+        {
+            Position = position,
+            ReflectorRotation = reflectorRotation,
+            Glowing = glowing,
+            OriginCoord = originCoord
+        };
+    }
+
+    public void AddOrUpdateData(string id, bool glowing, bool isLightPuzzle)
+    {
+        LightPuzzleObjects[id] = new LightPuzzleGeneralData
+        {
+            Glowing = glowing
+        };
+    }
+
     public bool TryGet(string id, out EnemyDeathData data)
     {
         return DeadEnemies.TryGetValue(id, out data);
@@ -81,11 +119,21 @@ public class SessionSaveData : MonoBehaviour
     {
         return SpikeGateStates.TryGetValue(id, out data);
     }
+    public bool TryGet(string id, out LightReflectorData data)
+    {
+        return LightReflectors.TryGetValue(id, out data);
+    }
+    public bool TryGet(string id, out LightPuzzleGeneralData data)
+    {
+        return LightPuzzleObjects.TryGetValue(id, out data);
+    }
 
     public void ClearAllData()
     {
         DeadEnemies.Clear();
         EnergyRechargeCrystals.Clear();
         SpikeGateStates.Clear();
+        LightReflectors.Clear();
+        LightPuzzleObjects.Clear();
     }
 }

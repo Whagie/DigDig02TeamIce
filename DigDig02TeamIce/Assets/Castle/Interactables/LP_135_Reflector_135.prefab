@@ -79,7 +79,7 @@ GameObject:
   - component: {fileID: 1228446858753322172}
   - component: {fileID: 165128045472586710}
   m_Layer: 0
-  m_Name: LP_Reflector_135
+  m_Name: LP_135_Reflector_135
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -122,9 +122,11 @@ MonoBehaviour:
   playerLayer:
     serializedVersion: 2
     m_Bits: 256
+  Rotating: 0
   Crystal: {fileID: 7969275647689996354}
   origBaseColor: {r: 0, g: 0, b: 0, a: 0}
   origTopColor: {r: 0, g: 0, b: 0, a: 0}
+  origGlowColor: {r: 0, g: 0, b: 0, a: 0}
   StartGlowDuration: 0.4
   DropDuration: 0.75
   Glowing: 0
@@ -213,6 +215,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3175581846272947702}
   - component: {fileID: 7909071152987606483}
+  - component: {fileID: 6542489890541454948}
   m_Layer: 26
   m_Name: PushCollider
   m_TagString: Untagged
@@ -256,6 +259,22 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.5, y: 3, z: 1.5}
   m_Center: {x: 0, y: 1.5, z: 0}
+--- !u!208 &6542489890541454948
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5396216974323229037}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.75, y: 1.5, z: 0.75}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 1.5, z: 0}
+  m_TimeToStationary: 0.5
 --- !u!1 &5703716068406222977
 GameObject:
   m_ObjectHideFlags: 0

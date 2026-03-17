@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &708407763306326817
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8172423629645234671}
+  m_Layer: 19
+  m_Name: PlayerTargetPos
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8172423629645234671
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 708407763306326817}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.15, z: 7.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3495065743561782055}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4772777743216889546
 GameObject:
   m_ObjectHideFlags: 0
@@ -9,7 +40,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 33076979171715420}
-  m_Layer: 0
+  m_Layer: 19
   m_Name: ConstructTargetPos
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -95,13 +126,37 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7208398350987947876, guid: cb3ba3e56a961564583c23a5d1eb80ea, type: 3}
+      propertyPath: m_Layer
+      value: 19
+      objectReference: {fileID: 0}
     - target: {fileID: -6039084495098525029, guid: cb3ba3e56a961564583c23a5d1eb80ea, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0.1
       objectReference: {fileID: 0}
+    - target: {fileID: -2042326344611267662, guid: cb3ba3e56a961564583c23a5d1eb80ea, type: 3}
+      propertyPath: m_Layer
+      value: 19
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: cb3ba3e56a961564583c23a5d1eb80ea, type: 3}
       propertyPath: m_Name
       value: RuneDisks
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb3ba3e56a961564583c23a5d1eb80ea, type: 3}
+      propertyPath: m_Layer
+      value: 19
+      objectReference: {fileID: 0}
+    - target: {fileID: 1457684746478924468, guid: cb3ba3e56a961564583c23a5d1eb80ea, type: 3}
+      propertyPath: m_Layer
+      value: 19
+      objectReference: {fileID: 0}
+    - target: {fileID: 1745784992014456641, guid: cb3ba3e56a961564583c23a5d1eb80ea, type: 3}
+      propertyPath: m_Layer
+      value: 19
+      objectReference: {fileID: 0}
+    - target: {fileID: 8827090026022458664, guid: cb3ba3e56a961564583c23a5d1eb80ea, type: 3}
+      propertyPath: m_Layer
+      value: 19
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -109,6 +164,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8456405800419622651, guid: cb3ba3e56a961564583c23a5d1eb80ea, type: 3}
       insertIndex: -1
       addedObject: {fileID: 33076979171715420}
+    - targetCorrespondingSourceObject: {fileID: -6039084495098525029, guid: cb3ba3e56a961564583c23a5d1eb80ea, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8172423629645234671}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cb3ba3e56a961564583c23a5d1eb80ea, type: 3}
       insertIndex: -1
@@ -206,6 +264,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RunePuzzling: 0
+  Solved: 0
+  DoorToOpen: {fileID: 0}
   DiskCenter: {fileID: 524304900619610400}
   DiskPlatform: {fileID: 9158096650918576654}
   InnerDisk: {fileID: 327194113798401789}
@@ -214,7 +274,16 @@ MonoBehaviour:
   InnerDiskRuneCount: 6
   MiddleDiskRuneCount: 10
   OuterDiskRuneCount: 15
+  CorrectInnerRuneIndex: 4
+  CorrectMiddleRuneIndex: 6
+  CorrectOuterRuneIndex: 8
+  innerRuneIndex: 0
+  middleRuneIndex: 0
+  outerRuneIndex: 0
+  RotationDuration: 0.5
   ConstructTargetPos: {fileID: 33076979171715420}
+  PlayerTargetPos: {fileID: 8172423629645234671}
+  cameraZoom: {fileID: 3274663075839548}
   DefaultColor: {r: 0, g: 0, b: 0, a: 1}
   GlowColor: {r: 20, g: 48, b: 191, a: 1}
 --- !u!65 &7680508585721629636
@@ -253,6 +322,12 @@ MonoBehaviour:
   DesiredCameraDistance: -65
   ZoomInDuration: 0.75
   ZoomBackDuration: 0.75
+  Activated: 1
+--- !u!4 &3495065743561782055 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -6039084495098525029, guid: cb3ba3e56a961564583c23a5d1eb80ea, type: 3}
+  m_PrefabInstance: {fileID: 2067199934284151228}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &7363443661037759636 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8827090026022458664, guid: cb3ba3e56a961564583c23a5d1eb80ea, type: 3}

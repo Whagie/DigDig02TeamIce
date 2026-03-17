@@ -111,9 +111,17 @@ public class LightBeam : MonoBehaviour
             crystal = hit.collider.GetComponent<LightReflectorCrystal>();
             if (crystal != null)
             {
-                hitPos = hit.point;
-                hitObject = obj;
-                break;
+                if (crystal.ParentReflector.Rotating)
+                {
+                    crystal = null;
+                    continue;
+                }
+                else
+                {
+                    hitPos = hit.point;
+                    hitObject = obj;
+                    break;
+                }
             }
 
             // LIGHT RECEIVER
@@ -153,11 +161,6 @@ public class LightBeam : MonoBehaviour
 
             if (receiver != null)
                 receiver.ReceivingLight = true;
-
-            // Stop reflections
-            DestroyChildren();
-            ReleaseCrystal();
-            return;
         }
         else if (receiver != null)
         {

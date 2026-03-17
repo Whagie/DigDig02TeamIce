@@ -18267,7 +18267,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1589701534572780243, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: DoorToSpawnTo
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1589701534572780243, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: CameraDistanceZ
@@ -18283,12 +18283,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1589701534572780243, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: _sceneToLoad._sceneName
-      value: CentralHub
+      value: L1
       objectReference: {fileID: 0}
     - target: {fileID: 1589701534572780243, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: _sceneToLoad._sceneAsset
       value: 
-      objectReference: {fileID: 102900000, guid: 1459e81eae17c0345ac691d3dd10c30b, type: 3}
+      objectReference: {fileID: 102900000, guid: 14696d53d897e1b4a8cde2d5174136e8, type: 3}
     - target: {fileID: 2805958724549887426, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: m_LocalPosition.x
       value: 10.999999
@@ -18323,7 +18323,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4496886198378022602, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: m_Name
-      value: DoorTrigger
+      value: DoorTrigger (1)
       objectReference: {fileID: 0}
     - target: {fileID: 6022008358826568004, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: m_LocalPosition.x
@@ -23812,7 +23812,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4496886198378022602, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: m_Name
-      value: DoorTrigger (1)
+      value: DoorTrigger (2)
       objectReference: {fileID: 0}
     - target: {fileID: 6022008358826568004, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: m_LocalPosition.x

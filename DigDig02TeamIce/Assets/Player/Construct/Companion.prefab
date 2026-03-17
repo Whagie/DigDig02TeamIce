@@ -275,7 +275,14 @@ MonoBehaviour:
   probeRadius: 0.425
   obstacleMask:
     serializedVersion: 2
-    m_Bits: 68157441
+    m_Bits: 68716545
+  playerCanBeSeenMask:
+    serializedVersion: 2
+    m_Bits: 68700417
+  roofCheckMask:
+    serializedVersion: 2
+    m_Bits: 68683777
+  followVelocity: {x: 0, y: 0, z: 0}
   heldObject: {fileID: 0}
   isCarrying: 0
   isPlayingGrabAnim: 0
@@ -283,6 +290,13 @@ MonoBehaviour:
   agentAccelerationBeforeGrab: 24
   carryBobTime: 0
   disableAgentOnReachTarget: 0
+  drawGhostProbesGizmo: 0
+  IsDoingRunePuzzle: 0
+  CanExitRunePuzzleState: 0
+  CrystalBallMaterial: {fileID: 0}
+  OrigCrystalColor: {r: 0, g: 0, b: 0, a: 0}
+  DeadCrystalColor: {r: 0.08627451, g: 0.13333334, b: 0.34901962, a: 1}
+  BlobShadow: {fileID: 0}
 --- !u!135 &5039081755964336664
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -296,7 +310,7 @@ SphereCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 9104
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0

@@ -12,6 +12,8 @@ public static class Particles
     public static GameObject P_EvilBallCharge { get; private set; }
     public static GameObject P_PinkMagicProjectile { get; private set; }
     public static GameObject P_PinkMagicHit { get; private set; }
+    public static GameObject P_LightBeamHit { get; private set; }
+    public static GameObject P_LightBeamReflectorHit { get; private set; }
 
     static Particles()
     {
@@ -32,6 +34,8 @@ public static class Particles
                 case nameof(P_EvilBallCharge): P_EvilBallCharge = prefab; break;
                 case nameof(P_PinkMagicProjectile): P_PinkMagicProjectile = prefab; break;
                 case nameof(P_PinkMagicHit): P_PinkMagicHit = prefab; break;
+                case nameof(P_LightBeamHit): P_LightBeamHit = prefab; break;
+                case nameof(P_LightBeamReflectorHit): P_LightBeamReflectorHit = prefab; break;
             }
         }
     }

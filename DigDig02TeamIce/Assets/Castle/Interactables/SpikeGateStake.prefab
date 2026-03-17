@@ -64,6 +64,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SpikeGateStake
       objectReference: {fileID: 0}
+    - target: {fileID: 3853159789051920629, guid: ce13e82545b313641a9f20789dd8135c, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: a3dfbf6a14f768846a185d0f1a40fac4, type: 2}
     - target: {fileID: 4653997033433625619, guid: ce13e82545b313641a9f20789dd8135c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.25

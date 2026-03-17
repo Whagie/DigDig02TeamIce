@@ -8713,6 +8713,59 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2902192846662551387, guid: a427e2d5a1d81854590f874155701a2c, type: 3}
   m_PrefabInstance: {fileID: 357242680}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &368309373
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 368309375}
+  - component: {fileID: 368309374}
+  m_Layer: 15
+  m_Name: ConstructObstacle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!65 &368309374
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368309373}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!4 &368309375
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368309373}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -18.5, y: -3, z: 3}
+  m_LocalScale: {x: 15, y: 5, z: 2.5}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &382997838
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9215,7 +9268,7 @@ GameObject:
   - component: {fileID: 492987649}
   - component: {fileID: 492987656}
   - component: {fileID: 492987655}
-  m_Layer: 0
+  m_Layer: 4
   m_Name: Water
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9239,7 +9292,7 @@ MeshCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
@@ -16846,7 +16899,7 @@ Transform:
   m_GameObject: {fileID: 492987648}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.70710677, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -36.999985, y: -6.2, z: -4.000107}
+  m_LocalPosition: {x: -36.375, y: -6.2, z: -4.000105}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -16870,7 +16923,7 @@ MonoBehaviour:
   m_GenerateLinks: 0
   m_IgnoreFromBuild: 1
   m_ApplyToChildren: 1
-  m_AffectedAgents: ffffffff
+  m_AffectedAgents: 00000000f2652faea98c17ecf46d2d58
 --- !u!65 &492987656
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -16891,7 +16944,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 70, y: 10, z: 9}
-  m_Center: {x: -4, y: 2, z: 34.5}
+  m_Center: {x: -4, y: 2, z: 33.75}
 --- !u!43 &521337257
 Mesh:
   m_ObjectHideFlags: 0
@@ -18214,11 +18267,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1589701534572780243, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: DoorToSpawnTo
-      value: 4
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1589701534572780243, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: CameraDistanceZ
-      value: -70
+      value: -80
       objectReference: {fileID: 0}
     - target: {fileID: 1589701534572780243, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: AllowSpinEntrance
@@ -18226,7 +18279,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1589701534572780243, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: CurrentDoorPosition
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1589701534572780243, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: _sceneToLoad._sceneName
@@ -23699,11 +23752,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1589701534572780243, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: CameraDistanceZ
-      value: -70
+      value: -80
       objectReference: {fileID: 0}
     - target: {fileID: 1589701534572780243, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: AllowSpinEntrance
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1589701534572780243, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
+      propertyPath: CurrentDoorPosition
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1589701534572780243, guid: 82a84d50777ebf74bb9e568670111960, type: 3}
       propertyPath: _sceneToLoad._sceneName
@@ -29279,7 +29336,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.16666667
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: 6dd9d5b561073d847acb2254d62dfb31, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: 4dca4c48151da3d4986690a2d3931442, type: 2}
   m_BuildHeightMesh: 0
 --- !u!4 &1797502673
 Transform:
@@ -30501,3 +30558,4 @@ SceneRoots:
   - {fileID: 113855019}
   - {fileID: 708145411}
   - {fileID: 1422084313}
+  - {fileID: 368309375}

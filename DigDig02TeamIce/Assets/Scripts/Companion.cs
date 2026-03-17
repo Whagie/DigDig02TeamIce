@@ -75,6 +75,8 @@ public class Companion : MonoBehaviour
     [SerializeField] int minFreeTravelOrbitProbeCount = 3;
     [SerializeField] float probeRadius = 0.35f;
     [SerializeField] LayerMask obstacleMask;
+    [SerializeField] private LayerMask playerCanBeSeenMask;
+    [SerializeField] private LayerMask roofCheckMask;
 
     private bool[] orbitBlocked;
     private Vector3[] orbitProbeWorld;
@@ -104,7 +106,7 @@ public class Companion : MonoBehaviour
         Orbit,      // Circling / bobbing movement
         NavMove,     // NavMeshAgent has full control
     }
-    CompanionMovementMode movementMode = CompanionMovementMode.Orbit;
+    CompanionMovementMode movementMode = CompanionMovementMode.NavMove;
 
     private bool playerMoving;
     private bool playerSprinting;
@@ -289,8 +291,6 @@ public class Companion : MonoBehaviour
 
         float checkExtent = 0.75f; // Half size of square
 
-        LayerMask mask = LayerMask.GetMask("Default", "Enemy", "LightReflector", "Pushable", "Shrouders");
-
         Vector3[] offsets =
         {
             Vector3.zero, // center
@@ -309,7 +309,7 @@ public class Companion : MonoBehaviour
 
             if (v != 0)
             {
-                if (Physics.Raycast(playerTop, offset.normalized, out RaycastHit hit, offset.magnitude, mask))
+                if (Physics.Raycast(playerTop + (Vector3.down * 2f), offset.normalized, out RaycastHit hit, offset.magnitude, roofCheckMask))
                 {
                     offset = hit.point - player.transform.position;
                     offset.y = 0f;
@@ -318,7 +318,7 @@ public class Companion : MonoBehaviour
 
             Vector3 origin = playerTop + offset;
 
-            if (Physics.Raycast(origin, Vector3.up, out RaycastHit hit2, roofCheckRayLength, mask))
+            if (Physics.Raycast(origin, Vector3.up, out RaycastHit hit2, roofCheckRayLength, roofCheckMask))
             {
                 lowestHitY = Mathf.Min(lowestHitY, hit2.point.y);
 
@@ -379,7 +379,7 @@ public class Companion : MonoBehaviour
             dirToPlayer,
             out RaycastHit hit3,
             float.MaxValue,
-            LayerMask.GetMask("Default", "Player", "Pushable", "LightReflector")))
+            playerCanBeSeenMask))
         {
             playerCanNotBeSeen =
                 hit3.collider.gameObject.layer != LayerMask.NameToLayer("Player");
@@ -480,7 +480,7 @@ public class Companion : MonoBehaviour
             transform.position,
             Vector3.up,
             6f,
-            LayerMask.GetMask("Default", "Water", "Enemy", "LightReflector", "Pushable")
+            roofCheckMask
         );
 
         if (!movementOverride && !isLooking)
@@ -1584,13 +1584,15 @@ public class Companion : MonoBehaviour
         }
 
         Vector3 end;
+        GameObject parent = null;
 
         if (targetNull || !isStation)
         {
-            if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, float.MaxValue, LayerMask.GetMask("Default")))
+            if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, float.MaxValue, LayerMask.GetMask("Default", "NoAO", "Pushable")))
             {
                 end = hit.point;
-                Debug.Log($"{hit.collider.gameObject.name}");
+                parent = hit.collider.gameObject;
+                Debug.Log($"{parent.name}");
 
                 if (carriedObjectExtentsY.HasValue)
                 {
@@ -1645,7 +1647,7 @@ public class Companion : MonoBehaviour
 
         if (heldObject != null)
         {
-            heldObject.transform.SetParent(null, true);
+            heldObject.transform.SetParent(parent.transform, true);
             heldObject.layer = heldObjectPrevLayer;
 
             if (heldObject.TryGetComponent<Collider>(out Collider col))
@@ -1903,6 +1905,11 @@ public class Companion : MonoBehaviour
         Vector3 startXZ = new Vector3(start.x, 0f, start.z);
         Vector3 targetXZ = new Vector3(target.x, 0f, target.z);
 
+        Vector3 targetDir = transform.position - target;
+        targetDir.y = 0f;
+        Quaternion startRot = transform.rotation;
+        Quaternion targetRot = Quaternion.LookRotation(targetDir, Vector3.up);
+
         float startY = start.y;
         float targetY = target.y;
 
@@ -1925,6 +1932,8 @@ public class Companion : MonoBehaviour
                 yPos,
                 xzPos.z
             );
+
+            transform.rotation = Quaternion.Lerp(startRot, targetRot, t);
 
             yield return null;
         }

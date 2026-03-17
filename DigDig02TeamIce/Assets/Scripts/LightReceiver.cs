@@ -1,66 +1,170 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class LightReceiver : MonoBehaviour
 {
-    public event System.Action OnReceivedLight;
-    public bool ReceivingLight = false;
+    public List<LightPassThrough> PassThroughs = new();
 
-    private float receiveLightTimer = 2f;
-    public float lightTimerLength = 2f;
+    [HideInInspector] public bool AllPassThroughsHit = false;
+    [HideInInspector] public bool ReceivingLight = false;
 
     public bool Activated = false;
 
-    private MeshRenderer meshRenderer;
+    public GameObject Crystal;
+    private Material crystalMaterial;
+    public Color origBaseColor;
+    public Color origTopColor;
+
+    private Color depletedBaseColor = new Color32(51, 51, 128, 255);
+    private Color depletedTopColor = new Color32(92, 113, 153, 255);
+
+    public float StartGlowDuration = 2f;
+
+    public bool Glowing = false;
+
+    private Coroutine startGlowRoutine;
+    private Coroutine stopGlowRoutine;
 
     [SerializeField] private List<GameObject> destroyOnRecieve;
 
-    [SerializeField] private WakeEnemies wakeEnemies;
+    public LightReceiverEvent OnReceiveLight;
 
     private void Start()
     {
-        if (wakeEnemies == null)
-        {
-            wakeEnemies = GetComponent<WakeEnemies>();
-        }
+        Renderer renderer1 = Crystal.GetComponent<Renderer>();
+        Material[] mats1 = renderer1.materials;
+        int matIndex1 = Array.FindIndex(mats1, m => m.name.Contains("ReflectorCrystal"));
+        crystalMaterial = mats1[matIndex1];
+        //crystalMaterial.EnableKeyword("_EMISSION");
 
-        receiveLightTimer = lightTimerLength;
-        meshRenderer = GetComponent<MeshRenderer>();
+        origBaseColor = crystalMaterial.GetColor("_BaseColor");
+        origTopColor = crystalMaterial.GetColor("_TopColor");
+
+        crystalMaterial.SetColor("_BaseColor", depletedBaseColor);
+        crystalMaterial.SetColor("_TopColor", depletedTopColor);
     }
     private void Update()
     {
         if (Activated)
             return;
 
-        if (ReceivingLight)
+        AllPassThroughsHit = true;
+        foreach (var passThrough in PassThroughs)
         {
-            receiveLightTimer -= Time.deltaTime;
-        }
-        else if (receiveLightTimer < lightTimerLength)
-        {
-            receiveLightTimer += Time.deltaTime * 2f;
+            if (!passThrough.ReceivingLight)
+            {
+                AllPassThroughsHit = false;
+                break;
+            }
         }
 
-        meshRenderer.material.color = Color.Lerp(Color.green, Color.white, receiveLightTimer / lightTimerLength);
+        if (ReceivingLight && !Glowing && AllPassThroughsHit)
+        {
+            StartGlow();
+        }
 
-        if (receiveLightTimer <= 0f)
+        if ((!ReceivingLight || !AllPassThroughsHit) && Glowing)
+        {
+            StopGlow();
+        }
+    }
+
+    public void StartGlow()
+    {
+        if (startGlowRoutine != null)
+            StopCoroutine(startGlowRoutine);
+
+        if (stopGlowRoutine != null)
+            StopCoroutine(stopGlowRoutine);
+
+        startGlowRoutine = StartCoroutine(StartGlowRoutine());
+    }
+
+    public void StopGlow()
+    {
+        if (stopGlowRoutine != null)
+            StopCoroutine(stopGlowRoutine);
+
+        if (startGlowRoutine != null)
+            StopCoroutine(startGlowRoutine);
+
+        stopGlowRoutine = StartCoroutine(StopGlowRoutine());
+    }
+
+    private IEnumerator StartGlowRoutine()
+    {
+        Glowing = true;
+
+        Color startBaseColor = crystalMaterial.GetColor("_BaseColor");
+        Color startTopColor = crystalMaterial.GetColor("_TopColor");
+
+        float time = 0f;
+        while (time < StartGlowDuration)
+        {
+            time += Time.deltaTime;
+            float t = Mathf.Clamp01(time / StartGlowDuration);
+            float t2 = t * t * t;
+
+            Color newBaseColor = Color.Lerp(startBaseColor, origBaseColor, t2);
+            Color newTopColor = Color.Lerp(startTopColor, origTopColor, t2);
+
+            crystalMaterial.SetColor("_BaseColor", newBaseColor);
+            crystalMaterial.SetColor("_TopColor", newTopColor);
+
+            yield return null;
+        }
+
+        crystalMaterial.SetColor("_BaseColor", origBaseColor);
+        crystalMaterial.SetColor("_TopColor", origTopColor);
+
+        if (AllPassThroughsHit)
         {
             ReceivedLight();
         }
+        startGlowRoutine = null;
     }
+
+    private IEnumerator StopGlowRoutine()
+    {
+        Glowing = false;
+        Color startBaseColor = crystalMaterial.GetColor("_BaseColor");
+        Color startTopColor = crystalMaterial.GetColor("_TopColor");
+
+        float time = 0f;
+        while (time < StartGlowDuration)
+        {
+            time += Time.deltaTime;
+            float t = Mathf.Clamp01(time / StartGlowDuration);
+            float t2 = t * t * t;
+
+            Color newBaseColor = Color.Lerp(startBaseColor, depletedBaseColor, t2);
+            Color newTopColor = Color.Lerp(startTopColor, depletedTopColor, t2);
+
+            crystalMaterial.SetColor("_BaseColor", newBaseColor);
+            crystalMaterial.SetColor("_TopColor", newTopColor);
+
+            yield return null;
+        }
+
+        crystalMaterial.SetColor("_BaseColor", depletedBaseColor);
+        crystalMaterial.SetColor("_TopColor", depletedTopColor);
+
+        stopGlowRoutine = null;
+    }
+
     public void ReceivedLight()
     {
-        OnReceivedLight?.Invoke();
+        OnReceiveLight?.Invoke();
         Activated = true;
-        meshRenderer.material.color = Color.cyan;
         foreach (var obj in destroyOnRecieve)
         {
             Destroy(obj);
         }
-
-        if (wakeEnemies != null)
-        {
-            wakeEnemies.WakeUp();
-        }
     }
 }
+
+[Serializable]
+public class LightReceiverEvent : UnityEvent { }

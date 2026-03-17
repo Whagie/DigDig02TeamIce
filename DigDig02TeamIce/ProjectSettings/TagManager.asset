@@ -13,6 +13,7 @@ TagManager:
   - MoveUntilStop
   - ConstructSpawn
   - Fog
+  - LightPassThrough
   layers:
   - Default
   - TransparentFX
@@ -29,11 +30,11 @@ TagManager:
   - MaskLayer
   - Tail
   - Walls
-  - 
+  - ConstructObstacle
   - DepthShroudingWithoutAO
   - EntranceFade
   - EntranceFrame
-  - 
+  - NoAO
   - LightReflector
   - 
   - 

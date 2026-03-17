@@ -299,7 +299,7 @@ MonoBehaviour:
     m_Bits: 64
   groundLayers:
     serializedVersion: 2
-    m_Bits: 1048593
+    m_Bits: 68681745
   DetectionCollider: {fileID: 8888541481896840772}
   MainCollider: {fileID: 8888541481896840772}
   DamageCollider: {fileID: 8189240473849887917}
@@ -315,7 +315,7 @@ MonoBehaviour:
   Speed: 0
   walkSpeed: 4
   sprintSpeed: 8
-  turnSpeed: 12
+  turnSpeed: 8
   jumpHeight: 3
   Jumping: 0
   gravity: 30
@@ -881,7 +881,7 @@ MonoBehaviour:
   baseTransform: {fileID: 7948930826786686778}
   Hips: {fileID: 2824624755450657307}
   ScaleReferenceMode: 3
-  finalScaleReference: 0.64941114
+  finalScaleReference: 0.649411
   finalScaleReferenceSqrt: 0.1
   customScaleReferenceValue: 0.5
   DelayedInitialization: 0

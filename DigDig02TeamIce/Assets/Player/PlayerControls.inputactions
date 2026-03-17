@@ -419,30 +419,8 @@
                 },
                 {
                     "name": "",
-                    "id": "f5fbc0b2-e17f-4df8-bbc8-6611b705eb6f",
-                    "path": "<Keyboard>/a",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "RunePuzzleLeft",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "9d1c8c9b-dd79-4b39-8392-d32ea1bdbc8a",
                     "path": "<Keyboard>/rightArrow",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "RunePuzzleRight",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "7a274f57-d7cb-4ab7-bf2d-2d71842f0dad",
-                    "path": "<Keyboard>/d",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -463,30 +441,8 @@
                 },
                 {
                     "name": "",
-                    "id": "3aa8c4d1-4dfd-445d-a552-d5b4ef631cd8",
-                    "path": "<Keyboard>/w",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "RunePuzzleNextDisk",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "2fe5e2bc-1ff1-4854-9838-5fa5982cfdec",
                     "path": "<Keyboard>/downArrow",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "RunePuzzlePreviousDisk",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "b4525bce-4cfb-4632-9b2b-0deff7776594",
-                    "path": "<Keyboard>/s",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

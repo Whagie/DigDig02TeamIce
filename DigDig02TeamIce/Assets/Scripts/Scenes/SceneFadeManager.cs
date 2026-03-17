@@ -6,8 +6,8 @@ public class SceneFadeManager : MonoBehaviour
     public static SceneFadeManager instance;
 
     [SerializeField] private Image _fadeOutImage;
-    [Range(0f, 1f), SerializeField] private float _fadeOutSpeed = 2f;
-    [Range(0f, 1f), SerializeField] private float _fadeInSpeed = 2f;
+    [Range(0f, 1f), SerializeField] private float _fadeOutSpeed = 1f;
+    [Range(0f, 1f), SerializeField] private float _fadeInSpeed = 1f;
 
     [SerializeField] public Color _fadeOutStartColor;
 

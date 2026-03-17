@@ -548,6 +548,14 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8193989670959671739, guid: cde24108b3f5e4e4ba91c8884237d83e, type: 3}
+      propertyPath: _fadeInSpeed
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8193989670959671739, guid: cde24108b3f5e4e4ba91c8884237d83e, type: 3}
+      propertyPath: _fadeOutSpeed
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8193989670959671739, guid: cde24108b3f5e4e4ba91c8884237d83e, type: 3}
       propertyPath: _fadeOutStartColor.b
       value: 0
       objectReference: {fileID: 0}
@@ -710,7 +718,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7113094758777896580, guid: 0be8f096bef66d64c90c62e6755132ef, type: 3}
       propertyPath: groundLayers.m_Bits
-      value: 1048593
+      value: 68681729
       objectReference: {fileID: 0}
     - target: {fileID: 7119627501738233021, guid: 0be8f096bef66d64c90c62e6755132ef, type: 3}
       propertyPath: parryLength
@@ -1070,7 +1078,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7657725137219846885, guid: 5e36c4e106f8f2547ae9a25ee2240c25, type: 3}
       propertyPath: m_CullingMask.m_Bits
-      value: 81230839
+      value: 81787895
       objectReference: {fileID: 0}
     - target: {fileID: 8834840529474110449, guid: 5e36c4e106f8f2547ae9a25ee2240c25, type: 3}
       propertyPath: m_LocalPosition.z

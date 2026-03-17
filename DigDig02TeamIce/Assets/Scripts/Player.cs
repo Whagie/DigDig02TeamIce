@@ -257,11 +257,18 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 
         //DrawUI.Draw(pushStartTimer.ToString(), new Vector2(Screen.width * 0.8f, Screen.height * 0.1f), Color.white, 8);
 
-        bool hitPushable = Physics.Raycast(Center.position, transform.forward, out RaycastHit hit, 0.75f, LayerMask.GetMask("Pushable", "LightReflector"));
+        bool hitPushable = Physics.Raycast(Center.position, transform.forward, out RaycastHit hit, 0.75f, LayerMask.GetMask("Pushable"));
 
         PushableObject hitObj = hitPushable
             ? hit.collider.GetComponent<PushableObject>()
             : null;
+
+        if (hitObj == null)
+        {
+            hitObj = hitPushable
+            ? hit.collider.GetComponentInParent<PushableObject>()
+            : null;
+        }
 
         bool moving = moveInput.magnitude > 0.05f;
 

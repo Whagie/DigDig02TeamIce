@@ -8,6 +8,8 @@ public class CameraMovement : MonoBehaviour
     public static CameraMovement Instance;
     private Player player;
     private Transform target;
+    [HideInInspector] public Transform overrideTarget = null;
+    [HideInInspector] public float overrideTargetLerpValue = 1f;
 
     public Camera _camera;
     [HideInInspector] public AudioListener audioListener;
@@ -45,6 +47,8 @@ public class CameraMovement : MonoBehaviour
     float zoomDuration = 0.4f;
     float zoomStart;
     private bool zoomingBack = false;
+
+    private GameObject tempCameraPos;
 
     public CameraActions Actions { get; private set; }
 
@@ -122,6 +126,9 @@ public class CameraMovement : MonoBehaviour
                 0f
             );
         }
+
+        tempCameraPos = new GameObject("TempCameraTarget");
+        DontDestroyOnLoad(tempCameraPos);
     }
 
     void LateUpdate()
@@ -140,6 +147,18 @@ public class CameraMovement : MonoBehaviour
         if (playingDeathAnim)
         {
             return;
+        }
+
+        if (player.currentTarget != null)
+        {
+            tempCameraPos.transform.position = Vector3.Lerp(player.Center.position, player.currentTarget ? player.currentTarget.Center.position : player.Center.position, 0.35f);
+            target = tempCameraPos.transform;
+        }
+
+        if (overrideTarget != null)
+        {
+            tempCameraPos.transform.position = Vector3.Lerp(player.Center.position, overrideTarget ? overrideTarget.position : player.Center.position, overrideTargetLerpValue);
+            target = tempCameraPos.transform;
         }
 
         // === Follow logic ===
@@ -445,5 +464,17 @@ public class CameraMovement : MonoBehaviour
         zoomingBack = true;
         zoomDuration = duration;
         zoomT = 0f;
+    }
+
+    public void SetOverrideTarget(Transform transform, float lerpValue = 1f)
+    {
+        overrideTarget = transform;
+        overrideTargetLerpValue = lerpValue;
+    }
+
+    public void ClearOverrideTarget()
+    {
+        overrideTarget = null;
+        overrideTargetLerpValue = 1f;
     }
 }

@@ -31,7 +31,7 @@ public class Spiderling : Enemy
             new EnemyAction
             {
                 TriggerName = "Bite",
-                Weight = 0.6f,
+                Weight = 0.0f,
                 CanUse = () => SeeingPlayer && FacingPlayer && DistanceToPlayer <= 2f,
                 Modifier = new ActionModifier()
                     .ChangeSpeed(WanderSpeed / 2f)

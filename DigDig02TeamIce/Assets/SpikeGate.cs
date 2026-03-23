@@ -18,8 +18,12 @@ public class SpikeGate : MonoBehaviourID
 
     public bool Raised = true;
 
+    public bool MoveCameraOnDrop = false;
+
     private Coroutine raiseRoutine;
     private Coroutine dropRoutine;
+
+    private CameraMovement cameraMovement;
 
     private void Start()
     {
@@ -68,22 +72,10 @@ public class SpikeGate : MonoBehaviourID
                 stake.transform.localPosition = pos;
             }
         }
+
+        cameraMovement = Camera.main.GetComponentInParent<CameraMovement>();
     }
 
-    private void Update()
-    {
-        if (UserInput.InteractPressed)
-        {
-            if (Raised)
-            {
-                DropGates();
-            }
-            else
-            {
-                RaiseGates();
-            }
-        }
-    }
     public void RaiseGates()
     {
         if (raiseRoutine != null)
@@ -95,7 +87,7 @@ public class SpikeGate : MonoBehaviourID
         raiseRoutine = StartCoroutine(RaiseGatesRoutine());
     }
 
-    public void DropGates()
+    public void DropGates(float waitPeriod = 0f)
     {
         if (dropRoutine != null)
             StopCoroutine(dropRoutine);
@@ -103,7 +95,15 @@ public class SpikeGate : MonoBehaviourID
         if (raiseRoutine != null)
             StopCoroutine(raiseRoutine);
 
-        dropRoutine = StartCoroutine(DropGatesRoutine());
+        dropRoutine = StartCoroutine(DropGatesRoutine(waitPeriod));
+
+        if (MoveCameraOnDrop)
+        {
+            if (cameraMovement == null)
+                return;
+
+            cameraMovement.SetOverrideTarget(this.transform, 1f);
+        }
     }
 
     private IEnumerator RaiseGatesRoutine()
@@ -147,10 +147,12 @@ public class SpikeGate : MonoBehaviourID
         raiseRoutine = null;
     }
 
-    private IEnumerator DropGatesRoutine()
+    private IEnumerator DropGatesRoutine(float waitPeriod = 0f)
     {
         Raised = false;
         SessionSaveData.Instance.AddOrUpdateData(ID, Raised);
+
+        yield return new WaitForSeconds(waitPeriod);
 
         float startHeight = Stakes[0].transform.localPosition.y;
         float targetHeight = 0f;
@@ -183,6 +185,12 @@ public class SpikeGate : MonoBehaviourID
         foreach (Collider col in StakeColliders)
         {
             col.enabled = true;
+        }
+
+        if (MoveCameraOnDrop && cameraMovement != null)
+        {
+            yield return new WaitForSeconds(waitPeriod * 0.5f);
+            cameraMovement.ClearOverrideTarget();
         }
 
         dropRoutine = null;

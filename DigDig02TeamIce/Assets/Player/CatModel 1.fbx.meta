@@ -23,7 +23,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Rough scratched metal
-    second: {fileID: 2100000, guid: f8aa49f385b90c344a35fa1fbb267afb, type: 2}
+    second: {fileID: 2100000, guid: eaff521e961bddf4e8e39ed667536aa7, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

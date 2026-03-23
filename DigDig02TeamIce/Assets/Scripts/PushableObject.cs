@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class PushableObject : MonoBehaviour
 {
@@ -26,9 +28,14 @@ public class PushableObject : MonoBehaviour
 
     public bool MovesUntilStop;
 
+    public OnPushEvent OnPush;
+
     private void Awake()
     {
-        MovesUntilStop = this.CompareTag("MoveUntilStop");
+        if (!MovesUntilStop)
+        {
+            MovesUntilStop = this.CompareTag("MoveUntilStop");
+        }
     }
     void OnValidate()
     {
@@ -53,6 +60,7 @@ public class PushableObject : MonoBehaviour
             yield break;
 
         Moving = true;
+        OnPush?.Invoke();
 
         Vector2Int startCoord = OriginCoord;
         Vector2Int targetCoord = startCoord + gridDirection * allowedSteps;
@@ -193,3 +201,6 @@ public class PushableObject : MonoBehaviour
         return new Vector3(Grid.GridMargin * 0.5f, 0f, Grid.GridMargin * 0.5f);
     }
 }
+
+[Serializable]
+public class OnPushEvent : UnityEvent { }

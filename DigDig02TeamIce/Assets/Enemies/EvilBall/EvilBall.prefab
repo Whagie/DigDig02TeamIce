@@ -946,10 +946,10 @@ MonoBehaviour:
       m_Bits: 768
     health: 8
     maxHealth: 8
-    alertRadius: 2
-    chaseAlertRadius: 8
-    visionLength: 7
-    chaseVisionLength: 7
+    alertRadius: 12
+    chaseAlertRadius: 20
+    visionLength: 12
+    chaseVisionLength: 20
     visionAngle: 360
     marginDegrees: 4
     visionRotation: {x: 0, y: 0, z: 0}
@@ -957,11 +957,11 @@ MonoBehaviour:
     chaseSpeed: 6
     wanderRadius: 25
     waitTime: 1
-    rotationSpeed: 90
+    rotationSpeed: 120
     actionInterval: 2
   Center: {fileID: 2119695306688515322}
   enemyUIObject: {fileID: 8229018984756401585, guid: 4ad4b7aea6b7b2f46b2ec55d213e59eb, type: 3}
-  enemyUI: {fileID: 5803893583548738931, guid: f4ca652ec734621469dcc9e4a99b5354, type: 3}
+  enemyUI: {fileID: 0}
   ShouldRotate: 0
   AllowPushback: 0
   ChildrenWithFlashEffect: []

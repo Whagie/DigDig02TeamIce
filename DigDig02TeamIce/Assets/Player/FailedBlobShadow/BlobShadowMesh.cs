@@ -60,7 +60,7 @@ public class BlobShadowMesh : MonoBehaviour
         );
 
         if (Physics.Raycast(centerRayOrigin, Vector3.down, out RaycastHit centerHit,
-                            raycastHeight + maxDrop, groundMask))
+                            raycastHeight + maxDrop, groundMask, QueryTriggerInteraction.Ignore))
         {
             targetAnchorY = centerHit.point.y + 0.01f;
             airHeight = Mathf.Max(0f, target.position.y - centerHit.point.y);
@@ -97,7 +97,7 @@ public class BlobShadowMesh : MonoBehaviour
             float targetY = -maxDrop;
 
             if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit,
-                                raycastHeight + maxDrop, groundMask))
+                                raycastHeight + maxDrop, groundMask, QueryTriggerInteraction.Ignore))
             {
                 targetY = (hit.point.y - anchorY) + 0.05f;
             }

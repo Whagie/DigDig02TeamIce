@@ -110,6 +110,9 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
     public Collider WrenchCollider;
     public MeleeAttack wrenchAttack;
 
+    public float targetEnemySphereRadius = 25f;
+    public float targetEnemyMaxDifferenceY = 10f;
+
     private float timeUntilPushStart = 0.25f;
     private float pushStartTimer;
     private float timeUntilPushMove = 0.583f;
@@ -125,6 +128,9 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
     private float prevSprintSpeed = 10f;
 
     private bool shouldTurn = true;
+
+    [HideInInspector] public OrbKeyReceiver CurrentOrbKeyReceiver = null;
+    [HideInInspector] public OrbKey CurrentOrbKey = null;
 
     private void OnEnable()
     {
@@ -322,7 +328,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         float rayLength = MainCollider.radius + groundCheckDistance;
 
         Grounded = false;
-        if (Physics.CheckSphere(origin, rayLength, groundLayers))
+        if (Physics.CheckSphere(origin, rayLength, groundLayers, QueryTriggerInteraction.Ignore))
         {
             Grounded = true;
         }
@@ -475,7 +481,18 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         if (currentTarget != null)
         {
             bool destroyIcon = false;
-            if (Vector3.Distance(Center.position, currentTarget.Center.position) > 15f)
+            Vector3 center2 = Center.position;
+            Vector3 target2 = currentTarget.Center.position;
+            center2.y = 0f;
+            target2.y = 0f;
+
+            float yDiff = Mathf.Abs(currentTarget.Center.position.y - Center.position.y);
+
+            if (Vector3.Distance(center2, target2) > targetEnemySphereRadius)
+            {
+                destroyIcon = true;
+            }
+            if (yDiff >= targetEnemyMaxDifferenceY)
             {
                 destroyIcon = true;
             }
@@ -502,6 +519,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
                 if (iconCopy == null)
                 {
                     iconCopy = Instantiate(LockOnIcon, currentTarget.transform);
+                    _camera.ZoomIn(_camera._camera.transform.localPosition.z + 4f, 0.4f);
                 }
 
                 var billboard = iconCopy.GetComponent<BillboardSprite>();
@@ -526,7 +544,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
     {
         int count = Physics.OverlapSphereNonAlloc(
             transform.position,
-            25f,
+            targetEnemySphereRadius,
             colliders,
             LayerMask.GetMask("Enemy")
         );
@@ -547,7 +565,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 
             // Vertical filtering
             float yDiff = Mathf.Abs(enemy.transform.position.y - transform.position.y);
-            if (yDiff >= 4f)
+            if (yDiff >= targetEnemyMaxDifferenceY)
                 continue;
 
             float dist = Vector3.Distance(transform.position, enemy.transform.position);
@@ -562,6 +580,11 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
                 closestDist = dist;
                 closestEnemy = e;
             }
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            Debug.DrawLine(transform.position, colliders[i].bounds.center, Color.red);
         }
 
         if (closestEnemy != null)
@@ -581,6 +604,8 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
             Destroy(iconCopy);
             iconCopy = null;
         }
+
+        _camera.ZoomBack(0.4f);
     }
 
     public void OnHit(IHitbox source)
@@ -898,17 +923,34 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         {
             if (!Companion.isCarrying)
             {
-                GameObject pickup = GameObject.Find("Pickup");
-
-                if (pickup != null)
+                if (CurrentOrbKey != null)
                 {
-                    Companion.StartCarry(pickup.transform);
+                    if (!CurrentOrbKey.Activated)
+                    {
+                        Companion.StartCarry(CurrentOrbKey.transform);
+                        CurrentOrbKey.FadeTo(CurrentOrbKey.InputBubble, CurrentOrbKey.InteractBubble, 0.25f, true);
+                        CurrentOrbKey.IsCarried = true;
+                    }
                 }
                 return;
             }
             else
             {
-                Companion.StopCarry();
+                if (CurrentOrbKeyReceiver != null)
+                {
+                    Companion.StopCarry(CurrentOrbKeyReceiver);
+                    CurrentOrbKeyReceiver.FadeTo(CurrentOrbKeyReceiver.InputBubble, CurrentOrbKeyReceiver.InteractBubble, 0.25f, true);
+                }
+                else
+                {
+                    Companion.StopCarry();
+                }
+
+                if (CurrentOrbKey != null)
+                {
+                    CurrentOrbKey.IsCarried = false;
+                }
+
                 return;
             }
         }

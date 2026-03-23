@@ -479,6 +479,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55901668e7cd37b48b40cd7e21ed4030, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PauseMenuGroup: {fileID: 5747024754530833368}
 --- !u!1001 &2934636551316881659
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -547,6 +548,34 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6591698961613870397, guid: cde24108b3f5e4e4ba91c8884237d83e, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6591698961613870397, guid: cde24108b3f5e4e4ba91c8884237d83e, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6591698961613870397, guid: cde24108b3f5e4e4ba91c8884237d83e, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 6629101168907489063}
+    - target: {fileID: 6591698961613870397, guid: cde24108b3f5e4e4ba91c8884237d83e, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6591698961613870397, guid: cde24108b3f5e4e4ba91c8884237d83e, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: Unpause
+      objectReference: {fileID: 0}
+    - target: {fileID: 6591698961613870397, guid: cde24108b3f5e4e4ba91c8884237d83e, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: MenuManager, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 6591698961613870397, guid: cde24108b3f5e4e4ba91c8884237d83e, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 8193989670959671739, guid: cde24108b3f5e4e4ba91c8884237d83e, type: 3}
       propertyPath: _fadeInSpeed
       value: 1
@@ -577,9 +606,14 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2938735564412892811, guid: cde24108b3f5e4e4ba91c8884237d83e, type: 3}
   m_PrefabInstance: {fileID: 2934636551316881659}
   m_PrefabAsset: {fileID: 0}
---- !u!20 &5106619445163032927 stripped
+--- !u!225 &5747024754530833368 stripped
+CanvasGroup:
+  m_CorrespondingSourceObject: {fileID: 7455820189011088163, guid: cde24108b3f5e4e4ba91c8884237d83e, type: 3}
+  m_PrefabInstance: {fileID: 2934636551316881659}
+  m_PrefabAsset: {fileID: 0}
+--- !u!20 &7726394831424373498 stripped
 Camera:
-  m_CorrespondingSourceObject: {fileID: 7955528689768546724, guid: cde24108b3f5e4e4ba91c8884237d83e, type: 3}
+  m_CorrespondingSourceObject: {fileID: 4863965991910507009, guid: cde24108b3f5e4e4ba91c8884237d83e, type: 3}
   m_PrefabInstance: {fileID: 2934636551316881659}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &4473862080243382741
@@ -1019,7 +1053,7 @@ PrefabInstance:
     - target: {fileID: 2747116646751212414, guid: 5e36c4e106f8f2547ae9a25ee2240c25, type: 3}
       propertyPath: m_Cameras.Array.data[0]
       value: 
-      objectReference: {fileID: 5106619445163032927}
+      objectReference: {fileID: 7726394831424373498}
     - target: {fileID: 4589018699575505713, guid: 5e36c4e106f8f2547ae9a25ee2240c25, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

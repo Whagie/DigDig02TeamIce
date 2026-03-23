@@ -222,12 +222,12 @@ MonoBehaviour:
     layers:
       serializedVersion: 2
       m_Bits: 768
-    health: 2
-    maxHealth: 2
+    health: 3
+    maxHealth: 3
     alertRadius: 12
-    chaseAlertRadius: 12
+    chaseAlertRadius: 20
     visionLength: 12
-    chaseVisionLength: 12
+    chaseVisionLength: 20
     visionAngle: 360
     marginDegrees: 4
     visionRotation: {x: 0, y: 0, z: 0}
@@ -255,7 +255,7 @@ MonoBehaviour:
   MainCollider: {fileID: 767568192787511752}
   CrystalBall: {fileID: 4853907824647751159}
   originalObject: {fileID: 4853907824647751159}
-  fracturedObject: {fileID: 8701161170803899581, guid: 6fb6b289e0b3ed640bf1e49342f71ac4, type: 3}
+  fracturedObject: {fileID: 8701161170803899581, guid: 03063c6ac60091b4d86ad98c1fe1e6e9, type: 3}
   epxlosionMinForce: 40
   explosionMaxForce: 100
   explosionForceRadius: 70

@@ -48,7 +48,7 @@ public class ParryManager : MonoBehaviour, IHurtbox
 
     public void Parry()
     {
-        if (UserInput.ParryPressed && CanParry && !player.Invisible)
+        if (UserInput.ParryPressed && CanParry && !player.Invisible && !SceneSwapManager.LoadFromDoor)
         {
             UserInput.ConsumeParry();
             ParryBegin();

@@ -258,7 +258,7 @@ public class SceneSwapManager : MonoBehaviour
         }
         DeathSceneManager.DirLights = null;
 
-        SceneFadeManager.instance.StartFadeIn();
+        SceneFadeManager.instance.StartFadeIn(false);
 
         while (SceneFadeManager.instance.IsFadingIn)
         {
@@ -296,7 +296,7 @@ public class SceneSwapManager : MonoBehaviour
             }
         }
 
-        SceneFadeManager.instance.StartFadeIn();
+        SceneFadeManager.instance.StartFadeIn(true, 0.25f);
 
         if (LoadFromDoor)
         {
@@ -419,10 +419,8 @@ public class SceneSwapManager : MonoBehaviour
         float speed = playerSprinted ? _player.sprintSpeed : _player.walkSpeed;
         Vector3 downForce = new Vector3(0f, playerSprinted ? -4f : -2f, 0f);
 
-        while (SceneFadeManager.instance._fadeOutStartColor.a > 0.9f)
-        {
-            yield return null;
-        }
+        yield return new WaitForSeconds(0.25f);
+
         _player.animator.speed = 1f;
 
         Vector3 lastPos = _player.transform.position;

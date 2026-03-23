@@ -38,5 +38,17 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/X3.unity
     guid: 7e6bb47947104c3428aa44b84fbbd4d6
+  - enabled: 1
+    path: Assets/Scenes/C1.unity
+    guid: 68ad88822c31dfc4dbc08d723d7b3888
+  - enabled: 1
+    path: Assets/Scenes/B1.unity
+    guid: bc9798ba31cfd094fb8d405205f3dfe4
+  - enabled: 1
+    path: Assets/Scenes/C4.unity
+    guid: e4f49ecf5f05cbb4c943a6fe6316c353
+  - enabled: 1
+    path: Assets/Scenes/Garden.unity
+    guid: 53ac82835da4b9e4181585100b4ba52a
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 60de35bcbf6bf2e40b4ae5f1fd216156, type: 2}

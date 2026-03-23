@@ -319,7 +319,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 225}
-  m_SizeDelta: {x: 800, y: 100}
+  m_SizeDelta: {x: 600, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &985319854480029896
 MonoBehaviour:
@@ -421,6 +421,7 @@ MonoBehaviour:
   healthBar: {fileID: 985319854480029896}
   group: {fileID: 4129698060107224376}
   cam: {fileID: 0}
+  RemoveOnDead: 1
 --- !u!1 &8718763194881553410
 GameObject:
   m_ObjectHideFlags: 0

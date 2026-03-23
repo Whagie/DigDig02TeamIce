@@ -26,6 +26,9 @@ public class SpearAttackScript : MeleeAttack
     private float delayBeforeAttack = 0.75f;
     private float playRate = 3f;
 
+    public float InvisibleStartDuration = 0.25f;
+    private bool isInvisible = false;
+
     public enum SpearSpawnState
     {
         Left,
@@ -117,7 +120,6 @@ public class SpearAttackScript : MeleeAttack
     {
         companion.previousSpears.Remove(this);
         vfx.SetFloat("LifetimeAtHit", ageOverLifetime);
-        ParticleSpawner.Spawn(Particles.P_SpearExplosion, target.Collider.bounds.center);
         if (target.Owner.layer == LayerMask.NameToLayer("Enemy"))
         {
             target.OnHit(this);
@@ -127,6 +129,7 @@ public class SpearAttackScript : MeleeAttack
             StopCoroutine(Attack());
             StartCoroutine(LifespanTimer(3f));
 
+            ParticleSpawner.Spawn(Particles.P_SpearExplosion, target.Collider.bounds.center);
             CameraActions.Main.Punch(-0.15f, 0.07f);
             Freezer.Freeze(0.025f);
         }
@@ -135,6 +138,8 @@ public class SpearAttackScript : MeleeAttack
             hit = true;
             StartCoroutine(LifespanTimer(3f));
         }
+
+        HitboxManager.Unregister(this);
     }
 
     private IEnumerator Attack()
@@ -203,6 +208,7 @@ public class SpearAttackScript : MeleeAttack
 
         transform.rotation = alignedRotation;
         StartCoroutine(Attack());
+        StartCoroutine(InvisibleTimer(InvisibleStartDuration));
     }
 
     private IEnumerator LifespanTimer(float time)
@@ -210,5 +216,12 @@ public class SpearAttackScript : MeleeAttack
         yield return new WaitForSeconds(time);
         Deactivate();
         Destroy(gameObject);
+    }
+
+    private IEnumerator InvisibleTimer(float time)
+    {
+        isInvisible = true;
+        yield return new WaitForSeconds(time);
+        isInvisible = false;
     }
 }

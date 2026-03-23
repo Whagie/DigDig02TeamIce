@@ -246,7 +246,7 @@ MonoBehaviour:
   agent: {fileID: 0}
   Spear: {fileID: 1541981574055698079, guid: c2296a7adabf9dd4c93438bb4f2cc41d, type: 3}
   previousSpears: []
-  spearAttackCooldown: 0.6
+  spearAttackCooldown: 0.4
   slamCooldown: 1.1
   slamShockwaveRadius: 6
   movementOverride: 0

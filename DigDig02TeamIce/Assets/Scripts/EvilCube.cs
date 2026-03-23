@@ -98,6 +98,14 @@ public class EvilCube : Enemy
 
     protected override void Die()
     {
+        if (Dead) // If already dead (from save data), skip explosion animation
+        {
+            base.Die();
+            StopAllCoroutines();
+            Destroy(gameObject);
+            return;
+        }
+
         base.Die();
 
         shouldRotate = false;
@@ -127,12 +135,6 @@ public class EvilCube : Enemy
                 }
 
                 Destroy(fractObj, 5);
-
-                if (explosionVFX != null)
-                {
-                    GameObject exploVFX = Instantiate(explosionVFX) as GameObject;
-                    Destroy(exploVFX, 7);
-                }
             }
         }
     }

@@ -18,6 +18,10 @@ public class Projectile : MonoBehaviour, IHitbox
     public float Speed { get; set; } = 8f;
     public float Lifespan { get; set; } = 10f;
     public bool Seeking { get; set; } = false;
+    public float InvisibleStartTime = 0.5f;
+
+    public GameObject BlobShadow;
+    private BlobShadowMesh blobShadow;
 
     public bool Rebound { get; private set; }
     public bool ShouldRebound = true;
@@ -25,6 +29,8 @@ public class Projectile : MonoBehaviour, IHitbox
 
     private bool recentlyParried;
     private Vector3 prevPos;
+
+    private bool isInvisible = true;
 
     private void OnEnable()
     {
@@ -37,8 +43,19 @@ public class Projectile : MonoBehaviour, IHitbox
 
     private void Start()
     {
+        var instance = Object.Instantiate(BlobShadow, transform.position, Quaternion.identity);
+        blobShadow = instance.GetComponent<BlobShadowMesh>();
+        blobShadow.target = transform;
+        blobShadow.groundMask = LayerMask.GetMask("Default", "Water", "Pushable", "NoAO");
+        blobShadow.raycastHeight = 0.1f;
+        blobShadow.maxDrop = 12f;
+        blobShadow.positionSmoothing = 15f;
+        blobShadow.vertexSmoothing = 20f;
+        blobShadow.maxAirHeight = 16f;
+
         prevPos = transform.position;
         StartCoroutine(LifespanTimer());
+        StartCoroutine(InvisibleTime(InvisibleStartTime));
     }
 
     private void Update()
@@ -60,6 +77,7 @@ public class Projectile : MonoBehaviour, IHitbox
     {
         if (!Rebound)
             Reflect(-Direction);
+
         if (!ShouldRebound)
         {
             Player player = GameObject.FindObjectOfType<Player>();
@@ -74,17 +92,28 @@ public class Projectile : MonoBehaviour, IHitbox
 
     public void OnHit(IHurtbox target)
     {
-        if (recentlyParried) return;
+        if (recentlyParried || isInvisible) return;
 
         if (target.Owner.layer == LayerMask.NameToLayer("Player") && !Rebound)
         {
             target.OnHit(this);
             ParticleSpawner.Spawn(Particles.P_PinkMagicHit, transform.position);
+            Destroy(blobShadow.gameObject);
             Destroy(gameObject);
         }
-        else if (target.Owner.layer == LayerMask.NameToLayer("Enemy") && Rebound)
+        else if (target.Owner.layer == LayerMask.NameToLayer("Enemy"))
         {
-            target.OnHit(this);
+            if (Rebound)
+            {
+                target.OnHit(this);
+                Destroy(blobShadow.gameObject);
+                Destroy(gameObject);
+            }
+        }
+        else
+        {
+            ParticleSpawner.Spawn(Particles.P_PinkMagicHit, transform.position);
+            Destroy(blobShadow.gameObject);
             Destroy(gameObject);
         }
     }
@@ -116,6 +145,16 @@ public class Projectile : MonoBehaviour, IHitbox
     private IEnumerator LifespanTimer()
     {
         yield return new WaitForSeconds(Lifespan);
+        Destroy(blobShadow.gameObject);
         Destroy(gameObject);
+    }
+
+    private IEnumerator InvisibleTime(float duration)
+    {
+        isInvisible = true;
+
+        yield return new WaitForSeconds(duration);
+
+        isInvisible = false;
     }
 }

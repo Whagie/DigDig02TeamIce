@@ -338,10 +338,10 @@ public class Companion : MonoBehaviour
             if (!prevBaseYHeight.HasValue)
                 prevBaseYHeight = baseYHeight;
 
-            DrawUI.Draw($"Lowering probe ring height...",
-                new Vector2(1200, 50),
-                Color.white,
-                8);
+            //DrawUI.Draw($"Lowering probe ring height...",
+            //    new Vector2(1200, 50),
+            //    Color.white,
+            //    8);
 
             baseYHeight = lowestHitY - probeHalfHeight - player.transform.position.y - 0.15f;
         }
@@ -743,7 +743,7 @@ public class Companion : MonoBehaviour
 
         if (orbitBlocked[currentProbe])
         {
-            TryRelocateToFreeProbe();
+            MoveToClosestProbe();
             return;
         }
 
@@ -889,7 +889,7 @@ public class Companion : MonoBehaviour
 
         if (orbitBlocked[currentProbe])
         {
-            TryRelocateToFreeProbe();
+            MoveToClosestProbe();
             pos = forcedWorldTarget.Value;
         }
         else
@@ -1279,7 +1279,7 @@ public class Companion : MonoBehaviour
         }
     }
 
-    public void StopCarry(Transform target = null)
+    public void StopCarry(OrbKeyReceiver target = null)
     {
         if (!isPlayingGrabAnim && !movementOverride)
         {
@@ -1521,7 +1521,7 @@ public class Companion : MonoBehaviour
         PickUpRoutine = null;
     }
 
-    private IEnumerator PutDownObject(Transform target = null)
+    private IEnumerator PutDownObject(OrbKeyReceiver target = null)
     {
         bool targetNull = false;
 
@@ -1533,6 +1533,9 @@ public class Companion : MonoBehaviour
         movementOverride = true;
         agent.enabled = true;
 
+        float prevStoppingDistance = agent.stoppingDistance;
+        agent.stoppingDistance = 0f;
+
         if (outOfEnergyShakeRoutine != null)
         {
             StopCoroutine(outOfEnergyShakeRoutine);
@@ -1542,7 +1545,7 @@ public class Companion : MonoBehaviour
 
         if (!targetNull)
         {
-            agent.SetDestination(target.position);
+            agent.SetDestination(target.OrbKeyPosition.position);
 
             bool completed = false;
 
@@ -1550,7 +1553,7 @@ public class Companion : MonoBehaviour
             {
                 if (!agent.pathPending)
                 {
-                    if (agent.remainingDistance <= agent.stoppingDistance)
+                    if (agent.remainingDistance <= agent.stoppingDistance + 0.05f)
                     {
                         if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
                         {
@@ -1565,9 +1568,7 @@ public class Companion : MonoBehaviour
             agent.isStopped = true;
             agent.ResetPath();
 
-            transform.position = new Vector3(target.position.x, transform.position.y, target.position.z);
-
-            yield return new WaitForSeconds(0.5f);
+            transform.position = new Vector3(target.OrbKeyPosition.position.x, transform.position.y, target.OrbKeyPosition.position.z);
         }
 
         agent.isStopped = true;
@@ -1577,10 +1578,33 @@ public class Companion : MonoBehaviour
         bool isStation = false;
         if (target != null)
         {
-            if (target.CompareTag("CarryableStation"))
+            isStation = true;
+
+            if (target.TryGetComponent<Collider>(out Collider col))
             {
-                isStation = true;
+                col.enabled = false;
             }
+        }
+
+        if (isStation)
+        {
+            float rotateDuration = 0.5f;
+            float rotateTimer = 0f;
+            Quaternion startRot = transform.rotation;
+            Quaternion targetRot = Quaternion.Euler(startRot.x, target.OrbKeyPosition.rotation.y, startRot.z);
+
+            while (rotateTimer < rotateDuration)
+            {
+                rotateTimer += Time.deltaTime;
+                float tRot = Mathf.Clamp01(rotateTimer / rotateDuration);
+
+                transform.rotation = Quaternion.Slerp(startRot, targetRot, tRot);
+                yield return null;
+            }
+        }
+        else
+        {
+            yield return new WaitForSeconds(0.5f);
         }
 
         Vector3 end;
@@ -1613,7 +1637,8 @@ public class Companion : MonoBehaviour
         }
         else if (!targetNull && isStation)
         {
-            end = target.position;
+            end = target.OrbKeyPosition.position;
+            parent = target.gameObject;
         }
         else
         {
@@ -1647,9 +1672,6 @@ public class Companion : MonoBehaviour
 
         if (heldObject != null)
         {
-            heldObject.transform.SetParent(parent.transform, true);
-            heldObject.layer = heldObjectPrevLayer;
-
             if (heldObject.TryGetComponent<Collider>(out Collider col))
             {
                 col.enabled = true;
@@ -1660,12 +1682,22 @@ public class Companion : MonoBehaviour
                 string sceneName = SceneManager.GetSceneAt(i).name;
                 if (sceneName != "DeathScene" && sceneName != "MainMenu")
                 {
+                    heldObject.transform.SetParent(null);
                     SceneManager.MoveGameObjectToScene(heldObject, SceneManager.GetSceneAt(i));
-                    heldObject = null;
                     break;
                 }
             }
+
+            heldObject.transform.SetParent(parent.transform, true);
+            heldObject.layer = heldObjectPrevLayer;
         }
+
+        if (isStation)
+        {
+            target.ReceiveKey(heldObject.transform);
+        }
+
+        heldObject = null;
 
         //float startHeight2 = agent.baseOffset;
         //float endHeight2 = 3.5f;
@@ -1684,6 +1716,11 @@ public class Companion : MonoBehaviour
             //agent.baseOffset = Mathf.Lerp(startHeight2, endHeight2, t2);
 
             yield return null;
+        }
+
+        if (target.TryGetComponent<Collider>(out Collider col2))
+        {
+            col2.enabled = true;
         }
 
         carriedObjectExtentsY = null;
@@ -1781,7 +1818,8 @@ public class Companion : MonoBehaviour
         {
             if (TryAttack(2))
             {
-                SpearOffset = GetRandomSpawnPosition(transform, out var spawnState);
+                SpearOffset = GetRandomSpawnPosition(player.transform, out var spawnState);
+                SpearOffset.y += 3.5f;
 
                 GameObject instance = Instantiate(Spear, SpearOffset, Quaternion.identity);
                 var spearAttack = instance.GetComponent<SpearAttackScript>();
@@ -1804,7 +1842,7 @@ public class Companion : MonoBehaviour
 
     public void SlamAttack()
     {
-        if (UserInput.SlamAttackPressed && canAttack && !SlamAttacking && !player.Parrying && !player.Pushing && player.Grounded)
+        if (UserInput.SlamAttackPressed && canAttack && !SlamAttacking && !player.Parrying && !player.Pushing && player.Grounded && !SceneSwapManager.LoadFromDoor)
         {
             if (TryAttack(2))
             {

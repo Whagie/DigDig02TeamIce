@@ -338,7 +338,11 @@ MonoBehaviour:
   Wrench: {fileID: 3358136876924479786}
   WrenchCollider: {fileID: 5951158097761976849}
   wrenchAttack: {fileID: 0}
+  targetEnemySphereRadius: 17.5
+  targetEnemyMaxDifferenceY: 7.5
   Pushing: 0
+  CurrentOrbKeyReceiver: {fileID: 0}
+  CurrentOrbKey: {fileID: 0}
 --- !u!114 &770796046032243651
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -135,6 +135,14 @@ public class ShamefulBall : Enemy
 
     protected override void Die()
     {
+        if (Dead) // If already dead (from save data), skip explosion animation
+        {
+            base.Die();
+            StopAllCoroutines();
+            Destroy(gameObject);
+            return;
+        }
+
         base.Die();
 
         shouldRotate = false;

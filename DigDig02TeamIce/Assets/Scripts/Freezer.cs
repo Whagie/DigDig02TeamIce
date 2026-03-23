@@ -11,6 +11,10 @@ public static class Freezer
 
     private static float previousTimeScale;
 
+    private static Coroutine timeScaleCoroutine;
+    private static bool isTimeScaling;
+    public static bool IsTimeScaling => isTimeScaling;
+
     public static bool IsFrozen => freezeCount > 0;
 
     /// <summary>
@@ -19,6 +23,9 @@ public static class Freezer
     /// </summary>
     public static void Freeze(float duration = -1f)
     {
+        if (isTimeScaling)
+            return;
+
         EnsureRunner();
 
         if (freezeCount == 0)
@@ -78,6 +85,57 @@ public static class Freezer
     {
         yield return new WaitForSecondsRealtime(duration);
         Cancel();
+    }
+
+    public static void LerpTimeScale(float targetScale, float fadeOutDuration, float waitDuration, float fadeInDuration)
+    {
+        EnsureRunner();
+
+        // Stop freeze system completely
+        ForceCancelAll();
+
+        // Stop any existing lerp
+        if (timeScaleCoroutine != null)
+        {
+            runner.StopCoroutine(timeScaleCoroutine);
+        }
+
+        timeScaleCoroutine = runner.StartCoroutine(TimeScaleRoutine(targetScale, fadeOutDuration, waitDuration, fadeInDuration));
+    }
+
+    private static IEnumerator TimeScaleRoutine(float target, float fadeOut, float wait, float fadeIn)
+    {
+        isTimeScaling = true;
+
+        float start = Time.timeScale;
+
+        float t = 0f;
+        while (t < fadeOut)
+        {
+            t += Time.unscaledDeltaTime;
+            float lerp = fadeOut > 0f ? t / fadeOut : 1f;
+            Time.timeScale = Mathf.Lerp(start, target, lerp);
+            yield return null;
+        }
+
+        Time.timeScale = target;
+
+        if (wait > 0f)
+            yield return new WaitForSecondsRealtime(wait);
+
+        t = 0f;
+        while (t < fadeIn)
+        {
+            t += Time.unscaledDeltaTime;
+            float lerp = fadeIn > 0f ? t / fadeIn : 1f;
+            Time.timeScale = Mathf.Lerp(target, 1f, lerp);
+            yield return null;
+        }
+
+        Time.timeScale = 1f;
+
+        isTimeScaling = false;
+        timeScaleCoroutine = null;
     }
 
     private static void EnsureRunner()

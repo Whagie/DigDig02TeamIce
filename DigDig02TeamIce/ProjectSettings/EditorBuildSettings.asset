@@ -9,17 +9,11 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: 7fac2ac9593d8ce43beffbb9446e3032
   - enabled: 1
-    path: Assets/Scenes/Tunic_Guardhouse.unity
-    guid: b5330e2e7520f6c4b8675fa2e310f652
-  - enabled: 1
     path: Assets/Scenes/Outside01.unity
     guid: 1a8bc919e0de67347b5ff04eb7484b9d
   - enabled: 1
     path: Assets/Scenes/DeathScene.unity
     guid: b0e6a1d6a51e1e048bbffee8ab4c7dd3
-  - enabled: 1
-    path: Assets/Scenes/LibraryTest.unity
-    guid: 2271c18e025e0664783ed73c62521c0f
   - enabled: 1
     path: Assets/Scenes/Cleo_DecoTest.unity
     guid: 77a8d8da1c89b4d45a45209640c2ca34
@@ -27,28 +21,49 @@ EditorBuildSettings:
     path: Assets/Scenes/CentralHub.unity
     guid: 1459e81eae17c0345ac691d3dd10c30b
   - enabled: 1
-    path: Assets/Scenes/Jon_LightPuzzle.unity
-    guid: dd96fddb955dbca4ca8f46f79ad76bd1
-  - enabled: 1
     path: Assets/Scenes/Sewer.unity
     guid: 6017dc3069a0329438a972e0bc339cc8
+  - enabled: 1
+    path: Assets/Scenes/Garden.unity
+    guid: 53ac82835da4b9e4181585100b4ba52a
+  - enabled: 1
+    path: Assets/Scenes/RunePieceRoom01.unity
+    guid: 6035382547e4dc6418267ce4cc8c8d33
   - enabled: 1
     path: Assets/Scenes/L1.unity
     guid: 14696d53d897e1b4a8cde2d5174136e8
   - enabled: 1
-    path: Assets/Scenes/X3.unity
-    guid: 7e6bb47947104c3428aa44b84fbbd4d6
+    path: Assets/Scenes/B1.unity
+    guid: bc9798ba31cfd094fb8d405205f3dfe4
+  - enabled: 1
+    path: Assets/Scenes/B2.unity
+    guid: 376871bba5741dc42ade37e735d0b9e0
+  - enabled: 1
+    path: Assets/Scenes/B3.unity
+    guid: e75f5656b391e484687996a6de4f7b61
   - enabled: 1
     path: Assets/Scenes/C1.unity
     guid: 68ad88822c31dfc4dbc08d723d7b3888
   - enabled: 1
-    path: Assets/Scenes/B1.unity
-    guid: bc9798ba31cfd094fb8d405205f3dfe4
+    path: Assets/Scenes/C2.unity
+    guid: ea71effb7e43d1c4fa29f45d89b84853
   - enabled: 1
     path: Assets/Scenes/C4.unity
     guid: e4f49ecf5f05cbb4c943a6fe6316c353
   - enabled: 1
-    path: Assets/Scenes/Garden.unity
-    guid: 53ac82835da4b9e4181585100b4ba52a
+    path: Assets/Scenes/X3.unity
+    guid: 7e6bb47947104c3428aa44b84fbbd4d6
+  - enabled: 1
+    path: Assets/Scenes/D1.unity
+    guid: f5d0c212cbcc337498016b355366d18e
+  - enabled: 1
+    path: Assets/Scenes/D3.unity
+    guid: b592586d81c95774caf62e3e773f420e
+  - enabled: 1
+    path: Assets/Scenes/X4.unity
+    guid: f791b3e8e2ae7964b85e6c7b0f75abb8
+  - enabled: 1
+    path: Assets/Scenes/IntroPrison.unity
+    guid: 0114beb866f313445ac4169969188790
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 60de35bcbf6bf2e40b4ae5f1fd216156, type: 2}

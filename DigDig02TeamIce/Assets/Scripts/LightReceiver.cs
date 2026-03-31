@@ -8,6 +8,8 @@ public class LightReceiver : MonoBehaviourID
 {
     public List<LightPassThrough> PassThroughs = new();
 
+    public List<LightPuzzleReflector> Reflectors = new();
+
     [HideInInspector] public bool AllPassThroughsHit = false;
     [HideInInspector] public bool ReceivingLight = false;
 
@@ -216,9 +218,25 @@ public class LightReceiver : MonoBehaviourID
     {
         OnReceiveLight?.Invoke();
         Activated = true;
+        SoundFXManager.instance.PlaySoundFXClip(FX.FX_light_puzzle_receive_light, transform, 1f);
+
         foreach (var obj in destroyOnRecieve)
         {
             Destroy(obj);
+        }
+
+        foreach (var reflector in Reflectors)
+        {
+            reflector.Solved = true;
+            reflector.Pushable.Solved = true;
+
+            reflector.SaveData();
+            reflector.Pushable.SaveData();
+        }
+
+        foreach (var passThrough in PassThroughs)
+        {
+            passThrough.SaveData();
         }
     }
 

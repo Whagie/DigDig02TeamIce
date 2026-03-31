@@ -31,11 +31,11 @@ public class LightPassThrough : MonoBehaviourID
 
     private void OnEnable()
     {
-        SceneSwapManager.instance.OnStartSceneSwap += SaveData;
+        //SceneSwapManager.instance.OnStartSceneSwap += SaveData;
     }
     private void OnDisable()
     {
-        SceneSwapManager.instance.OnStartSceneSwap -= SaveData;
+        //SceneSwapManager.instance.OnStartSceneSwap -= SaveData;
     }
 
     private void Start()
@@ -176,7 +176,7 @@ public class LightPassThrough : MonoBehaviourID
         stopGlowRoutine = null;
     }
 
-    private void SaveData()
+    public void SaveData()
     {
         SessionSaveData.Instance.AddOrUpdateData(ID, Glowing, false);
     }

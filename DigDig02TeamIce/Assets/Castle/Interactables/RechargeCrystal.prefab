@@ -92,7 +92,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1409627217139368406}
-  - component: {fileID: 5984602140464262560}
+  - component: {fileID: 7945706601032777089}
   - component: {fileID: 2022492038149246807}
   m_Layer: 0
   m_Name: Collider
@@ -116,8 +116,8 @@ Transform:
   m_Children: []
   m_Father: {fileID: 5042421235768167142}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &5984602140464262560
-SphereCollider:
+--- !u!65 &7945706601032777089
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -135,7 +135,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.9
+  m_Size: {x: 1.8, y: 1.8, z: 1.8}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!208 &2022492038149246807
 NavMeshObstacle:
@@ -199,8 +199,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6e545974aa3fb74a9d32ce3255bf152, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _id:
+    Value: 
+  DestroyCopies: 0
   useMeshCollision: 0
-  mainCollider: {fileID: 5984602140464262560}
+  mainCollider: {fileID: 7945706601032777089}
   layerMask:
     serializedVersion: 2
     m_Bits: 512
@@ -209,6 +212,8 @@ MonoBehaviour:
   - {fileID: 7854274806604005215}
   energyAmount: 6
   Depleted: 0
+  ShouldResetOnLoad: 1
+  OnHitFX: {fileID: 8300000, guid: aea80c296d19df440a58fb31ccba9ce1, type: 3}
 --- !u!1 &4576199435535600026
 GameObject:
   m_ObjectHideFlags: 0

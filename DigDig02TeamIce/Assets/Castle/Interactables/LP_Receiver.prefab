@@ -47,20 +47,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec5a2ed5f1623c447ab4e66b300e11ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _id:
+    Value: 
+  DestroyCopies: 0
   PassThroughs: []
+  Reflectors: []
   AllPassThroughsHit: 0
   ReceivingLight: 0
-  lightTimerLength: 2
   Activated: 0
   Crystal: {fileID: 903906625038713947}
   origBaseColor: {r: 0, g: 0, b: 0, a: 0}
   origTopColor: {r: 0, g: 0, b: 0, a: 0}
+  origGlowColor: {r: 0, g: 0, b: 0, a: 0}
   StartGlowDuration: 2
   Glowing: 0
   destroyOnRecieve: []
   OnReceiveLight:
     m_PersistentCalls:
       m_Calls: []
+  receiveLightFX: {fileID: 8300000, guid: 74c466343dc550645889e2638009c876, type: 3}
 --- !u!1 &6743937769269249848
 GameObject:
   m_ObjectHideFlags: 0

@@ -2,6 +2,7 @@
 using Game.Core;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -106,6 +107,10 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
     public bool AllowFollowUpAttack = false;
     public bool AttackBuffered = false;
 
+    public bool InCombat = false;
+    public List<Enemy> EnemiesInCombat = new();
+    private bool startedPlayingCombatMusic = false;
+
     public GameObject Wrench;
     public Collider WrenchCollider;
     public MeleeAttack wrenchAttack;
@@ -131,6 +136,10 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 
     [HideInInspector] public OrbKeyReceiver CurrentOrbKeyReceiver = null;
     [HideInInspector] public OrbKey CurrentOrbKey = null;
+
+    [HideInInspector] public PushableObject CurrentPushableObjectStandingOn = null;
+
+    [HideInInspector] public bool lockMeleeAttack = false;
 
     private void OnEnable()
     {
@@ -209,6 +218,32 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 
         if (Dead) return;
 
+        if (EnemiesInCombat.Count > 0)
+        {
+            InCombat = true;
+        }
+        else
+        {
+            InCombat = false;
+        }
+
+        if (InCombat)
+        {
+            if (!startedPlayingCombatMusic)
+            {
+                startedPlayingCombatMusic = true;
+                MusicManager.instance.EnterSecondary(FX.Music_Combat, 0.5f);
+            }
+        }
+        else
+        {
+            if (startedPlayingCombatMusic)
+            {
+                startedPlayingCombatMusic = false;
+                MusicManager.instance.ExitSecondary(0.5f);
+            }
+        }
+
         GroundCheck();
         Move();
         Jump();
@@ -259,7 +294,10 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
             }
         }
 
-        Attack();
+        if (!lockMeleeAttack)
+        {
+            Attack();
+        }
 
         ConstructCarry();
 
@@ -331,6 +369,15 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         if (Physics.CheckSphere(origin, rayLength, groundLayers, QueryTriggerInteraction.Ignore))
         {
             Grounded = true;
+        }
+
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit info, rayLength, LayerMask.GetMask("Pushable"), QueryTriggerInteraction.Ignore))
+        {
+            CurrentPushableObjectStandingOn = info.collider.gameObject.GetComponentInParent<PushableObject>();
+        }
+        else
+        {
+            CurrentPushableObjectStandingOn = null;
         }
 
         DrawMethods.WireSphere(origin, rayLength, Grounded ? Color.green : Color.red);
@@ -622,6 +669,8 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
             Vector3 final = new Vector3(-pushDir.x, 0, -pushDir.z);
             ApplyPushback(final, 1.75f, 0.35f);
             verticalVelocity = Mathf.Sqrt(jumpHeight * 0.4f * gravity);
+
+            SoundFXManager.instance.PlaySoundFXClip(FX.FX_player_damage, transform, 0.95f, 1.05f, 1.1f);
         }
     }
     public void TakeDamage(int amount)
@@ -790,6 +839,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         Freezer.Freeze(0.1f);
         ParticleSpawner.Spawn(Particles.P_spark, transform.position);
         CameraActions.Main.Punch(-0.75f, 0.1f);
+        SoundFXManager.instance.PlaySoundFXClip(FX.FX_player_parry, transform, 0.95f, 1.05f, 1f);
 
         Vector3 pushDir = hitbox.Owner.transform.position - transform.position;
         Vector3 final = new Vector3(-pushDir.x, 0, -pushDir.z);
@@ -1001,7 +1051,17 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
             (moveDir.x != 0 && pushable.CanPushX) ||
             (moveDir.y != 0 && pushable.CanPushZ);
 
-        while (!canPush)
+        bool standingOnPushable = false;
+
+        if (CurrentPushableObjectStandingOn != null)
+        {
+            if (CurrentPushableObjectStandingOn.Equals(pushable))
+            {
+                standingOnPushable = true;
+            }
+        }
+
+        while (!canPush || standingOnPushable)
         {
             yield return null;
         }

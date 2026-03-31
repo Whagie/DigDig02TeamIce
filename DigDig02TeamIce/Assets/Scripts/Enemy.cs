@@ -52,6 +52,7 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
 
     public bool ShouldRotate = true;
     public bool AllowPushback = true;
+    public bool StartAwake = true; 
 
     public List<HitFlash> ChildrenWithFlashEffect;
 
@@ -71,6 +72,9 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
     private bool hasAttacked = false;
     private bool tryingFirstAttack = false;
     private bool canForceIdle = false;
+
+    private bool registeredInEnemiesInCombatList = false;
+    [HideInInspector] public bool CanAttack = true;
 
     protected float intervalTimer = 0f;
     protected bool PauseIntervalTimer = false;
@@ -174,6 +178,8 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
             }
         }
 
+        IsAwake = StartAwake;
+
         if (SessionSaveData.Instance.TryGet(ID, out DeathData))
         {
             if (DeathData.Dead)
@@ -245,6 +251,7 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
         {
             if (c.GetComponent<Player>() != null)
             {
+                playerInAlertRadius = true;
                 if (Physics.Raycast(transform.position, dirToPlayer, out RaycastHit hit, AlertRadius + 1.5f, LayerMask.GetMask("Default", "Walls", "Player", "Pushable", "LightReflector", "Shrouders")))
                 {
                     if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Player"))
@@ -282,7 +289,7 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
 
         DistanceToPlayer = Vector3.Distance(new Vector3(transform.position.x, 0f, transform.position.z), new Vector3(player.transform.position.x, 0f, player.transform.position.z));
 
-        if (_animator != null)
+        if (_animator != null && CanAttack)
         {
             AnimatorStateInfo info = _animator.GetCurrentAnimatorStateInfo(0);
 
@@ -350,6 +357,26 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
             // they should exit combat state regardless of if they detected the player.
             // 
             InCombat = false;
+        }
+
+        if (InCombat)
+        {
+            if (!registeredInEnemiesInCombatList)
+            {
+                player.EnemiesInCombat.Add(this);
+                registeredInEnemiesInCombatList = true;
+            }
+        }
+        else
+        {
+            if (registeredInEnemiesInCombatList)
+            {
+                if (player.EnemiesInCombat.Contains(this))
+                {
+                    player.EnemiesInCombat.Remove(this);
+                }
+                registeredInEnemiesInCombatList = false;
+            }
         }
 
         if (DetectedPlayer && ShouldRotate)
@@ -615,6 +642,15 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
         if (_animator != null)
         {
             _animator.fireEvents = false;
+        }
+
+        if (registeredInEnemiesInCombatList)
+        {
+            if (player.EnemiesInCombat.Contains(this))
+            {
+                player.EnemiesInCombat.Remove(this);
+            }
+            registeredInEnemiesInCombatList = false;
         }
     }
 

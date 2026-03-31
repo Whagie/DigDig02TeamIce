@@ -31,6 +31,8 @@ public class Companion : MonoBehaviour
     public bool SlamAttacking { get; private set; } = false;
     private bool shouldMove = true;
     [HideInInspector] public bool movementOverride = false;
+    [HideInInspector] public bool lockSpearAttack = false;
+    [HideInInspector] public bool lockSlamAttack = false;
 
     public Animator _animator;
     public float ActionInterval = 5f;
@@ -106,7 +108,7 @@ public class Companion : MonoBehaviour
         Orbit,      // Circling / bobbing movement
         NavMove,     // NavMeshAgent has full control
     }
-    CompanionMovementMode movementMode = CompanionMovementMode.NavMove;
+    CompanionMovementMode movementMode = CompanionMovementMode.Orbit;
 
     private bool playerMoving;
     private bool playerSprinting;
@@ -130,7 +132,7 @@ public class Companion : MonoBehaviour
     [HideInInspector] public bool disableAgentOnReachTarget = false;
 
     [SerializeField] private bool drawGhostProbesGizmo = false;
-    private bool isPlayingEntranceAnim = false;
+    [HideInInspector] public bool isPlayingEntranceAnim = false;
 
     public bool IsDoingRunePuzzle = false;
     public bool CanExitRunePuzzleState = false;
@@ -1230,6 +1232,8 @@ public class Companion : MonoBehaviour
     }
     private IEnumerator OutOfEnergyShakeWait()
     {
+        SoundFXManager.instance.PlaySoundFXClip(FX.FX_construct_no_energy, transform, 0.9f, 1.1f, 1.25f);
+
         var clip = _animator.runtimeAnimatorController.animationClips.FirstOrDefault(c => c.name == "Idle_Twitch");
         float totalTime;
 
@@ -1718,9 +1722,12 @@ public class Companion : MonoBehaviour
             yield return null;
         }
 
-        if (target.TryGetComponent<Collider>(out Collider col2))
+        if (!targetNull)
         {
-            col2.enabled = true;
+            if (target.TryGetComponent<Collider>(out Collider col2))
+            {
+                col2.enabled = true;
+            }
         }
 
         carriedObjectExtentsY = null;
@@ -1814,7 +1821,7 @@ public class Companion : MonoBehaviour
 
     public void SpearAttack()
     {
-        if (UserInput.SpearAttackPressed && canAttack)
+        if (UserInput.SpearAttackPressed && canAttack && !lockSpearAttack)
         {
             if (TryAttack(2))
             {
@@ -1836,13 +1843,15 @@ public class Companion : MonoBehaviour
                     StopCoroutine(attackCooldownRoutine);
                     attackCooldownRoutine = StartCoroutine(AttackCooldown(spearAttackCooldown));
                 }
+
+                SoundFXManager.instance.PlaySoundFXClip(FX.FX_magic_spear_charge_up, transform, 0.9f, 1.1f, 0.8f);
             }
         }
     }
 
     public void SlamAttack()
     {
-        if (UserInput.SlamAttackPressed && canAttack && !SlamAttacking && !player.Parrying && !player.Pushing && player.Grounded && !SceneSwapManager.LoadFromDoor)
+        if (UserInput.SlamAttackPressed && canAttack && !lockSlamAttack && !movementOverride && !SlamAttacking && !player.Parrying && !player.Pushing && player.Grounded && !SceneSwapManager.LoadFromDoor)
         {
             if (TryAttack(2))
             {

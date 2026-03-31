@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using static UnityEditor.Experimental.GraphView.GraphView;
 
@@ -12,13 +13,18 @@ public class RunePuzzle : MonoBehaviour
 
     public event System.Action OnSolve;
 
-    public GameObject DoorToOpen;
+    public Animator DoorAnimator;
+
+    public GameObject Door;
+    public GameObject DoorSideStuff;
     public GameObject DiskCenter;
     public GameObject DiskPlatform;
     public GameObject InnerDisk;
     public GameObject MiddleDisk;
     public GameObject OuterDisk;
 
+    private Material doorMaterial;
+    private Material doorSideStuffMaterial;
     private Material diskCenterMaterial;
     private Material diskPlatformMaterial;
     private Material innerDiskMaterial;
@@ -70,6 +76,8 @@ public class RunePuzzle : MonoBehaviour
     private Color innerDiskTargetColor;
     private Color middleDiskTargetColor;
     private Color outerDiskTargetColor;
+    private Color doorTargetColor;
+    private Color doorSideStuffTargetColor;
     private float diskGlowTime = 0f;
     private float diskGlowDuration = 0.35f;
     private Coroutine startupGlowRoutine;
@@ -108,6 +116,18 @@ public class RunePuzzle : MonoBehaviour
         int matIndex5 = Array.FindIndex(renderer5.sharedMaterials, m => m.name.Contains("RuneGlow"));
         outerDiskMaterial = mats5[matIndex5];
         outerDiskMaterial.EnableKeyword("_EMISSION");
+
+        Renderer renderer6 = Door.GetComponent<Renderer>();
+        Material[] mats6 = renderer6.materials;
+        int matIndex6 = Array.FindIndex(renderer6.sharedMaterials, m => m.name.Contains("RuneGlow"));
+        doorMaterial = mats6[matIndex6];
+        doorMaterial.EnableKeyword("_EMISSION");
+
+        Renderer renderer7 = DoorSideStuff.GetComponent<Renderer>();
+        Material[] mats7 = renderer7.materials;
+        int matIndex7 = Array.FindIndex(renderer7.sharedMaterials, m => m.name.Contains("RuneGlow"));
+        doorSideStuffMaterial = mats7[matIndex7];
+        doorSideStuffMaterial.EnableKeyword("_EMISSION");
     }
 
     private void Update()
@@ -196,16 +216,8 @@ public class RunePuzzle : MonoBehaviour
                 activeDisk = ActiveRuneDiskStates.All;
                 diskGlowDuration = 1f;
                 UpdateDiskState();
-                player.MovementOverride = false;
+                StartCoroutine(DoorOpeningRoutine());
                 OnSolve?.Invoke();
-                if (cameraZoom != null)
-                {
-                    cameraZoom.ZoomBack();
-                    cameraZoom.Activated = false;
-                    cameraZoom.enabled = false;
-                }
-                if (DoorToOpen != null)
-                    GameObject.Destroy(DoorToOpen);
             }
             else
             {
@@ -415,6 +427,8 @@ public class RunePuzzle : MonoBehaviour
         Quaternion startRot = disk.transform.localRotation;
         Quaternion targetRot = Quaternion.AngleAxis(disk.transform.localEulerAngles.y + degrees, Vector3.up);
 
+        SoundFXManager.instance.PlaySoundFXClip(FX.FX_rotate_stone, transform, 0.9f, 1.35f, 0.75f);
+
         float time = 0f;
 
         while (time < RotationDuration)
@@ -578,6 +592,87 @@ public class RunePuzzle : MonoBehaviour
         }
     }
 
+    private IEnumerator DoorOpeningRoutine()
+    {
+        CameraMovement _camera = GameObject.FindObjectOfType<CameraMovement>();
+
+        if (cameraZoom != null)
+        {
+            if (_camera != null)
+            {
+                _camera.SetOverrideTarget(Door.transform, 0.75f);
+                _camera.ZoomIn(-110f, 1f);
+            }
+        }
+
+        yield return new WaitForSeconds(0.5f);
+
+        doorSideStuffTargetColor = GlowColor * 0.75f;
+
+        float time = 0f;
+        float duration = 0.6f;
+
+        while (time < duration)
+        {
+            time += Time.deltaTime;
+            float t = time / duration;
+
+            Color doorSideStuff = Color.Lerp(DefaultColor, doorSideStuffTargetColor, t);
+
+            doorSideStuffMaterial.SetColor(EmID, doorSideStuff);
+
+            yield return null;
+        }
+
+        doorSideStuffMaterial.SetColor(EmID, doorSideStuffTargetColor);
+
+        yield return new WaitForSeconds(0.5f);
+
+        diskGlowTime = 0f;
+        doorTargetColor = GlowColor * 0.75f;
+
+        float time2 = 0f;
+        float duration2 = 0.6f;
+
+        while (time2 < duration2)
+        {
+            time2 += Time.deltaTime;
+            float t = time2 / duration2;
+
+            Color door = Color.Lerp(DefaultColor, doorTargetColor, t);
+
+            doorMaterial.SetColor(EmID, door);
+
+            yield return null;
+        }
+
+        doorMaterial.SetColor(EmID, doorTargetColor);
+
+        yield return new WaitForSeconds(0.5f);
+
+        DoorAnimator.SetTrigger("Open");
+
+        float totalTime = DoorAnimator.runtimeAnimatorController.animationClips.Where(c => c.name == "OpenDoor").FirstOrDefault().length;
+
+        yield return new WaitForSeconds(totalTime);
+
+        if (cameraZoom != null)
+        {
+            cameraZoom.ZoomBack();
+            cameraZoom.Activated = false;
+            cameraZoom.enabled = false;
+
+            if (_camera != null)
+            {
+                _camera.ClearOverrideTarget();
+            }
+        }
+
+        yield return new WaitForSeconds(0.35f);
+
+        player.MovementOverride = false;
+    }
+
     private IEnumerator WrongCodeRoutine()
     {
         if (inputCooldownRoutine != null)
@@ -588,7 +683,7 @@ public class RunePuzzle : MonoBehaviour
             yield return null;
         }
 
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.75f);
 
         allowForInputs = false;
 

@@ -7,6 +7,9 @@ public class MonoBehaviourID : MonoBehaviour
     [SerializeField]
     private UniqueID _id;
 
+    [SerializeField]
+    private bool DestroyCopies = false;
+
     public string ID
     {
         get { return _id.Value; }
@@ -27,6 +30,9 @@ public class MonoBehaviourID : MonoBehaviour
 
     protected void OnValidate()
     {
+        if (Application.isPlaying)
+            return;
+
         //If scene is not valid, the gameobject is most likely not instantiated (ex. prefabs)
         if (!gameObject.scene.IsValid())
         {
@@ -37,6 +43,17 @@ public class MonoBehaviourID : MonoBehaviour
         if (string.IsNullOrEmpty(ID) || !IsUnique(ID))
         {
             ResetId();
+        }
+    }
+
+    private void Awake()
+    {
+        if (!Application.isPlaying)
+            return;
+
+        if (DestroyCopies && !IsUnique(ID))
+        {
+            Destroy(gameObject);
         }
     }
 

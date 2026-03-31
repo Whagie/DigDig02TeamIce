@@ -4,7 +4,10 @@ public class MenuManager : MonoBehaviour
 {
     public static MenuManager instance;
 
-    public CanvasGroup PauseMenuGroup;
+    public CanvasGroup ParentPauseMenu;
+    public CanvasGroup MainPauseMenu;
+    public CanvasGroup MainSettingsMenu;
+    public CanvasGroup AudioMenu;
 
     private Player player;
 
@@ -20,12 +23,10 @@ public class MenuManager : MonoBehaviour
     {
         player = GameObject.FindObjectOfType<Player>();
 
-        if (PauseMenuGroup != null)
-        {
-            PauseMenuGroup.alpha = 0f;
-            PauseMenuGroup.interactable = false;
-            PauseMenuGroup.blocksRaycasts = false;
-        }
+        TurnOffGroup(ParentPauseMenu);
+        TurnOffGroup(MainSettingsMenu);
+        TurnOffGroup(AudioMenu);
+        TurnOnGroup(MainPauseMenu);
     }
 
     void Update()
@@ -46,21 +47,64 @@ public class MenuManager : MonoBehaviour
     public void Pause()
     {
         PauseManager.instance.PauseGame();
-        if (PauseMenuGroup != null)
-        {
-            PauseMenuGroup.alpha = 1f;
-            PauseMenuGroup.interactable = true;
-            PauseMenuGroup.blocksRaycasts = true;
-        }
+        TurnOnGroup(ParentPauseMenu);
+        TurnOnGroup(MainPauseMenu);
+
+        TurnOffGroup(MainSettingsMenu);
+        TurnOffGroup(AudioMenu);
     }
     public void Unpause()
     {
         PauseManager.instance.UnpauseGame();
-        if (PauseMenuGroup != null)
+
+        TurnOffGroup(ParentPauseMenu);
+        TurnOffGroup(AudioMenu);
+        TurnOffGroup(MainSettingsMenu);
+
+        TurnOnGroup(MainPauseMenu);
+    }
+
+    public void OpenMainPauseMenu()
+    {
+        TurnOnGroup(MainPauseMenu);
+
+        TurnOffGroup(MainSettingsMenu);
+        TurnOffGroup(AudioMenu);
+    }
+
+    public void OpenMainSettings()
+    {
+        TurnOnGroup(MainSettingsMenu);
+
+        TurnOffGroup(MainPauseMenu);
+        TurnOffGroup(AudioMenu);
+    }
+
+    public void OpenAudioSettings()
+    {
+        TurnOnGroup(AudioMenu);
+
+        TurnOffGroup(MainPauseMenu);
+        TurnOffGroup(MainSettingsMenu);
+    }
+
+    private void TurnOffGroup(CanvasGroup group)
+    {
+        if (group != null)
         {
-            PauseMenuGroup.alpha = 0f;
-            PauseMenuGroup.interactable = false;
-            PauseMenuGroup.blocksRaycasts = false;
+            group.alpha = 0f;
+            group.interactable = false;
+            group.blocksRaycasts = false;
+        }
+    }
+
+    private void TurnOnGroup(CanvasGroup group)
+    {
+        if (group != null)
+        {
+            group.alpha = 1f;
+            group.interactable = true;
+            group.blocksRaycasts = true;
         }
     }
 }

@@ -59,6 +59,7 @@ Shader "Custom/PureBlack"
             #pragma fragment ShadowPassFragment
 
             // This include is the important one
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
 
             ENDHLSL

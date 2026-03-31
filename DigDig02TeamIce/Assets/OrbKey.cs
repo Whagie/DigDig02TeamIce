@@ -5,9 +5,10 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class OrbKey : MonoBehaviour
+public class OrbKey : MonoBehaviourID
 {
     public bool Activated;
+    public bool ShowInteractBubble = true;
     public bool IsCarried;
     private Player player;
 
@@ -27,6 +28,8 @@ public class OrbKey : MonoBehaviour
 
     private Coroutine currentFade;
 
+    private SessionSaveData.SingleBoolData receivedOrbData;
+
     private void Start()
     {
         cam = Camera.main.transform;
@@ -35,8 +38,27 @@ public class OrbKey : MonoBehaviour
         InteractBubble.alpha = 1f;
         InputBubble.alpha = 0f;
 
+        if (!ShowInteractBubble)
+        {
+            InteractBubble.alpha = 0f;
+        }
+
         bobHeight = IdleBobHeight;
         bobSpeed = IdleBobSpeed;
+
+        if (SessionSaveData.Instance.TryGet(ID, out receivedOrbData))
+        {
+            Activated = receivedOrbData.IsTrue;
+        }
+        else
+        {
+            SessionSaveData.Instance.AddOrUpdateData(ID, Activated);
+        }
+
+        if (Activated)
+        {
+            Destroy(gameObject);
+        }
     }
 
     private void Update()
@@ -134,5 +156,10 @@ public class OrbKey : MonoBehaviour
         {
             to.alpha = 0f;
         }
+    }
+
+    public void FadeInInteractBubble()
+    {
+        FadeTo(InputBubble, InteractBubble, 0.25f);
     }
 }

@@ -85,6 +85,8 @@ public class SpikeGate : MonoBehaviourID
             StopCoroutine(dropRoutine);
 
         raiseRoutine = StartCoroutine(RaiseGatesRoutine());
+
+        SoundFXManager.instance.PlaySoundFXClip(FX.FX_gate_raise, transform, 1f);
     }
 
     public void DropGates(float waitPeriod = 0f)
@@ -158,6 +160,7 @@ public class SpikeGate : MonoBehaviourID
         float targetHeight = 0f;
 
         float time = 0f;
+        bool playedAudio = false;
         while (time < DropDuration)
         {
             time += Time.deltaTime;
@@ -172,6 +175,13 @@ public class SpikeGate : MonoBehaviourID
                 pos.y = lerpY;
                 stake.transform.localPosition = pos;
             }
+
+            if (t >= 0.5f && !playedAudio)
+            {
+                SoundFXManager.instance.PlaySoundFXClip(FX.FX_gate_drop, transform, 1f);
+                playedAudio = true;
+            }
+
             yield return null;
         }
 

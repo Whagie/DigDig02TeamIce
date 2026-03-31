@@ -22,7 +22,7 @@ public class SceneFadeManager : MonoBehaviour
             instance = this;
         }
 
-        _fadeOutStartColor.a = 0f;
+        _fadeOutStartColor.a = 1f;
     }
 
     private void Update()

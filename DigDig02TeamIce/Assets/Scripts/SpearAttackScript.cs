@@ -39,6 +39,7 @@ public class SpearAttackScript : MeleeAttack
 
     void Start()
     {
+        bool thing = isInvisible;
         companion = GameObject.FindObjectOfType<Companion>();
         companion.previousSpears.Add(this);
         PlayerAttack = true;
@@ -131,6 +132,7 @@ public class SpearAttackScript : MeleeAttack
 
             ParticleSpawner.Spawn(Particles.P_SpearExplosion, target.Collider.bounds.center);
             CameraActions.Main.Punch(-0.15f, 0.07f);
+            SoundFXManager.instance.PlaySoundFXClip(FX.FX_magic_spear_hit, transform, 0.85f, 1.15f, 1f);
             Freezer.Freeze(0.025f);
         }
         else if (target.Owner.layer != LayerMask.NameToLayer("Enemy"))

@@ -1,9 +1,10 @@
 using System;
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class PushableObject : MonoBehaviour
+public class PushableObject : MonoBehaviourID
 {
     public PushableGrid Grid;
 
@@ -30,14 +31,45 @@ public class PushableObject : MonoBehaviour
 
     public OnPushEvent OnPush;
 
-    private void Awake()
+    [SerializeField] private float audioFadeOutDuration = 0.5f;
+
+    [HideInInspector] public bool Solved = false;
+
+    private SessionSaveData.PushableObjectData pushableData;
+
+    private void Start()
     {
         if (!MovesUntilStop)
         {
             MovesUntilStop = this.CompareTag("MoveUntilStop");
         }
+
+        if (SessionSaveData.Instance.TryGet(ID, out pushableData))
+        {
+            if (pushableData.Solved)
+            {
+                transform.position = pushableData.Position;
+                OriginCoord = pushableData.OriginCoord;
+                Solved = pushableData.Solved;
+
+                if (Grid == null)
+                    return;
+
+                Grid.SetOccupiedArea(
+                    OriginCoord,
+                    LengthOnGridX,
+                    LengthOnGridZ,
+                    this
+                );
+            }
+        }
+        else
+        {
+            SessionSaveData.Instance.AddOrUpdateData(ID, transform.position, OriginCoord, Solved);
+        }
     }
-    void OnValidate()
+
+    new void OnValidate()
     {
         if (Grid != null && HasOrigin)
             OnGetOrigin();
@@ -61,6 +93,16 @@ public class PushableObject : MonoBehaviour
 
         Moving = true;
         OnPush?.Invoke();
+
+        AudioSource audioSource = null;
+        if (!MovesUntilStop)
+        {
+            SoundFXManager.instance.PlaySoundFXClip(FX.FX_light_puzzle_push_reflector, transform, 1f, 1.6f, 0.75f);
+        }
+        else
+        {
+            SoundFXManager.instance.PlaySoundFXClipLooping(FX.FX_bookshelf_rolling, transform, out audioSource, 1f);
+        }
 
         Vector2Int startCoord = OriginCoord;
         Vector2Int targetCoord = startCoord + gridDirection * allowedSteps;
@@ -104,6 +146,11 @@ public class PushableObject : MonoBehaviour
             LengthOnGridZ,
             this
         );
+
+        if (audioSource != null)
+        {
+            StartCoroutine(FadeOutSoundFX(audioSource, audioFadeOutDuration));
+        }
 
         Moving = false;
     }
@@ -199,6 +246,38 @@ public class PushableObject : MonoBehaviour
     public Vector3 CellExtents()
     {
         return new Vector3(Grid.GridMargin * 0.5f, 0f, Grid.GridMargin * 0.5f);
+    }
+
+    public void SaveData()
+    {
+        if (Moving || Grid == null)
+            return;
+
+        SessionSaveData.Instance.AddOrUpdateData(ID, transform.position, OriginCoord, Solved);
+    }
+
+    public void MarkSolved()
+    {
+        Solved = true;
+        SaveData();
+    }
+
+    private IEnumerator FadeOutSoundFX(AudioSource source, float duration)
+    {
+        float startVolume = source.volume;
+
+        float time = 0f;
+        while (time < duration)
+        {
+            time += Time.deltaTime;
+            float t = Mathf.Clamp01(time / duration);
+
+            source.volume = Mathf.Lerp(startVolume, 0f, t);
+
+            yield return null;
+        }
+
+        Destroy(source.gameObject);
     }
 }
 

@@ -32,6 +32,8 @@ public class Projectile : MonoBehaviour, IHitbox
 
     private bool isInvisible = true;
 
+    private Enemy enemyOwner;
+
     private void OnEnable()
     {
         HitboxManager.Register(this);
@@ -53,6 +55,8 @@ public class Projectile : MonoBehaviour, IHitbox
         blobShadow.vertexSmoothing = 20f;
         blobShadow.maxAirHeight = 16f;
 
+        enemyOwner = Parent.gameObject.GetComponent<Enemy>();
+
         prevPos = transform.position;
         StartCoroutine(LifespanTimer());
         StartCoroutine(InvisibleTime(InvisibleStartTime));
@@ -60,6 +64,13 @@ public class Projectile : MonoBehaviour, IHitbox
 
     private void Update()
     {
+        if (enemyOwner.Dead)
+        {
+            Destroy(blobShadow.gameObject);
+            Destroy(gameObject);
+            return;
+        }
+
         Vector3 currentPos = transform.position;
         Quaternion rotation = Quaternion.LookRotation(Direction);
 
@@ -84,6 +95,7 @@ public class Projectile : MonoBehaviour, IHitbox
             player.GiveEnergy();
             ParticleSpawner.SpawnEnergy(transform, true, 4f, true);
             ParticleSpawner.Spawn(Particles.P_PinkMagicHit, transform.position);
+            Destroy(blobShadow.gameObject);
             Collider.enabled = false;
             this.enabled = false;
             Destroy(gameObject, 0.01f);

@@ -176,6 +176,7 @@ public class WallCrack : MonoBehaviourID
     {
         SessionSaveData.Instance.AddOrUpdateData(ID, true);
         ParticleSpawner.Spawn(Particles.P_BreakableWall, center, Quaternion.Euler(transform.eulerAngles.x, 180f, transform.eulerAngles.z));
+        SoundFXManager.instance.PlaySoundFXClip(FX.FX_break_wall, transform, 0.9f, 1.1f, 1f);
         Destroy(this.gameObject, 0.075f);
     }
 

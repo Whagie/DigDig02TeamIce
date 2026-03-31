@@ -762,7 +762,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0814fae7a0af44347a54fe629175936b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _id:
+    Value: 
+  DestroyCopies: 1
   Activated: 0
+  ShowInteractBubble: 1
   IsCarried: 0
   UIPos: {fileID: 2010397464646879511}
   InteractBubble: {fileID: 1359803806211350684}

@@ -28,6 +28,8 @@ public class SceneSwapManager : MonoBehaviour
 
     private DoorTriggerInteraction.DoorToSpawnAt _doorToSpawnTo;
 
+    public static bool IntroSequencing = true;
+
     private void Awake()
     {
         if (instance == null)

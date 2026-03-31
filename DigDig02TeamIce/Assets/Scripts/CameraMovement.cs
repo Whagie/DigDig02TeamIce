@@ -9,13 +9,11 @@ public class CameraMovement : MonoBehaviour
     private Player player;
     private Transform target;
     [HideInInspector] public Transform overrideTarget = null;
+    [HideInInspector] public Vector3? overrideTargetOffset = null;
     [HideInInspector] public float overrideTargetLerpValue = 1f;
 
     public Camera _camera;
     [HideInInspector] public AudioListener audioListener;
-    private float cameraStartDistanceZ;
-    private float cameraStartRotationX;
-    private float cameraStartPositionY;
 
     [Header("Follow")]
     public float maxDistance = 5f;
@@ -47,6 +45,8 @@ public class CameraMovement : MonoBehaviour
     float zoomDuration = 0.4f;
     float zoomStart;
     private bool zoomingBack = false;
+
+    private float? overrideMoveSpeedMultiplier = null;
 
     private GameObject tempCameraPos;
 
@@ -105,9 +105,6 @@ public class CameraMovement : MonoBehaviour
         rotationX = startX;
         rotationY = NormalizeAngle(euler.y);
 
-        cameraStartDistanceZ = _camera.transform.localPosition.z;
-        cameraStartRotationX = _camera.transform.rotation.x;
-        cameraStartPositionY = _camera.transform.localPosition.y;
         originalFOV = _camera.GetComponent<Camera>().fieldOfView;
 
         prevDistance = _camera.transform.localPosition.z;
@@ -157,7 +154,17 @@ public class CameraMovement : MonoBehaviour
 
         if (overrideTarget != null)
         {
-            tempCameraPos.transform.position = Vector3.Lerp(player.Center.position, overrideTarget ? overrideTarget.position : player.Center.position, overrideTargetLerpValue);
+            Vector3 offset2 = Vector3.zero;
+            if (overrideTargetOffset.HasValue)
+            {
+                offset2 = overrideTargetOffset.Value;
+            }
+            tempCameraPos.transform.position = Vector3.Lerp(player.Center.position, overrideTarget.position + offset2, overrideTargetLerpValue);
+            target = tempCameraPos.transform;
+        }
+        else if (overrideTargetOffset.HasValue)
+        {
+            tempCameraPos.transform.position = Vector3.Lerp(player.Center.position, player.Center.position + overrideTargetOffset.Value, overrideTargetLerpValue);
             target = tempCameraPos.transform;
         }
 
@@ -187,6 +194,12 @@ public class CameraMovement : MonoBehaviour
         if (recentering)
         {
             float smooth = (distance > maxDistance) ? moveSmoothSpeed : recenterSmoothSpeed;
+
+            if (overrideMoveSpeedMultiplier.HasValue)
+            {
+                smooth *= overrideMoveSpeedMultiplier.Value;
+            }
+
             Vector3 newPosition = Vector3.SmoothDamp(transform.position, desiredPosition, ref velocity, 1f / smooth);
 
             transform.position = newPosition;
@@ -455,11 +468,13 @@ public class CameraMovement : MonoBehaviour
         zoomT = 0f;
     }
 
-    public void ZoomBack(float duration)
+    public void ZoomBack(float duration, float? previousDistance = null)
     {
         zoomStart = _camera.transform.localPosition.z;
         if (prevDistance.HasValue)
             targetZoomDistance = prevDistance.Value;
+        if (previousDistance.HasValue)
+            targetZoomDistance = previousDistance.Value;
 
         zoomingBack = true;
         zoomDuration = duration;
@@ -472,9 +487,29 @@ public class CameraMovement : MonoBehaviour
         overrideTargetLerpValue = lerpValue;
     }
 
+    public void SetOverrideTarget(Vector3 offset, float lerpValue = 1f)
+    {
+        overrideTargetOffset = offset;
+        overrideTargetLerpValue = lerpValue;
+    }
+
     public void ClearOverrideTarget()
     {
         overrideTarget = null;
         overrideTargetLerpValue = 1f;
+    }
+    public void ClearOverrideTargetOffset()
+    {
+        overrideTargetOffset = null;
+        overrideTargetLerpValue = 1f;
+    }
+
+    public void SetOverrideMoveSpeedMultiplier(float speedMultiplier)
+    {
+        overrideMoveSpeedMultiplier = speedMultiplier;
+    }
+    public void ClearOverrideMoveSpeedMultiplier()
+    {
+        overrideMoveSpeedMultiplier = null;
     }
 }

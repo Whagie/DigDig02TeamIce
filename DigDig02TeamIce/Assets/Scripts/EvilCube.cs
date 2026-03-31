@@ -50,7 +50,7 @@ public class EvilCube : Enemy
         if (Dead)
             return;
 
-        if (DetectedPlayer)
+        if (DetectedPlayer && CanAttack)
         {
             if (shouldRotate)
             {
@@ -68,17 +68,21 @@ public class EvilCube : Enemy
     {
         PauseIntervalTimer = true;
         chargeUpVFX = Object.Instantiate(Particles.P_EvilBallCharge, Center.position, CrystalBall.transform.rotation);
+        SoundFXManager.instance.PlaySoundFXClip(FX.FX_baneful_ball_charge_up, transform, 1f);
 
         yield return new WaitForSeconds(1f);
 
         chargeUpVFX.transform.rotation = CrystalBall.transform.rotation;
         FireProjectile(Center, player.Center.transform);
         PauseIntervalTimer = false;
+        SoundFXManager.instance.PlaySoundFXClip(FX.FX_baneful_ball_shoot, transform, 0.9f, 1.1f, 1f);
     }
 
     public override void OnHit(IHitbox source)
     {
         base.OnHit(source);
+
+        SoundFXManager.instance.PlaySoundFXClip(FX.FX_crystal_hit, transform, 0.85f, 1.15f, 0.75f);
 
         if (Dead)
             return;

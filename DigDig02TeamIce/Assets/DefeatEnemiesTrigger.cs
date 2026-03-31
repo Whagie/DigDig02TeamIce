@@ -9,6 +9,8 @@ public class DefeatEnemiesTrigger : MonoBehaviour
     public List<Enemy> EnemiesToBeKilled = new();
     public OnEnemiesKilledEvent OnAllKilled;
 
+    public bool SlowDownTime = true;
+
     public bool LockPlayerMovement = true;
     public float DurationToLockPlayerMovement = 2f;
 
@@ -57,11 +59,14 @@ public class DefeatEnemiesTrigger : MonoBehaviour
 
     private IEnumerator OnEnemiesKilledRoutine()
     {
-        Freezer.LerpTimeScale(0.1f, 0.25f, 1f, 0.5f);
-
-        while (Freezer.IsTimeScaling)
+        if (SlowDownTime)
         {
-            yield return null;
+            Freezer.LerpTimeScale(0.1f, 0.25f, 1f, 0.5f);
+
+            while (Freezer.IsTimeScaling)
+            {
+                yield return null;
+            }
         }
 
         OnAllKilled?.Invoke();

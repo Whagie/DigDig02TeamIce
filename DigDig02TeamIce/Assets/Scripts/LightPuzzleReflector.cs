@@ -35,6 +35,7 @@ public class LightPuzzleReflector : MonoBehaviourID
     public bool ReceivingLight => activeCrystalHits > 0;
 
     public bool Glowing = false;
+    [HideInInspector] public bool Solved = false;
 
     private Player player;
 
@@ -44,20 +45,19 @@ public class LightPuzzleReflector : MonoBehaviourID
 
     private SessionSaveData.LightReflectorData reflectorData;
 
-    private PushableObject pushable;
-    private Vector2Int? originCoord = null;
+    public PushableObject Pushable;
 
     private void OnEnable()
     {
         PlayerDetectionTrigger.OnEnter += TriggerEnter;
         PlayerDetectionTrigger.OnExit += TriggerExit;
-        SceneSwapManager.instance.OnStartSceneSwap += SaveData;
+        //SceneSwapManager.instance.OnStartSceneSwap += SaveData;
     }
     private void OnDisable()
     {
         PlayerDetectionTrigger.OnEnter -= TriggerEnter;
         PlayerDetectionTrigger.OnExit -= TriggerExit;
-        SceneSwapManager.instance.OnStartSceneSwap -= SaveData;
+        //SceneSwapManager.instance.OnStartSceneSwap -= SaveData;
     }
 
     private void Start()
@@ -75,35 +75,28 @@ public class LightPuzzleReflector : MonoBehaviourID
         origGlowColor = glowMaterial.GetColor("_EmissionColor");
         depletedGlowColor = origGlowColor * 0.0125f;
 
-        if (TryGetComponent<PushableObject>(out pushable))
-        {
-            if (pushable.Grid != null)
-            {
-                originCoord = pushable.OriginCoord;
-            }
-        }
+        TryGetComponent<PushableObject>(out Pushable);
 
         if (SessionSaveData.Instance.TryGet(ID, out reflectorData))
         {
-            transform.position = reflectorData.Position;
-            Reflector.transform.localRotation = reflectorData.ReflectorRotation;
-            Glowing = reflectorData.Glowing;
-            if (originCoord.HasValue)
+            if (reflectorData.Solved)
             {
-                pushable.OriginCoord = originCoord.Value;
-                originCoord = originCoord.Value;
-
-                pushable.Grid.SetOccupiedArea(
-                    pushable.OriginCoord,
-                    pushable.LengthOnGridX,
-                    pushable.LengthOnGridZ,
-                    pushable
-                );
+                Solved = reflectorData.Solved;
+                Reflector.transform.localRotation = reflectorData.ReflectorRotation;
+                Glowing = reflectorData.Glowing;
             }
         }
         else
         {
-            SessionSaveData.Instance.AddOrUpdateData(ID, transform.position, Reflector.transform.localRotation, Glowing, originCoord);
+            SessionSaveData.Instance.AddOrUpdateData(ID, Reflector.transform.localRotation, Glowing, Solved);
+        }
+
+        if (Solved)
+        {
+            if (Pushable != null)
+            {
+
+            }
         }
 
         if (Glowing)
@@ -153,6 +146,8 @@ public class LightPuzzleReflector : MonoBehaviourID
 
         allowForInputs = false;
         StartCoroutine(RotateReflectorRoutine(direction));
+
+        SoundFXManager.instance.PlaySoundFXClip(FX.FX_rotate_stone, transform, 0.9f, 1.35f, 0.75f);
     }
 
     private IEnumerator RotateReflectorRoutine(int direction)
@@ -318,9 +313,9 @@ public class LightPuzzleReflector : MonoBehaviourID
         }
     }
 
-    private void SaveData()
+    public void SaveData()
     {
-        SessionSaveData.Instance.AddOrUpdateData(ID, transform.position, Reflector.transform.localRotation, Glowing, originCoord);
+        SessionSaveData.Instance.AddOrUpdateData(ID, Reflector.transform.localRotation, Glowing, Solved);
     }
 
     //private void OnDrawGizmosSelected()

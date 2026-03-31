@@ -10,6 +10,8 @@ using UnityEngine.UI;
 public class OrbKeyReceiver : MonoBehaviourID
 {
     public Transform OrbKeyPosition;
+    public GameObject HiddenOrb;
+
     public OnReceiveKeyEvent OnReceiveKey;
 
     public float DurationToLockPlayerMovement = 2.3f;
@@ -60,6 +62,8 @@ public class OrbKeyReceiver : MonoBehaviourID
 
         glowMaterial.SetColor("_EmissionColor", depletedGlowColor);
 
+        HiddenOrb.SetActive(false);
+
         if (SessionSaveData.Instance.TryGet(ID, out receivedOrbData))
         {
             Activated = receivedOrbData.IsTrue;
@@ -72,6 +76,7 @@ public class OrbKeyReceiver : MonoBehaviourID
         if (Activated)
         {
             glowMaterial.SetColor("_EmissionColor", origGlowColor);
+            HiddenOrb.SetActive(true);
         }
 
         cam = Camera.main.transform;

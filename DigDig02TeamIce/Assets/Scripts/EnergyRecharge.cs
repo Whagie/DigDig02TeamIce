@@ -86,6 +86,8 @@ public class EnergyRecharge : MonoBehaviourID, IHurtbox
 
     public void OnHit(IHitbox source)
     {
+        SoundFXManager.instance.PlaySoundFXClip(FX.FX_crystal_hit, transform, 1f, 1.5f, 1f);
+
         if (energyAmount <= 0)
             return;
 

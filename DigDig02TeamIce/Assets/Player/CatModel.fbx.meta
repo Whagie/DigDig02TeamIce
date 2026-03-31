@@ -12,6 +12,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Crystal
+    second: {fileID: 2100000, guid: 9473783b3f5daa24e858015196937f3b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Face
     second: {fileID: 2100000, guid: 3b809737674fe9e409f5a9bb566f1fd3, type: 2}
   - first:
@@ -24,6 +29,16 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: Rough scratched metal
     second: {fileID: 2100000, guid: eaff521e961bddf4e8e39ed667536aa7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: ShieldMetalDark
+    second: {fileID: 2100000, guid: 22a7fd33ede15c1409d7062984a75d53, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: ShieldMetalLight
+    second: {fileID: 2100000, guid: fa24c64af954ff342ba10cdcf6ea7f6c, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

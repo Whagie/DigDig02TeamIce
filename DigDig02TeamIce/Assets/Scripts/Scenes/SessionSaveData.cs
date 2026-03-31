@@ -29,10 +29,9 @@ public class SessionSaveData : MonoBehaviour
     public struct LightReflectorData
     {
         public string ID;
-        public Vector3 Position;
         public Quaternion ReflectorRotation;
         public bool Glowing;
-        public Vector2Int? OriginCoord;
+        public bool Solved;
     }
 
     public struct LightPuzzleGeneralData
@@ -40,6 +39,14 @@ public class SessionSaveData : MonoBehaviour
         public string ID;
         public bool Glowing;
         public bool ReceiverActivated;
+    }
+
+    public struct PushableObjectData
+    {
+        public string ID;
+        public Vector3 Position;
+        public Vector2Int OriginCoord;
+        public bool Solved;
     }
 
     public Dictionary<string, EnemyDeathData> DeadEnemies = new();
@@ -51,6 +58,8 @@ public class SessionSaveData : MonoBehaviour
     public Dictionary<string, LightReflectorData> LightReflectors = new();
 
     public Dictionary<string, LightPuzzleGeneralData> LightPuzzleObjects = new();
+
+    public Dictionary<string, PushableObjectData> PushableObjects = new();
 
     private void Awake()
     {
@@ -89,14 +98,13 @@ public class SessionSaveData : MonoBehaviour
         };
     }
 
-    public void AddOrUpdateData(string id, Vector3 position, Quaternion reflectorRotation, bool glowing, Vector2Int? originCoord)
+    public void AddOrUpdateData(string id, Quaternion reflectorRotation, bool glowing, bool solved)
     {
         LightReflectors[id] = new LightReflectorData
         {
-            Position = position,
             ReflectorRotation = reflectorRotation,
             Glowing = glowing,
-            OriginCoord = originCoord
+            Solved = solved
         };
     }
 
@@ -106,6 +114,16 @@ public class SessionSaveData : MonoBehaviour
         {
             Glowing = glowing,
             ReceiverActivated = receiverActivated
+        };
+    }
+
+    public void AddOrUpdateData(string id, Vector3 position, Vector2Int originCoord, bool solved)
+    {
+        PushableObjects[id] = new PushableObjectData
+        {
+            Position = position,
+            OriginCoord = originCoord,
+            Solved = solved
         };
     }
 
@@ -129,13 +147,18 @@ public class SessionSaveData : MonoBehaviour
     {
         return LightPuzzleObjects.TryGetValue(id, out data);
     }
+    public bool TryGet(string id, out PushableObjectData data)
+    {
+        return PushableObjects.TryGetValue(id, out data);
+    }
 
     public void ClearAllData()
     {
         DeadEnemies.Clear();
         EnergyRechargeCrystals.Clear();
         SpikeGateStates.Clear();
-        LightReflectors.Clear();
+        PushableObjects.Clear();
         LightPuzzleObjects.Clear();
+        PushableObjects.Clear();
     }
 }

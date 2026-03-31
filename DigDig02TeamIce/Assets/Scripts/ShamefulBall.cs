@@ -82,6 +82,7 @@ public class ShamefulBall : Enemy
         yield return new WaitForSeconds(extraWait);
 
         chargeUpVFX = Object.Instantiate(Particles.P_ShamefulBallCharge, Center.position, CrystalBall.transform.rotation);
+        SoundFXManager.instance.PlaySoundFXClip(FX.FX_baneful_ball_charge_up, transform, 1.15f);
 
         yield return new WaitForSeconds(1.2f);
 
@@ -116,6 +117,8 @@ public class ShamefulBall : Enemy
     public override void OnHit(IHitbox source)
     {
         base.OnHit(source);
+
+        SoundFXManager.instance.PlaySoundFXClip(FX.FX_crystal_hit, transform, 0.85f, 1.15f, 0.75f);
 
         if (Dead)
             return;

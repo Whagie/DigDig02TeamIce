@@ -41,6 +41,7 @@ public class WrenchAttack : MeleeAttack
             }
 
             CameraActions.Main.Punch(-0.08f, 0.035f);
+            SoundFXManager.instance.PlaySoundFXClip(FX.FX_player_attack, transform, 0.8f, 1.2f, 0.9f);
             Freezer.Freeze(0.015f);
         }
     }

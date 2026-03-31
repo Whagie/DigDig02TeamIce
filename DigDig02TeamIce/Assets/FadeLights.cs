@@ -2,15 +2,41 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FadeLights : MonoBehaviour
+public class FadeLights : MonoBehaviourID
 {
     public List<ParticleSystem> particleSystems = new();
     public List<Light> lights = new();
 
     public float FadeOutDuration = 1f;
-    public float FadeInDuration = 1f;
 
     [HideInInspector] public bool FadedOut = false;
+
+    private SessionSaveData.SingleBoolData fadedData;
+
+    private void Start()
+    {
+        if (SessionSaveData.Instance.TryGet(ID, out fadedData))
+        {
+            FadedOut = fadedData.IsTrue;
+        }
+        else
+        {
+            SessionSaveData.Instance.AddOrUpdateData(ID, FadedOut);
+        }
+
+        if (FadedOut)
+        {
+            foreach (var light in lights)
+            {
+                Destroy(light.gameObject);
+            }
+
+            foreach (var particles in particleSystems)
+            {
+                Destroy(particles.gameObject);
+            }
+        }
+    }
 
     public void FadeOutParticles()
     {
@@ -23,6 +49,8 @@ public class FadeLights : MonoBehaviour
     private IEnumerator FadeOutRoutine()
     {
         FadedOut = true;
+        SessionSaveData.Instance.AddOrUpdateData(ID, FadedOut);
+
         float time = 0f;
 
         // Cache materials once (important so we don't create new instances every frame)

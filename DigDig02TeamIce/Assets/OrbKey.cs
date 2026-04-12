@@ -28,7 +28,7 @@ public class OrbKey : MonoBehaviourID
 
     private Coroutine currentFade;
 
-    private SessionSaveData.SingleBoolData receivedOrbData;
+    private SingleBoolData receivedOrbData;
 
     private void Start()
     {
@@ -89,6 +89,8 @@ public class OrbKey : MonoBehaviourID
         {
             player = p;
             player.CurrentOrbKey = this;
+            player.Companion.carriedObjectID = ID;
+            SaveSystem.Data.constructCarriedItem = ID;
 
             bobHeight = TalkingBobHeight;
             bobSpeed = TalkingBobSpeed;
@@ -107,6 +109,8 @@ public class OrbKey : MonoBehaviourID
         if (p != null && p == player)
         {
             player.CurrentOrbKey = null;
+            player.Companion.carriedObjectID = string.Empty;
+            SaveSystem.Data.constructCarriedItem = string.Empty;
 
             bobSpeed = IdleBobSpeed;
             bobHeight = IdleBobHeight;

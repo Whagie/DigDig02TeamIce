@@ -14,12 +14,37 @@ public class DefeatEnemiesTrigger : MonoBehaviour
     public bool LockPlayerMovement = true;
     public float DurationToLockPlayerMovement = 2f;
 
-    [HideInInspector] public bool Activated = false;
+    public bool SetRespawnsLeft = false;
+    public int RespawnsToSet = 0;
+
+    public bool Activated = false;
+    public bool ShouldMarkSelfActivated = true;
+
+    public bool ResetPlayerHealthOnDefeat = true;
+
     private Player player;
+
+    [SerializeField] private MonoBehaviourID emptyID;
+
+    private SingleBoolData activatedData;
 
     private void Start()
     {
+        emptyID = GetComponentInChildren<MonoBehaviourID>();
+
         player = FindObjectOfType<Player>();
+
+        if (emptyID != null)
+        {
+            if (SessionSaveData.Instance.TryGet(emptyID.ID, out activatedData))
+            {
+                Activated = activatedData.IsTrue;
+            }
+            else
+            {
+                SessionSaveData.Instance.AddOrUpdateData(emptyID.ID, Activated);
+            }
+        }
     }
 
     private void Update()
@@ -34,7 +59,10 @@ public class DefeatEnemiesTrigger : MonoBehaviour
         foreach (var enemy in EnemiesToBeKilled)
         {
             if (enemy == null)
+            {
+                amountDead++;
                 continue;
+            }
 
             if (enemy.Dead)
             {
@@ -54,6 +82,15 @@ public class DefeatEnemiesTrigger : MonoBehaviour
             return;
 
         Activated = true;
+
+        if (ShouldMarkSelfActivated)
+        {
+            if (emptyID != null)
+            {
+                SessionSaveData.Instance.AddOrUpdateData(emptyID.ID, Activated);
+            }
+        }
+
         StartCoroutine(OnEnemiesKilledRoutine());
     }
 
@@ -70,9 +107,33 @@ public class DefeatEnemiesTrigger : MonoBehaviour
         }
 
         OnAllKilled?.Invoke();
-        if (player != null && LockPlayerMovement)
+        if (player != null)
         {
-            player.LockMovement(DurationToLockPlayerMovement);
+            if (ResetPlayerHealthOnDefeat)
+            {
+                player.Health = player.MaxHealth;
+            }
+            if (LockPlayerMovement)
+            {
+                player.LockMovement(DurationToLockPlayerMovement);
+            }
+        }
+
+        if (SetRespawnsLeft)
+        {
+            if (DeathSceneManager.Instance != null)
+            {
+                DeathSceneManager.Instance.AlterRespawnsLeft(RespawnsToSet);
+            }
+        }
+    }
+
+    public void MarkActivated()
+    {
+        Activated = true;
+        if (emptyID != null)
+        {
+            SessionSaveData.Instance.AddOrUpdateData(emptyID.ID, Activated);
         }
     }
 }

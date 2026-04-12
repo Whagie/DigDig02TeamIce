@@ -91,7 +91,21 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.090299815
+        functionName: PlayFootstepSound
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.5827844
+        functionName: PlayFootstepSound
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}
@@ -207,7 +221,21 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.4826526
+        functionName: PlayFootstepSound
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.9862434
+        functionName: PlayFootstepSound
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}
@@ -603,7 +631,21 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.36134833
+        functionName: PlayFootstepSound
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.9964051
+        functionName: PlayFootstepSound
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}
@@ -632,7 +674,21 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.3840575
+        functionName: PlayFootstepSound
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.96000004
+        functionName: PlayFootstepSound
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c655c7c91c5651540928045ff6d38423, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}

@@ -24,6 +24,8 @@ public class LostCastleRat : MonoBehaviour
 
     public bool Activated = true;
 
+    public static bool FoundOrb = false;
+
     private void Start()
     {
         cam = Camera.main.transform;
@@ -65,9 +67,10 @@ public class LostCastleRat : MonoBehaviour
             bobHeight = TalkingBobHeight;
             bobSpeed = TalkingBobSpeed;
 
-            if (player.Companion.isCarrying)
+            if (player.Companion.isCarrying || FoundOrb)
             {
                 FadeTo(InteractBubble, FoundOrbBubble, 0.25f);
+                FoundOrb = true;
             }
             else
             {

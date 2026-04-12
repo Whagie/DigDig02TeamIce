@@ -13,6 +13,7 @@ public class MonoBehaviourID : MonoBehaviour
     public string ID
     {
         get { return _id.Value; }
+        set { _id.Value = value; }
     }
 
     [ContextMenu("Force reset ID")]

@@ -201,7 +201,6 @@ Transform:
   - {fileID: 4993164216130030727}
   - {fileID: 1629272369622086569}
   - {fileID: 5534344259267062487}
-  - {fileID: 4897638990058094490}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2981294601026267416
@@ -218,16 +217,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _id:
     Value: 
+  DestroyCopies: 0
   stats:
     layers:
       serializedVersion: 2
       m_Bits: 768
-    health: 3
-    maxHealth: 3
-    alertRadius: 12
-    chaseAlertRadius: 20
-    visionLength: 12
-    chaseVisionLength: 20
+    health: 4
+    maxHealth: 4
+    alertRadius: 20
+    chaseAlertRadius: 30
+    visionLength: 20
+    chaseVisionLength: 30
     visionAngle: 360
     marginDegrees: 4
     visionRotation: {x: 0, y: 0, z: 0}
@@ -242,8 +242,10 @@ MonoBehaviour:
   enemyUI: {fileID: 0}
   ShouldRotate: 0
   AllowPushback: 0
+  StartAwake: 1
   ChildrenWithFlashEffect: []
   Actions: []
+  CanAttack: 1
   _animator: {fileID: 0}
   NavAgent: {fileID: 0}
   tempSpeed: 1
@@ -252,16 +254,18 @@ MonoBehaviour:
   ProjectileDamage: 1
   projectilePrefab: {fileID: 1782397548072673728, guid: 8f5c11f31697bf6448f90bcf5316b539, type: 3}
   DistanceToPlayer: 0
+  CanRegisterToCombatList: 1
   MainCollider: {fileID: 767568192787511752}
   CrystalBall: {fileID: 4853907824647751159}
   originalObject: {fileID: 4853907824647751159}
   fracturedObject: {fileID: 8701161170803899581, guid: 03063c6ac60091b4d86ad98c1fe1e6e9, type: 3}
   epxlosionMinForce: 40
-  explosionMaxForce: 100
-  explosionForceRadius: 70
+  explosionMaxForce: 70
+  explosionForceRadius: 7.5
   ShrinkDuration: 0.75
   ShrinkDelay: 0.75
-  suckInterval: 5
+  suckInterval: 4
+  startDelay: 0
 --- !u!136 &767568192787511752
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -884,93 +888,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1001 &6246809048479002081
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 3822087358449040778}
-    m_Modifications:
-    - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 1.75
-      objectReference: {fileID: 0}
-    - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 1.75
-      objectReference: {fileID: 0}
-    - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 1.75
-      objectReference: {fileID: 0}
-    - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.025
-      objectReference: {fileID: 0}
-    - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: m_ConstrainProportionsScale
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3887685289496015630, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: m_Name
-      value: BlobShadow
-      objectReference: {fileID: 0}
-    - target: {fileID: 5647199914955635245, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: target
-      value: 
-      objectReference: {fileID: 3822087358449040778}
-    - target: {fileID: 5647199914955635245, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: raycastHeight
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5647199914955635245, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-      propertyPath: groundMask.m_Bits
-      value: 68173841
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
---- !u!4 &4897638990058094490 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1533184362580447867, guid: 77c06af78bf715f4894a38444cd80560, type: 3}
-  m_PrefabInstance: {fileID: 6246809048479002081}
-  m_PrefabAsset: {fileID: 0}

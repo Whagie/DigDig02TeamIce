@@ -213,7 +213,6 @@ MonoBehaviour:
   energyAmount: 6
   Depleted: 0
   ShouldResetOnLoad: 1
-  OnHitFX: {fileID: 8300000, guid: aea80c296d19df440a58fb31ccba9ce1, type: 3}
 --- !u!1 &4576199435535600026
 GameObject:
   m_ObjectHideFlags: 0

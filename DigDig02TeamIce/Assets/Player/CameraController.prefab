@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4589018699575505713}
   - component: {fileID: 1843628108118017161}
+  - component: {fileID: 1793600144438628838}
   m_Layer: 0
   m_Name: CameraController
   m_TagString: Untagged
@@ -45,6 +46,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7febbc60f1be9c44395f82d71f73c040, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  overrideTarget: {fileID: 0}
+  overrideTargetLerpValue: 1
   _camera: {fileID: 7657725137219846885}
   audioListener: {fileID: 0}
   maxDistance: 1
@@ -52,6 +55,14 @@ MonoBehaviour:
   recenterSmoothSpeed: 2
   followY: 1
   StaticCamera: 0
+--- !u!81 &1793600144438628838
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1675376608261923872}
+  m_Enabled: 1
 --- !u!1 &6225760297483182791
 GameObject:
   m_ObjectHideFlags: 0
@@ -62,7 +73,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8834840529474110449}
   - component: {fileID: 7657725137219846885}
-  - component: {fileID: 4100772789458602759}
   - component: {fileID: 5468874952896708088}
   - component: {fileID: 2747116646751212414}
   m_Layer: 0
@@ -138,14 +148,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!81 &4100772789458602759
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6225760297483182791}
-  m_Enabled: 1
 --- !u!114 &5468874952896708088
 MonoBehaviour:
   m_ObjectHideFlags: 0

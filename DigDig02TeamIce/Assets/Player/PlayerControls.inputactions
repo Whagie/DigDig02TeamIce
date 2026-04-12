@@ -387,7 +387,7 @@
                 {
                     "name": "",
                     "id": "8cde0c99-45c1-4be6-8c1a-207921af8282",
-                    "path": "<Keyboard>/t",
+                    "path": "<Keyboard>/escape",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -419,8 +419,30 @@
                 },
                 {
                     "name": "",
+                    "id": "c2766bcc-562f-426f-a114-1376ce0d5bb6",
+                    "path": "<Gamepad>/dpad/left",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RunePuzzleLeft",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "9d1c8c9b-dd79-4b39-8392-d32ea1bdbc8a",
                     "path": "<Keyboard>/rightArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RunePuzzleRight",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1e3c8fb5-69a9-407a-9392-04d28d239c10",
+                    "path": "<Gamepad>/dpad/right",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -441,8 +463,30 @@
                 },
                 {
                     "name": "",
+                    "id": "6f42b0e7-847c-4e5b-a600-dbb9e24203b2",
+                    "path": "<Gamepad>/dpad/up",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RunePuzzleNextDisk",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "2fe5e2bc-1ff1-4854-9838-5fa5982cfdec",
                     "path": "<Keyboard>/downArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RunePuzzlePreviousDisk",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1df698a0-03a0-4625-8e29-3167b6d34efe",
+                    "path": "<Gamepad>/dpad/down",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

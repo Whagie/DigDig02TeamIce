@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class EnergyRecharge : MonoBehaviourID, IHurtbox
 {
-    private SessionSaveData.EnergyRechargeData RechargeData;
+    private EnergyRechargeData RechargeData;
     public GameObject Owner => gameObject;
     public Collider Collider { get; set; }
     public bool UseMeshCollision { get; set; } = false;

@@ -15,10 +15,10 @@ public class Projectile : MonoBehaviour, IHitbox
     public GameObject Parent { get; set; }
     public int Damage { get; set; } = 1;
     public Transform Target { get; set; }
-    public float Speed { get; set; } = 8f;
+    public float Speed = 8f;
     public float Lifespan { get; set; } = 10f;
     public bool Seeking { get; set; } = false;
-    public float InvisibleStartTime = 0.5f;
+    public float InvisibleStartTime = 0.4f;
 
     public GameObject BlobShadow;
     private BlobShadowMesh blobShadow;

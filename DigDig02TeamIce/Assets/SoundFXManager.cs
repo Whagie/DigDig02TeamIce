@@ -6,7 +6,9 @@ public class SoundFXManager : MonoBehaviour
 {
     public static SoundFXManager instance;
 
-    [SerializeField] private AudioSource soundFXObject;
+    [SerializeField] private SoundFXAudioSource soundFXObject;
+
+    public List<SoundFXAudioSource> SoundFXAudioSources = new();
 
     private void Awake()
     {
@@ -24,17 +26,17 @@ public class SoundFXManager : MonoBehaviour
             return;
         }
 
-        AudioSource audioSource = Instantiate(soundFXObject, spawnTransform.position, Quaternion.identity);
+        SoundFXAudioSource audioSource = Instantiate(soundFXObject, spawnTransform.position, Quaternion.identity);
 
-        audioSource.clip = audioClip;
+        audioSource.audioSource.clip = audioClip;
 
-        audioSource.volume = volume;
+        audioSource.audioSource.volume = volume;
 
-        audioSource.PlayOneShot(audioClip);
+        audioSource.audioSource.Play();
 
-        float clipLength = audioSource.clip.length;
+        float clipLength = audioSource.audioSource.clip.length;
 
-        Destroy(audioSource.gameObject, clipLength);
+        audioSource.DurationBeforeDestroy = clipLength;
     }
 
     /// <summary>
@@ -53,23 +55,23 @@ public class SoundFXManager : MonoBehaviour
             return;
         }
 
-        AudioSource audioSource = Instantiate(soundFXObject, spawnTransform.position, Quaternion.identity);
+        SoundFXAudioSource audioSource = Instantiate(soundFXObject, spawnTransform.position, Quaternion.identity);
 
-        audioSource.clip = audioClip;
+        audioSource.audioSource.clip = audioClip;
 
-        audioSource.volume = volume;
+        audioSource.audioSource.volume = volume;
 
         float randomPitch = Random.Range(pitchLowerLimit, pitchUpperLimit);
-        audioSource.pitch = randomPitch;
+        audioSource.audioSource.pitch = randomPitch;
 
-        audioSource.PlayOneShot(audioClip);
+        audioSource.audioSource.Play();
 
-        float clipLength = audioSource.clip.length;
+        float clipLength = audioSource.audioSource.clip.length;
 
-        Destroy(audioSource.gameObject, clipLength);
+        audioSource.DurationBeforeDestroy = clipLength;
     }
 
-    public void PlaySoundFXClipLooping(AudioClip audioClip, Transform spawnTransform, out AudioSource source, float volume = 1f)
+    public void PlaySoundFXClipLooping(AudioClip audioClip, Transform spawnTransform, out AudioSource source, float volume = 1f, float pitch = 1f)
     {
         if (audioClip == null)
         {
@@ -78,16 +80,66 @@ public class SoundFXManager : MonoBehaviour
             return;
         }
 
-        AudioSource audioSource = Instantiate(soundFXObject, spawnTransform.position, Quaternion.identity, spawnTransform);
+        SoundFXAudioSource audioSource = Instantiate(soundFXObject, spawnTransform.position, Quaternion.identity, spawnTransform);
 
-        audioSource.loop = true;
+        audioSource.audioSource.loop = true;
 
-        audioSource.clip = audioClip;
+        audioSource.audioSource.clip = audioClip;
 
-        audioSource.volume = volume;
+        audioSource.audioSource.volume = volume;
 
-        audioSource.Play();
+        audioSource.audioSource.pitch = pitch;
 
-        source = audioSource;
+        audioSource.audioSource.Play();
+
+        source = audioSource.audioSource;
+    }
+
+    public void PlayUISoundFX(AudioClip audioClip, bool addToUIGroup = false, float volume = 1f, float pitch = 1f)
+    {
+        if (audioClip == null)
+        {
+            Debug.LogWarning($"AudioClip was null!");
+            return;
+        }
+
+        SoundFXAudioSource audioSource = Instantiate(soundFXObject, transform.position, Quaternion.identity);
+
+        if (addToUIGroup)
+        {
+            audioSource.audioSource.outputAudioMixerGroup = audioSource.UIMixerGroup;
+        }
+
+        audioSource.audioSource.clip = audioClip;
+        audioSource.audioSource.volume = volume;
+        audioSource.audioSource.pitch = pitch;
+
+        audioSource.audioSource.Play();
+
+        float clipLength = audioSource.audioSource.clip.length;
+
+        audioSource.DurationBeforeDestroy = clipLength;
+    }
+
+    public void PauseSoundEffects()
+    {
+        foreach (var fx in SoundFXAudioSources)
+        {
+            if (fx != null)
+            {
+                fx.audioSource.Pause();
+            }
+        }
+    }
+
+    public void UnpauseSoundEffects()
+    {
+        foreach (var fx in SoundFXAudioSources)
+        {
+            if (fx != null)
+            {
+                fx.audioSource.UnPause();
+            }
+        }
     }
 }

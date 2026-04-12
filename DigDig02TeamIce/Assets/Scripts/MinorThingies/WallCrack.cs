@@ -1,8 +1,9 @@
+using System;
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class WallCrack : MonoBehaviourID
+public class WallCrack : MonoBehaviour
 {
     [SerializeField] private GameObject Surface;
     [SerializeField] private bool liveTextureUpdate = false;
@@ -25,7 +26,8 @@ public class WallCrack : MonoBehaviourID
     public bool ExplodeOnLoad;
     public float explodeOnLoadTimer = 0.2f;
 
-    private SessionSaveData.SingleBoolData destroyedData;
+    [SerializeField] private MonoBehaviourID emptyID;
+    private SingleBoolData destroyedData;
 
     private void Awake()
     {
@@ -35,16 +37,21 @@ public class WallCrack : MonoBehaviourID
     }
     private void Start()
     {
-        if (SessionSaveData.Instance.TryGet(ID, out destroyedData))
+        emptyID = GetComponentInChildren<MonoBehaviourID>();
+
+        if (emptyID != null)
         {
-            if (destroyedData.IsTrue)
+            if (SessionSaveData.Instance.TryGet(emptyID.ID, out destroyedData))
             {
-                Destroy(gameObject);
+                if (destroyedData.IsTrue)
+                {
+                    Destroy(gameObject);
+                }
             }
-        }
-        else
-        {
-            SessionSaveData.Instance.AddOrUpdateData(ID, false);
+            else
+            {
+                SessionSaveData.Instance.AddOrUpdateData(emptyID.ID, false);
+            }
         }
 
         if (ExplodeOnLoad)
@@ -140,7 +147,7 @@ public class WallCrack : MonoBehaviourID
         cachedRenderer.SetPropertyBlock(mpb);
     }
 
-    private new void OnValidate()
+    private void OnValidate()
     {
         EnsureMaterial();
         ApplyProperties();
@@ -174,15 +181,17 @@ public class WallCrack : MonoBehaviourID
 
     public void Break()
     {
-        SessionSaveData.Instance.AddOrUpdateData(ID, true);
-        ParticleSpawner.Spawn(Particles.P_BreakableWall, center, Quaternion.Euler(transform.eulerAngles.x, 180f, transform.eulerAngles.z));
-        SoundFXManager.instance.PlaySoundFXClip(FX.FX_break_wall, transform, 0.9f, 1.1f, 1f);
-        Destroy(this.gameObject, 0.075f);
+        SessionSaveData.Instance.AddOrUpdateData(emptyID.ID, true);
+        SoundFXManager.instance.PlaySoundFXClip(FX.FX_break_wall, transform, 0.9f, 1.1f, 1.35f);
+
+        StartCoroutine(WaitAndExplodeOnLoadRoutine(0.05f));
     }
 
-    private IEnumerator WaitAndExplodeOnLoadRoutine(float duration)
+    public IEnumerator WaitAndExplodeOnLoadRoutine(float duration)
     {
         yield return new WaitForSeconds(duration);
-        Break();
+
+        ParticleSpawner.Spawn(Particles.P_BreakableWall, center, Quaternion.Euler(transform.eulerAngles.x, 180f, transform.eulerAngles.z));
+        Destroy(this.gameObject, 0.075f);
     }
 }

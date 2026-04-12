@@ -47,10 +47,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 863b02f30f8f56444bb08180f2a2c61b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _id:
+    Value: 
+  DestroyCopies: 0
   ReceivingLight: 0
-  Crystal: {fileID: 5789360842625686677}
+  Crystal: {fileID: 6852892829752495056}
+  Pole: {fileID: 6081963311964889705}
   origBaseColor: {r: 0, g: 0, b: 0, a: 0}
   origTopColor: {r: 0, g: 0, b: 0, a: 0}
+  origGlowColor: {r: 0, g: 0, b: 0, a: 0}
   StartGlowDuration: 0.4
   DropDuration: 0.75
   Glowing: 1
@@ -217,13 +222,18 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8196c6d518ede96408fdbfa24d6ec768, type: 3}
---- !u!1 &5789360842625686677 stripped
+--- !u!1 &6081963311964889705 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 8196c6d518ede96408fdbfa24d6ec768, type: 3}
+  m_CorrespondingSourceObject: {fileID: -8578827625446800467, guid: 8196c6d518ede96408fdbfa24d6ec768, type: 3}
   m_PrefabInstance: {fileID: 6671687928681308612}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &6565159395791128111 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 8196c6d518ede96408fdbfa24d6ec768, type: 3}
+  m_PrefabInstance: {fileID: 6671687928681308612}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &6852892829752495056 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 255796341139548692, guid: 8196c6d518ede96408fdbfa24d6ec768, type: 3}
   m_PrefabInstance: {fileID: 6671687928681308612}
   m_PrefabAsset: {fileID: 0}

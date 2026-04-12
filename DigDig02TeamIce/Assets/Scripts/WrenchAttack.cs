@@ -12,13 +12,23 @@ public class WrenchAttack : MeleeAttack
         PlayerAttack = true;
         DestroyOnHit = false;
         LayerMask = layers;
+        Damage = player.MeleeDamage;
         Deactivate();
     }
 
     public override void OnHit(IHurtbox target)
     {
+        Damage = player.MeleeDamage;
+
         target.OnHit(this);
         ParticleSpawner.Spawn(Particles.P_spark, endPoint.position);
+
+        if (target.Owner.CompareTag("MeleeBlocker"))
+        {
+            Deactivate();
+            SoundFXManager.instance.PlaySoundFXClip(FX.FX_player_attack, transform, 0.6f, 1f, 0.75f);
+            return;
+        }
 
         if (target.Owner.TryGetComponent<EnergyRecharge>(out EnergyRecharge recharge))
         {

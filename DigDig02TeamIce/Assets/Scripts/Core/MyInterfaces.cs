@@ -28,4 +28,9 @@ namespace Game.Core
     {
         void ApplyPushback(Vector3 direction, float force, float duration);
     }
+
+    public interface ISaveDataWithID
+    {
+        string ID { get; }
+    }
 }

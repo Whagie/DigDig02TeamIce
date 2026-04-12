@@ -11,7 +11,7 @@ public class FadeLights : MonoBehaviourID
 
     [HideInInspector] public bool FadedOut = false;
 
-    private SessionSaveData.SingleBoolData fadedData;
+    private SingleBoolData fadedData;
 
     private void Start()
     {

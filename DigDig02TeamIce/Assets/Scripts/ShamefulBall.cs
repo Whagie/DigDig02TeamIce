@@ -25,6 +25,8 @@ public class ShamefulBall : Enemy
 
 
     [SerializeField] private float suckInterval = 2.5f;
+    [SerializeField] private float startDelay = 0f;
+    private bool haveDelayed = false;
 
     protected override void Awake()
     {
@@ -80,6 +82,12 @@ public class ShamefulBall : Enemy
         PauseIntervalTimer = true;
 
         yield return new WaitForSeconds(extraWait);
+
+        if (!haveDelayed)
+        {
+            haveDelayed = true;
+            yield return new WaitForSeconds(startDelay);
+        }
 
         chargeUpVFX = Object.Instantiate(Particles.P_ShamefulBallCharge, Center.position, CrystalBall.transform.rotation);
         SoundFXManager.instance.PlaySoundFXClip(FX.FX_baneful_ball_charge_up, transform, 1.15f);
@@ -151,6 +159,7 @@ public class ShamefulBall : Enemy
         shouldRotate = false;
         Destroy(chargeUpVFX);
         StopAllCoroutines();
+        StartCoroutine(WaitAndDisableCollider());
         Explode();
     }
 
@@ -200,5 +209,12 @@ public class ShamefulBall : Enemy
         }
 
         obj.localScale = Vector3.zero;
+    }
+
+    private IEnumerator WaitAndDisableCollider()
+    {
+        yield return new WaitForSeconds(0.1f);
+
+        MainCollider.enabled = false;
     }
 }

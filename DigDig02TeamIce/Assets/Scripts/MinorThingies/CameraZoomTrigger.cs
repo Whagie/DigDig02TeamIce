@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 [RequireComponent(typeof(Collider))]
 public class CameraZoomTrigger : MonoBehaviour
@@ -237,9 +236,10 @@ public class CameraZoomTrigger : MonoBehaviour
 
             player.transform.position = Vector3.Lerp(startPos, targetPos, t);
             player.transform.rotation = Quaternion.Lerp(startRot, targetRot, t);
+
             player.animator.SetFloat("Move", 1f);
-            player.animator.SetFloat("MoveX", dir.x);
-            player.animator.SetFloat("MoveZ", dir.y);
+            player.animator.SetFloat("MoveX", 0f);
+            player.animator.SetFloat("MoveZ", 1f);
 
             yield return null;
         }

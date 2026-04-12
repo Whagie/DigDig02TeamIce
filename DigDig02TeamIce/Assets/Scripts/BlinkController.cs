@@ -14,7 +14,7 @@ public class BlinkController : MonoBehaviour
 
     [Header("Baseline Open Value (0–100)")]
     [Range(0f, 100f)]
-    public float baselineOpenValue = 12f;
+    public float baselineOpenValue = 0f;
 
     [Header("Blink Timing")]
     public Vector2 blinkDurationRange = new Vector2(0.3f, 0.4f);

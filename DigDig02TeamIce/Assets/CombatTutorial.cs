@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CombatTutorial : MonoBehaviour
+public class CombatTutorial : MonoBehaviourID
 {
     private static GameObject playerAndSuch;
     private Player player;
@@ -18,8 +18,24 @@ public class CombatTutorial : MonoBehaviour
     public CanvasGroup LockOnInputGroup;
     public CanvasGroup SpearAtackInputGroup;
 
+    private SingleBoolData doneSequenceData;
+
+    public bool DoneIntro = false;
+
     private void Start()
     {
+        if (SessionSaveData.Instance.TryGet(ID, out doneSequenceData))
+        {
+            DoneIntro = doneSequenceData.IsTrue;
+        }
+        else
+        {
+            SessionSaveData.Instance.AddOrUpdateData(ID, DoneIntro);
+        }
+
+        if (DoneIntro)
+            return;
+
         playerAndSuch = GameObject.Find("PERSISTOBJECTS");
         if (playerAndSuch == null)
         {
@@ -38,7 +54,6 @@ public class CombatTutorial : MonoBehaviour
             return;
         }
 
-        player.Energy = 0;
         SpearTutorialEnemy.CanAttack = false;
 
         FadeGroup(ParryInputGroup, 0f, Color.black, 0f);
@@ -71,26 +86,26 @@ public class CombatTutorial : MonoBehaviour
 
         FadeGroup(LockOnInputGroup, 1f, Color.white);
 
-        while (player.currentTarget == null)
+        float durationLockedOn = 0f;
+        while (durationLockedOn < 1.5f)
         {
+            if (player.currentTarget != null)
+            {
+                durationLockedOn += Time.deltaTime;
+            }
+
             yield return null;
         }
-
-        yield return new WaitForSeconds(0.25f);
-
-        FadeGroup(LockOnInputGroup, 0f, Color.black, 0.75f);
 
         yield return new WaitForSeconds(0.25f);
 
         FadeGroup(ParryInputGroup, 1f, Color.white, 0.75f);
         SpearTutorialEnemy.CanAttack = true;
 
-        while (player.Energy < 4)
+        while (player.Energy < 2)
         {
             yield return null;
         }
-
-        FadeGroup(ParryInputGroup, 0f, Color.black, 0.75f);
 
         yield return new WaitForSeconds(0.25f);
 
@@ -106,14 +121,22 @@ public class CombatTutorial : MonoBehaviour
                 spearsUsed++;
             }
 
-            if (spearsUsed > 2 && !fadedGroup)
+            if (spearsUsed > 3 && !fadedGroup)
             {
                 FadeGroup(SpearAtackInputGroup, 0f, Color.black, 0.75f);
+                FadeGroup(LockOnInputGroup, 0f, Color.black, 0.75f);
+                FadeGroup(ParryInputGroup, 0f, Color.black, 0.75f);
                 fadedGroup = true;
             }
 
             yield return null;
         }
+
+        FadeGroup(SpearAtackInputGroup, 0f, Color.black, 0.75f);
+        FadeGroup(LockOnInputGroup, 0f, Color.black, 0.75f);
+        FadeGroup(ParryInputGroup, 0f, Color.black, 0.75f);
+
+        SessionSaveData.Instance.AddOrUpdateData(ID, DoneIntro);
     }
 
     public void FadeGroup(CanvasGroup group, float toAlpha, Color toColor, float duration = 1.25f)

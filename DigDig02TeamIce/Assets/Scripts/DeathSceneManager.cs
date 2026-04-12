@@ -1,8 +1,11 @@
 using System.Linq;
+using TMPro;
 using UnityEngine;
 
 public class DeathSceneManager : MonoBehaviour
 {
+    public static DeathSceneManager Instance;
+
     private static GameObject playerAndSuch;
     public Player player;
     public GameObject[] movedObjects = new GameObject[3];
@@ -27,8 +30,18 @@ public class DeathSceneManager : MonoBehaviour
 
     private bool fadeTriggered;
 
+    public static int RespawnsLeft = 2; 
+    [SerializeField] private TextMeshProUGUI numberText;
+    [SerializeField] private GameObject RestartButton;
+    [SerializeField] private GameObject ResurrectButton;
+
     private void Awake()
     {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+
         playerAndSuch = GameObject.Find("PERSISTOBJECTS");
         if (playerAndSuch == null)
         {
@@ -90,7 +103,27 @@ public class DeathSceneManager : MonoBehaviour
             return;
         }
 
+        if (RespawnsLeft > 0)
+        {
+            numberText.text = RespawnsLeft.ToString();
+        }
+        else
+        {
+            ResurrectButton.SetActive(false);
+            Vector3 pos = RestartButton.transform.localPosition;
+            pos.y = 120f;
+            RestartButton.transform.localPosition = pos;
+        }
+
         fadeGroup.alpha = 0f;
+    }
+
+    private void OnEnable()
+    {
+        fadeGroup.alpha = 0f;
+        IsFadingIn = false;
+        IsFadingOut = false;
+        fadeTriggered = false;
     }
 
     private void OnDisable()
@@ -104,7 +137,6 @@ public class DeathSceneManager : MonoBehaviour
 
     private void OnResurrectionRespawn()
     {
-        StartFadeIn();
         SceneSwapManager.UnloadDeathScene(player.sceneAtDeath, movedObjects, prevPositions);
     }
 
@@ -172,7 +204,43 @@ public class DeathSceneManager : MonoBehaviour
 
     public void Respawn()
     {
+        if (RespawnsLeft <= 0)
+            return;
+
+        RespawnsLeft--;
+        numberText.text = RespawnsLeft.ToString();
+
+        StartFadeIn();
+
         _camera.PlayerResurrect();
-        //player.animator.SetBool("Dead", false);
+    }
+
+    public void RespawnAtDoor()
+    {
+        if (RespawnsLeft <= 0)
+        {
+            switch (player.sceneAtDeath)
+            {
+                case "C5":
+                    AlterRespawnsLeft(3);
+                    break;
+
+                case "C3":
+                    AlterRespawnsLeft(3);
+                    break;
+
+                default:
+                    AlterRespawnsLeft(2);
+                    break;
+            }
+        }
+
+        StartFadeIn();
+        SceneSwapManager.UnloadDeathSceneDoorVersion(player.sceneAtDeath, player.lastExitedDoor);
+    }
+
+    public void AlterRespawnsLeft(int amount)
+    {
+        RespawnsLeft = amount;
     }
 }

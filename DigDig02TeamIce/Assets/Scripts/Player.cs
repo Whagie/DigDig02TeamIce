@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using static Unity.VisualScripting.Member;
 using static UnityEngine.EventSystems.EventTrigger;
+using static UnityEngine.ProBuilder.AutoUnwrapSettings;
 using static UnityEngine.Rendering.DebugUI;
 
 public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
@@ -81,6 +83,9 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
     public event System.Action OnPlayerResurrect;
 
     public string sceneAtDeath;
+    public DoorTriggerInteraction.DoorToSpawnAt lastExitedDoor = DoorTriggerInteraction.DoorToSpawnAt.One;
+    public List<Enemy> EnemiesInRoom = new();
+    public List<Projectile> ProjectilesInRoom = new();
 
     private float invisibilityTimer = 0f;
     public bool Invisible;
@@ -115,6 +120,8 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
     public Collider WrenchCollider;
     public MeleeAttack wrenchAttack;
 
+    public int MeleeDamage = 1;
+
     public float targetEnemySphereRadius = 25f;
     public float targetEnemyMaxDifferenceY = 10f;
 
@@ -128,11 +135,16 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
     private Vector3 pushDirection;
     private RaycastHit pushHit;
 
+    [HideInInspector] public List<Transform> NearbyLightReflectors = new();
+    private bool fadedInLightPuzzleUI = false;
+
     private float prevTurnSpeed = 8f;
     private float prevMoveSpeed = 5f;
     private float prevSprintSpeed = 10f;
 
     private bool shouldTurn = true;
+
+    private Vector3 finalHitPushDir = Vector3.zero;
 
     [HideInInspector] public OrbKeyReceiver CurrentOrbKeyReceiver = null;
     [HideInInspector] public OrbKey CurrentOrbKey = null;
@@ -140,6 +152,17 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
     [HideInInspector] public PushableObject CurrentPushableObjectStandingOn = null;
 
     [HideInInspector] public bool lockMeleeAttack = false;
+
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private List<AudioClip> footsteps = new();
+
+    [SerializeField] private ParticleSystem dustTrail;
+    private bool turnedOnDustTrail = false;
+
+    public Rigidbody rb;
+
+    protected float intervalTimer = 0f;
+    protected bool PauseIntervalTimer = false;
 
     private void OnEnable()
     {
@@ -163,6 +186,8 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
     }
     private void Start()
     {
+        sceneAtDeath = SceneManager.GetActiveScene().name;
+
         GameObject spawnPoint = GameObject.FindGameObjectWithTag("Respawn");
         if (spawnPoint != null)
         {
@@ -177,6 +202,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         {
             MaxEnergy = Energy;
         }
+
         controller = GetComponent<CharacterController>();
         Companion = FindObjectOfType<Companion>();
 
@@ -203,6 +229,8 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         prevMoveSpeed = walkSpeed;
 
         pushStartTimer = timeUntilPushMove;
+
+        dustTrail.Stop(true, ParticleSystemStopBehavior.StopEmitting);
     }
 
     private void Update()
@@ -232,6 +260,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
             if (!startedPlayingCombatMusic)
             {
                 startedPlayingCombatMusic = true;
+                MusicManager.instance.AudioSourceB.time = 0f;
                 MusicManager.instance.EnterSecondary(FX.Music_Combat, 0.5f);
             }
         }
@@ -244,9 +273,26 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
             }
         }
 
+        if (NearbyLightReflectors.Count > 0)
+        {
+            if (!fadedInLightPuzzleUI)
+            {
+                MenuManager.instance.FadeGroup(MenuManager.instance.LightPuzzleGroup, 1f, 0.05f);
+                fadedInLightPuzzleUI = true;
+            }
+        }
+        else
+        {
+            if (fadedInLightPuzzleUI)
+            {
+                MenuManager.instance.FadeGroup(MenuManager.instance.LightPuzzleGroup, 0f, 0.05f);
+                fadedInLightPuzzleUI = false;
+            }
+        }
+
         GroundCheck();
         Move();
-        Jump();
+        //Jump();
         Sprint();
         LockOn();
 
@@ -297,6 +343,31 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         if (!lockMeleeAttack)
         {
             Attack();
+        }
+
+        bool movingFoot = moveDir.magnitude > 0.05f && moveInput.magnitude > 0.05f && controller.velocity.magnitude > 0.05f;
+
+        if (movingFoot && !Pushing && !prePushing)
+        {
+            float interval = Sprinting ? 0.36f : 0.32f;
+            OnInterval(interval, () => PlayFootstepSoundManual());
+        }
+
+        if (movingFoot && Sprinting && controller.velocity.magnitude > 2f)
+        {
+            if (!turnedOnDustTrail)
+            {
+                dustTrail.Play(true);
+                turnedOnDustTrail = true;
+            }
+        }
+        else
+        {
+            if (turnedOnDustTrail)
+            {
+                dustTrail.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+                turnedOnDustTrail = false;
+            }
         }
 
         ConstructCarry();
@@ -543,7 +614,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
             {
                 destroyIcon = true;
             }
-            if (currentTarget.Dead)
+            if (currentTarget.Dead || !currentTarget.IsAwake)
             {
                 destroyIcon = true;
             }
@@ -621,7 +692,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
                 Enemy e = enemy.gameObject.GetComponentInParent<Enemy>();
                 if (e == null)
                     continue;
-                if (e.Dead)
+                if (e.Dead || !e.IsAwake)
                     continue;
 
                 closestDist = dist;
@@ -662,15 +733,12 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
 
         if (!Parrying)
         {
-            TakeDamage(source.Damage);
-            LockMovement(0.5f);
             animator.SetTriggerOneFrame(this, "GotHit");
             Vector3 pushDir = source.Owner.transform.position - transform.position;
-            Vector3 final = new Vector3(-pushDir.x, 0, -pushDir.z);
-            ApplyPushback(final, 1.75f, 0.35f);
+            finalHitPushDir = new Vector3(-pushDir.x, 0, -pushDir.z);
             verticalVelocity = Mathf.Sqrt(jumpHeight * 0.4f * gravity);
-
-            SoundFXManager.instance.PlaySoundFXClip(FX.FX_player_damage, transform, 0.95f, 1.05f, 1.1f);
+            TakeDamage(source.Damage);
+            LockMovement(0.5f);
         }
     }
     public void TakeDamage(int amount)
@@ -691,8 +759,21 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         OnPlayerTakeDamage?.Invoke(Health);
 
         StartInvisible(InvisibilityLength, true);
-        CameraActions.Main.Shake(0.15f, 0.3f, 0.2f);
         Freezer.Freeze(0.05f);
+
+        if (amount > 1)
+        {
+            ApplyPushback(finalHitPushDir, 2.75f, 0.4f);
+            SoundFXManager.instance.PlaySoundFXClip(FX.FX_player_damage, transform, 0.65f, 0.75f, 1.4f);
+            CameraActions.Main.Shake(0.25f, 0.6f, 0.2f);
+            CameraActions.Main.Punch(0.75f, 0.15f);
+        }
+        else
+        {
+            ApplyPushback(finalHitPushDir, 1.25f, 0.35f);
+            SoundFXManager.instance.PlaySoundFXClip(FX.FX_player_damage, transform, 0.95f, 1.05f, 1.1f);
+            CameraActions.Main.Shake(0.15f, 0.3f, 0.2f);
+        }
     }
 
     public void StartInvisible(float length = 0.6f, bool changeColor = false)
@@ -757,6 +838,12 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
             Companion.heldObject.SetActive(false);
         }
 
+        MusicManager.instance.FadeOutPrimary(1f, 0f);
+        MusicManager.instance.FadeOutSecondary(1f, 0f);
+        // Plays in DeathCam instead
+        //SoundFXManager.instance.PlaySoundFXClip(FX.FX_GameOver, transform, 1f);
+        startedPlayingCombatMusic = false;
+
         _camera.Actions.CancelAllActions();
         OnPlayerDie?.Invoke();
 
@@ -767,6 +854,8 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         Dead = false;
         Health = MaxHealth;
         StartInvisible(1.5f, true);
+        pushbackVelocity = Vector3.zero;
+        verticalVelocity = 0f;
         //material.SetColor("_BaseColor", Color.blue);
         DamageCollider.enabled = true;
         MainCollider.enabled = true;
@@ -790,6 +879,11 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         }
         Companion.movementOverride = false;
         Companion.circlingSpeed = 0.6f;
+
+        MusicManager.instance.Play(FX.Music_NoCombat, true);
+        MusicManager.instance.Play(FX.Music_Combat, false);
+        MusicManager.instance.AudioSourceA.volume = 1f;
+        MusicManager.instance.AudioSourceB.volume = 0f;
 
         OnPlayerResurrect?.Invoke();
     }
@@ -828,6 +922,7 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
             Energy -= amount;
         }
 
+        SaveSystem.Data.energy = Energy;
         OnChangeEnergy?.Invoke(Energy);
     }
 
@@ -944,6 +1039,9 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         {
             wrenchAttack.Activate();
             wrenchAttack.gizmoColor = Color.red;
+
+            SoundFXManager.instance.PlaySoundFXClip(FX.FX_player_swing, transform, 0.8f, 1.1f, 0.75f);
+            //UnityEngine.Object.Instantiate(Particles.P_PlayerSlash, WrenchCollider.transform.position, WrenchCollider.transform.localRotation, transform);
         }
         else
         {
@@ -1147,5 +1245,55 @@ public class Player : MonoBehaviour, IHurtbox, IPushbackReceiver
         return Mathf.Abs(dir.x) > Mathf.Abs(dir.z)
             ? new Vector3(Mathf.Sign(dir.x), 0f, 0f)
             : new Vector3(0f, 0f, Mathf.Sign(dir.z));
+    }
+
+    public void PlayFootstepSound()
+    {
+        //int randomClip = UnityEngine.Random.Range(0, footsteps.Count);
+
+        //if (Sprinting)
+        //{
+        //    audioSource.volume = 0.5f;
+        //    audioSource.pitch = 1.5f;
+        //}
+        //else
+        //{
+        //    audioSource.volume = 0.65f;
+        //    audioSource.pitch = 1.9f;
+        //}
+
+        //audioSource.PlayOneShot(footsteps[randomClip]);
+    }
+
+    public void PlayFootstepSoundManual()
+    {
+        int randomClip = UnityEngine.Random.Range(0, footsteps.Count);
+
+        if (Sprinting)
+        {
+            audioSource.volume = 0.5f;
+            audioSource.pitch = 1.5f;
+        }
+        else
+        {
+            audioSource.volume = 0.65f;
+            audioSource.pitch = 1.9f;
+        }
+
+        audioSource.PlayOneShot(footsteps[randomClip]);
+    }
+
+    protected void OnInterval(float interval, Action action)
+    {
+        if (!PauseIntervalTimer)
+        {
+            intervalTimer += Time.deltaTime;
+
+            if (intervalTimer >= interval)
+            {
+                intervalTimer -= interval; // keep leftover time
+                action?.Invoke();
+            }
+        }
     }
 }

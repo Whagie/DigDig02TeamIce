@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class IntroSequence : MonoBehaviour
+public class IntroSequence : MonoBehaviourID
 {
     private static GameObject playerAndSuch;
     private Player player;
@@ -21,17 +21,38 @@ public class IntroSequence : MonoBehaviour
     public CanvasGroup MoveInputGroup;
     public CanvasGroup AttackInputGroup;
     public CanvasGroup SlamAttackInputGroup;
+    public CanvasGroup PauseInputGroup;
     public CanvasGroup CrystalRechargeHelperNoteGroup;
 
     [Space]
     public TriggerRelay MovementTutorialTrigger;
+    public TriggerRelay PausePromptTrigger;
 
     private bool touchedMoveTutorialTrigger = false;
+    private bool touchedPauseTutorialTrigger = false;
     private bool playerRan = false;
     private float runTimer = 0f;
 
+    public bool DoneIntro = false;
+
+    private SingleBoolData doneSequenceData;
+
     private void Start()
     {
+        MenuManager.instance.CanPause = true;
+
+        if (SessionSaveData.Instance.TryGet(ID, out doneSequenceData))
+        {
+            DoneIntro = doneSequenceData.IsTrue;
+        }
+        else
+        {
+            SessionSaveData.Instance.AddOrUpdateData(ID, DoneIntro);
+        }
+
+        if (DoneIntro)
+            return;
+
         playerAndSuch = GameObject.Find("PERSISTOBJECTS");
         if (playerAndSuch == null)
         {
@@ -67,6 +88,8 @@ public class IntroSequence : MonoBehaviour
         _companion.transform.localScale = Vector3.one * 0.05f;
 
         MovementTutorialTrigger.OnEnter += MovementTutorialTrigger_OnEnter;
+        PausePromptTrigger.OnEnter += PausePromptEnterTrigger_OnEnter;
+        PausePromptTrigger.OnExit += PausePromptEnterTrigger_OnExit;
 
         FadeGroup(MoveInputGroup, 0f, Color.black, 0f);
         FadeGroup(AttackInputGroup, 0f, Color.black, 0f);
@@ -80,7 +103,7 @@ public class IntroSequence : MonoBehaviour
 
     private void Update()
     {
-        if (playerRan)
+        if (playerRan || DoneIntro)
             return;
 
         bool isRunning = UserInput.SprintHeld && player.moveDir.magnitude > 0.05f;
@@ -100,7 +123,7 @@ public class IntroSequence : MonoBehaviour
 
     private void MovementTutorialTrigger_OnEnter(Collider other)
     {
-        if (touchedMoveTutorialTrigger)
+        if (touchedMoveTutorialTrigger || DoneIntro)
             return;
 
         Player p = other.GetComponentInParent<Player>();
@@ -111,9 +134,33 @@ public class IntroSequence : MonoBehaviour
         }
     }
 
+    private void PausePromptEnterTrigger_OnExit(Collider obj)
+    {
+        FadeGroup(PauseInputGroup, 0f, Color.black);
+    }
+
+    private void PausePromptEnterTrigger_OnEnter(Collider obj)
+    {
+        if (touchedPauseTutorialTrigger || DoneIntro)
+            return;
+
+        Player p = obj.GetComponentInParent<Player>();
+
+        if (p != null)
+        {
+            touchedPauseTutorialTrigger = true;
+        }
+
+        FadeGroup(PauseInputGroup, 1f, Color.white);
+    }
+
     private IEnumerator IntroSequenceRoutine()
     {
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(1f);
+
+        MenuManager.instance.CanPause = true;
+
+        yield return new WaitForSeconds(2f);
 
         FadeGroup(MoveInputGroup, 1f, Color.white);
 
@@ -127,9 +174,9 @@ public class IntroSequence : MonoBehaviour
 
         yield return new WaitForSeconds(2f);
 
-        SoundFXManager.instance.PlaySoundFXClipLooping(FX.FX_intro_metal_hits, _companion.transform, out AudioSource audioSource, 1f);
+        SoundFXManager.instance.PlaySoundFXClipLooping(FX.FX_intro_metal_hits, _companion.transform, out AudioSource audioSource, 0.75f);
 
-        yield return new WaitForSeconds(9f);
+        yield return new WaitForSeconds(7f);
 
         Destroy(audioSource.gameObject);
 
@@ -156,7 +203,9 @@ public class IntroSequence : MonoBehaviour
 
         _companion.movementOverride = false;
 
-        MusicManager.instance.AudioSourceA.volume = 1f;
+        MusicManager.instance.Play(FX.Music_NoCombat, true);
+        MusicManager.instance.AudioSourceA.time = 0f;
+        MusicManager.instance.FadeOutPrimary(1f, 1f);
 
         yield return new WaitForSeconds(1.5f);
 
@@ -169,7 +218,7 @@ public class IntroSequence : MonoBehaviour
         while (player.Energy < 2)
         {
             time2 += Time.deltaTime;
-            if (time2 >= 18f && !startedHelperNoteFade)
+            if (time2 >= 20f && !startedHelperNoteFade)
             {
                 FadeGroup(CrystalRechargeHelperNoteGroup, 1f, Color.white, 2f);
                 startedHelperNoteFade = true;
@@ -192,6 +241,9 @@ public class IntroSequence : MonoBehaviour
         }
 
         FadeGroup(SlamAttackInputGroup, 0f, Color.black);
+
+        DoneIntro = true;
+        SessionSaveData.Instance.AddOrUpdateData(ID, DoneIntro);
     }
 
     public void FadeGroup(CanvasGroup group, float toAlpha, Color toColor, float duration = 1.25f)

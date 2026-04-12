@@ -1,11 +1,9 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
-public class RunePuzzle : MonoBehaviour
+public class RunePuzzle : MonoBehaviourID
 {
     [HideInInspector] public bool RunePuzzling = false;
 
@@ -39,6 +37,10 @@ public class RunePuzzle : MonoBehaviour
     public int CorrectMiddleRuneIndex = 6;
     public int CorrectOuterRuneIndex = 8;
 
+    private float innerRuneCorrectRotation = 240f;
+    private float middleRuneCorrectRotation = 144f;
+    private float outerRuneCorrectRotation = 96f;
+
     public int innerRuneIndex = 0;
     public int middleRuneIndex = 0;
     public int outerRuneIndex = 0;
@@ -49,12 +51,31 @@ public class RunePuzzle : MonoBehaviour
     public Transform PlayerTargetPos;
 
     public CameraZoomTrigger cameraZoom;
+    private CameraMovement _camera;
 
     private Player player;
 
     public Color DefaultColor = Color.black;
     public Color GlowColor = new Color(0.314f, 0.753f, 2.996f, 1.000f);
     static readonly int EmID = Shader.PropertyToID("_EmissionColor");
+
+    public bool ShowInteractBubble = true;
+
+    public Transform UIPos;
+    public CanvasGroup InteractBubble;
+    public CanvasGroup InputBubble;
+    public Transform cam;
+
+    public float IdleBobSpeed = 1f;
+    public float IdleBobHeight = 0.5f;
+    public float TalkingBobSpeed = 2f;
+    public float TalkingBobHeight = 0.15f;
+    private float bobSpeed;
+    private float bobHeight;
+
+    private Vector3 startPos;
+
+    private Coroutine currentFade;
 
     private enum ActiveRuneDiskStates
     {
@@ -84,6 +105,8 @@ public class RunePuzzle : MonoBehaviour
     private Coroutine diskGlowRoutine;
     private Coroutine stopAllGlowRoutine;
     private Coroutine inputCooldownRoutine;
+
+    private SingleBoolData solvedPuzzleData;
 
     private void Start()
     {
@@ -128,11 +151,62 @@ public class RunePuzzle : MonoBehaviour
         int matIndex7 = Array.FindIndex(renderer7.sharedMaterials, m => m.name.Contains("RuneGlow"));
         doorSideStuffMaterial = mats7[matIndex7];
         doorSideStuffMaterial.EnableKeyword("_EMISSION");
+
+        _camera = GameObject.FindObjectOfType<CameraMovement>();
+
+        cam = Camera.main.transform;
+        startPos = UIPos.localPosition;
+
+        InteractBubble.alpha = 1f;
+        InputBubble.alpha = 0f;
+
+        if (!ShowInteractBubble)
+        {
+            InteractBubble.alpha = 0f;
+        }
+
+        bobHeight = IdleBobHeight;
+        bobSpeed = IdleBobSpeed;
+
+        if (SessionSaveData.Instance.TryGet(ID, out solvedPuzzleData))
+        {
+            Solved = solvedPuzzleData.IsTrue;
+        }
+        else
+        {
+            SessionSaveData.Instance.AddOrUpdateData(ID, Solved);
+        }
+
+        if (Solved)
+        {
+            GlowColor *= 0.0125f;
+            innerDiskMaterial.SetColor(EmID, GlowColor);
+            middleDiskMaterial.SetColor(EmID, GlowColor);
+            outerDiskMaterial.SetColor(EmID, GlowColor);
+            diskCenterMaterial.SetColor(EmID, GlowColor);
+            diskPlatformMaterial.SetColor(EmID, GlowColor);
+            doorSideStuffMaterial.SetColor(EmID, GlowColor * 0.75f);
+            doorMaterial.SetColor(EmID, GlowColor * 0.75f);
+
+            InnerDisk.transform.localRotation = Quaternion.AngleAxis(innerRuneCorrectRotation, Vector3.up);
+            MiddleDisk.transform.localRotation = Quaternion.AngleAxis(middleRuneCorrectRotation, Vector3.up);
+            OuterDisk.transform.localRotation = Quaternion.AngleAxis(outerRuneCorrectRotation, Vector3.up);
+
+            Destroy(UIPos.gameObject);
+
+            DoorAnimator.Play("OpenDoor", -1, 1f);
+        }
     }
 
     private void Update()
     {
-        if (player == null || Solved)
+        if (Solved)
+            return;
+
+        float yOffset = Mathf.Sin(Time.time * bobSpeed) * bobHeight;
+        UIPos.localPosition = startPos + new Vector3(0f, yOffset, 0f);
+
+        if (player == null)
             return;
 
         if (UserInput.InteractPressed && startupGlow && !RunePuzzling && !player.Companion.IsDoingRunePuzzle)
@@ -141,6 +215,10 @@ public class RunePuzzle : MonoBehaviour
             StartCoroutine(MovePlayer());
             RunePuzzling = true;
             player.Companion.IsDoingRunePuzzle = true;
+
+            FadeTo(InputBubble, InteractBubble, 0.25f, true);
+
+            _camera.SetOverrideTarget(new Vector3(0.5f, -2, 6f));
         }
 
         if (!RunePuzzling)
@@ -178,7 +256,13 @@ public class RunePuzzle : MonoBehaviour
 
             if (stopAllGlowRoutine != null)
                 StopCoroutine(stopAllGlowRoutine);
-            stopAllGlowRoutine = StartCoroutine(StopAllGlowRoutine());
+            stopAllGlowRoutine = StartCoroutine(StopAllGlowRoutine(false));
+
+            _camera.ClearOverrideTarget();
+            _camera.ClearOverrideTargetOffset();
+
+            FadeTo(InteractBubble, InputBubble, 0.25f);
+            MenuManager.instance.FadeGroup(MenuManager.instance.RunePuzzleGroup, 0f, 0.4f);
 
             player.MovementOverride = false;
             return;
@@ -217,7 +301,10 @@ public class RunePuzzle : MonoBehaviour
                 diskGlowDuration = 1f;
                 UpdateDiskState();
                 StartCoroutine(DoorOpeningRoutine());
+                Destroy(UIPos.gameObject);
+                MenuManager.instance.FadeGroup(MenuManager.instance.RunePuzzleGroup, 0f, 0.4f);
                 OnSolve?.Invoke();
+                SessionSaveData.Instance.AddOrUpdateData(ID, Solved);
             }
             else
             {
@@ -227,6 +314,17 @@ public class RunePuzzle : MonoBehaviour
                 UpdateDiskState();
                 StartCoroutine(WrongCodeRoutine());
             }
+        }
+    }
+
+    private void LateUpdate()
+    {
+        if (Solved)
+            return;
+
+        if (cam != null && UIPos != null)
+        {
+            UIPos.LookAt(cam);
         }
     }
 
@@ -288,6 +386,8 @@ public class RunePuzzle : MonoBehaviour
         diskCenterMaterial.SetColor(EmID, GlowColor);
         diskPlatformMaterial.SetColor(EmID, GlowColor);
 
+        MenuManager.instance.FadeGroup(MenuManager.instance.RunePuzzleGroup, 1f, 2f);
+
         float time2 = 0f;
         float duration2 = 0.75f;
 
@@ -313,7 +413,7 @@ public class RunePuzzle : MonoBehaviour
 
         startupGlowRoutine = null;
     }
-    private IEnumerator StopAllGlowRoutine()
+    private IEnumerator StopAllGlowRoutine(bool allowInput = true)
     {
         float time = 0f;
         float duration = 1.5f;
@@ -348,8 +448,14 @@ public class RunePuzzle : MonoBehaviour
         diskCenterMaterial.SetColor(EmID, DefaultColor);
         diskPlatformMaterial.SetColor(EmID, DefaultColor);
 
+        FadeTo(InputBubble, InteractBubble, 0.25f);
+
+        if (allowInput)
+        {
+            allowForInputs = true;
+        }
+
         startupGlow = true;
-        allowForInputs = true;
 
         stopAllGlowRoutine = null;
     }
@@ -594,8 +700,6 @@ public class RunePuzzle : MonoBehaviour
 
     private IEnumerator DoorOpeningRoutine()
     {
-        CameraMovement _camera = GameObject.FindObjectOfType<CameraMovement>();
-
         if (cameraZoom != null)
         {
             if (_camera != null)
@@ -654,7 +758,32 @@ public class RunePuzzle : MonoBehaviour
 
         float totalTime = DoorAnimator.runtimeAnimatorController.animationClips.Where(c => c.name == "OpenDoor").FirstOrDefault().length;
 
-        yield return new WaitForSeconds(totalTime);
+        // Plays for too long! Use PlayLooping and cancel when it's time 
+        SoundFXManager.instance.PlaySoundFXClipLooping(FX.FX_Gears, Door.transform, out AudioSource sourceA, 0.3f, 0.8f);
+        SoundFXManager.instance.PlaySoundFXClipLooping(FX.FX_StoneSlide, Door.transform, out AudioSource sourceB, 0.8f, 0.65f);
+
+        yield return new WaitForSeconds(totalTime - 1.5f);
+
+        SoundFXManager.instance.PlaySoundFXClip(FX.FX_DoorDrop, Door.transform, 2.5f);
+
+        float time3 = 0f;
+        float duration3 = 1f;
+
+        float startVolumeA = sourceA.volume;
+        float startVolumeB = sourceB.volume;
+
+        while (time3 < duration3)
+        {
+            time3 += Time.deltaTime;
+            float t = Mathf.Clamp01(time3 / duration3);
+
+            sourceA.volume = Mathf.Lerp(startVolumeA, 0f, t);
+            sourceB.volume = Mathf.Lerp(startVolumeB, 0f, t);
+
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(0.5f);
 
         if (cameraZoom != null)
         {
@@ -665,6 +794,7 @@ public class RunePuzzle : MonoBehaviour
             if (_camera != null)
             {
                 _camera.ClearOverrideTarget();
+                _camera.ClearOverrideTargetOffset();
             }
         }
 
@@ -678,12 +808,14 @@ public class RunePuzzle : MonoBehaviour
         if (inputCooldownRoutine != null)
             StopCoroutine(inputCooldownRoutine);
 
+        SoundFXManager.instance.PlaySoundFXClip(FX.FX_construct_no_energy, transform, 1.25f);
+
         while (diskGlowTime < (diskGlowDuration - 0.05f))
         {
             yield return null;
         }
 
-        yield return new WaitForSeconds(0.75f);
+        yield return new WaitForSeconds(1.5f);
 
         allowForInputs = false;
 
@@ -702,7 +834,7 @@ public class RunePuzzle : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (player != null)
+        if (player != null || Solved)
             return;
 
         Player p = other.GetComponentInParent<Player>();
@@ -710,19 +842,76 @@ public class RunePuzzle : MonoBehaviour
         if (p != null)
         {
             player = p;
+
+            bobHeight = TalkingBobHeight;
+            bobSpeed = TalkingBobSpeed;
+
+            FadeTo(InteractBubble, InputBubble, 0.25f);
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (player == null)
+        if (player == null || Solved)
             return;
 
         if (other.GetComponentInParent<Player>() == player)
         {
             RunePuzzling = false;
             player.Companion.IsDoingRunePuzzle = false;
+
+            bobSpeed = IdleBobSpeed;
+            bobHeight = IdleBobHeight;
+
+            FadeTo(InputBubble, InteractBubble, 0.25f);
+
             player = null;
         }
+    }
+
+    public void FadeTo(CanvasGroup from, CanvasGroup to, float duration, bool bothToZero = false)
+    {
+        if (currentFade != null)
+            StopCoroutine(currentFade);
+
+        currentFade = StartCoroutine(FadeRoutine(from, to, duration, bothToZero));
+    }
+
+    IEnumerator FadeRoutine(CanvasGroup from, CanvasGroup to, float duration, bool bothToZero = false)
+    {
+        float t = 0f;
+
+        float fromStart = from.alpha;
+        float toStart = to.alpha;
+
+        while (t < duration)
+        {
+            float a = t / duration;
+
+            if (!bothToZero)
+            {
+                to.alpha = Mathf.Lerp(toStart, 1f, a);
+            }
+            from.alpha = Mathf.Lerp(fromStart, 0f, a);
+
+            t += Time.deltaTime;
+            yield return null;
+        }
+
+        // Final values
+        from.alpha = 0f;
+        if (!bothToZero)
+        {
+            to.alpha = 1f;
+        }
+        else
+        {
+            to.alpha = 0f;
+        }
+    }
+
+    public void FadeInInteractBubble()
+    {
+        FadeTo(InputBubble, InteractBubble, 0.25f);
     }
 }

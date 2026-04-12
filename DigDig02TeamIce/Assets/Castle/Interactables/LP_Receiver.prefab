@@ -59,13 +59,12 @@ MonoBehaviour:
   origBaseColor: {r: 0, g: 0, b: 0, a: 0}
   origTopColor: {r: 0, g: 0, b: 0, a: 0}
   origGlowColor: {r: 0, g: 0, b: 0, a: 0}
-  StartGlowDuration: 2
+  StartGlowDuration: 1.25
   Glowing: 0
   destroyOnRecieve: []
   OnReceiveLight:
     m_PersistentCalls:
       m_Calls: []
-  receiveLightFX: {fileID: 8300000, guid: 74c466343dc550645889e2638009c876, type: 3}
 --- !u!1 &6743937769269249848
 GameObject:
   m_ObjectHideFlags: 0

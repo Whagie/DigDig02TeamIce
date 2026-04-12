@@ -4,7 +4,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class PushableObject : MonoBehaviourID
+public class PushableObject : MonoBehaviour
 {
     public PushableGrid Grid;
 
@@ -35,16 +35,46 @@ public class PushableObject : MonoBehaviourID
 
     [HideInInspector] public bool Solved = false;
 
-    private SessionSaveData.PushableObjectData pushableData;
+    [SerializeField] private MonoBehaviourID emptyID;
+    private PushableObjectData pushableData;
 
     private void Start()
     {
+        emptyID = GetComponentInChildren<MonoBehaviourID>();
+
+        if (emptyID != null)
+        {
+            if (SessionSaveData.Instance.TryGet(emptyID.ID, out pushableData))
+            {
+                if (pushableData.Solved)
+                {
+                    transform.position = pushableData.Position;
+                    OriginCoord = pushableData.OriginCoord;
+                    Solved = pushableData.Solved;
+
+                    if (Grid == null)
+                        return;
+
+                    Grid.SetOccupiedArea(
+                        OriginCoord,
+                        LengthOnGridX,
+                        LengthOnGridZ,
+                        this
+                    );
+                }
+            }
+            else
+            {
+                SessionSaveData.Instance.AddOrUpdateData(emptyID.ID, transform.position, OriginCoord, Solved);
+            }
+        }
+
         if (!MovesUntilStop)
         {
             MovesUntilStop = this.CompareTag("MoveUntilStop");
         }
 
-        if (SessionSaveData.Instance.TryGet(ID, out pushableData))
+        if (SessionSaveData.Instance.TryGet(emptyID.ID, out pushableData))
         {
             if (pushableData.Solved)
             {
@@ -65,11 +95,11 @@ public class PushableObject : MonoBehaviourID
         }
         else
         {
-            SessionSaveData.Instance.AddOrUpdateData(ID, transform.position, OriginCoord, Solved);
+            SessionSaveData.Instance.AddOrUpdateData(emptyID.ID, transform.position, OriginCoord, Solved);
         }
     }
 
-    new void OnValidate()
+    void OnValidate()
     {
         if (Grid != null && HasOrigin)
             OnGetOrigin();
@@ -250,10 +280,20 @@ public class PushableObject : MonoBehaviourID
 
     public void SaveData()
     {
-        if (Moving || Grid == null)
-            return;
+        if (Grid != null)
+        {
+            StartCoroutine(WaitUntilStopAndSave());
+        }
+    }
 
-        SessionSaveData.Instance.AddOrUpdateData(ID, transform.position, OriginCoord, Solved);
+    private IEnumerator WaitUntilStopAndSave()
+    {
+        while (Moving)
+        {
+            yield return null;
+        }
+
+        SessionSaveData.Instance.AddOrUpdateData(emptyID.ID, transform.position, OriginCoord, Solved);
     }
 
     public void MarkSolved()

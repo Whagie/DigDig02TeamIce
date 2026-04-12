@@ -188,6 +188,14 @@ public class LightBeam : MonoBehaviour
                 return;
             }
 
+            // Release previous crystal if different
+            if (currentCrystal != null && currentCrystal != crystal)
+            {
+                if (currentCrystal.OccupyingBeam == this)
+                    currentCrystal.OccupyingBeam = null;
+            }
+
+            // Assign new
             crystal.OccupyingBeam = this;
             currentCrystal = crystal;
 
@@ -235,18 +243,20 @@ public class LightBeam : MonoBehaviour
 
     void ReleaseCrystal()
     {
-        if (currentCrystal != null && currentCrystal.OccupyingBeam == this)
+        if (currentCrystal != null)
         {
-            currentCrystal.OccupyingBeam = null;
+            if (currentCrystal.OccupyingBeam == this)
+                currentCrystal.OccupyingBeam = null;
+
             currentCrystal = null;
         }
     }
 
     public void DestroyBeamRecursive()
     {
-        DestroyChildren();
         ReleaseCrystal();
         ReleasePassThroughs();
+        DestroyChildren();
 
         if (hitEffect != null) Destroy(hitEffect);
         if (reflectorEffect != null) Destroy(reflectorEffect);

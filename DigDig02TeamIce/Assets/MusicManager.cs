@@ -30,6 +30,15 @@ public class MusicManager : MonoBehaviour
         source.Play();
     }
 
+    public void FadeOutPrimary(float duration, float targetVolume)
+    {
+        StartFade(AudioSourceA, targetVolume, duration);
+    }
+    public void FadeOutSecondary(float duration, float targetVolume)
+    {
+        StartFade(AudioSourceB, targetVolume, duration);
+    }
+
     // Fade A <-> B
     public void Crossfade(float duration)
     {
@@ -51,7 +60,7 @@ public class MusicManager : MonoBehaviour
 
         while (time < duration)
         {
-            time += Time.deltaTime;
+            time += Time.unscaledDeltaTime;
             float t = time / duration;
 
             AudioSourceA.volume = Mathf.Lerp(startA, targetA, t);
@@ -96,7 +105,7 @@ public class MusicManager : MonoBehaviour
 
         while (time < duration)
         {
-            time += Time.deltaTime;
+            time += Time.unscaledDeltaTime;
             float t = time / duration;
 
             source.volume = Mathf.Lerp(start, target, t);

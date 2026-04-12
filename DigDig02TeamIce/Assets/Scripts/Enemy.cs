@@ -15,7 +15,7 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
 
     [SerializeField] public EnemyStats stats;
 
-    private SessionSaveData.EnemyDeathData DeathData;
+    private EnemyDeathData DeathData;
 
     public Transform Center;
 
@@ -99,6 +99,8 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
 
     public float DistanceToPlayer;
 
+    public bool CanRegisterToCombatList = true;
+
     // Pushback
     private Vector3 pushVelocity = Vector3.zero;
     private float pushTimer = 0f;
@@ -141,6 +143,8 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
                 player = new GameObject("tempPlayer").AddComponent<Player>();
             }
         }
+
+        player.EnemiesInRoom.Add(this);
 
         Obstacles = LayerMask.GetMask("Default", "Walls", "Pushable", "LightReflector", "Shrouders");
 
@@ -361,7 +365,7 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
 
         if (InCombat)
         {
-            if (!registeredInEnemiesInCombatList)
+            if (!registeredInEnemiesInCombatList && CanRegisterToCombatList)
             {
                 player.EnemiesInCombat.Add(this);
                 registeredInEnemiesInCombatList = true;
@@ -369,7 +373,7 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
         }
         else
         {
-            if (registeredInEnemiesInCombatList)
+            if (registeredInEnemiesInCombatList && CanRegisterToCombatList)
             {
                 if (player.EnemiesInCombat.Contains(this))
                 {
@@ -594,6 +598,10 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
 
     public virtual void OnHit(IHitbox source)
     {
+        if (!IsAwake)
+            return;
+
+
         TakeDamage(source.Damage);
         if (source.Owner.CompareTag("Projectile"))
         {
@@ -642,6 +650,14 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
         if (_animator != null)
         {
             _animator.fireEvents = false;
+        }
+
+        if (NavAgent != null)
+        {
+            NavAgent.ResetPath();
+            NavAgent.velocity = Vector3.zero;
+            NavAgent.isStopped = true;
+            NavAgent.enabled = false;
         }
 
         if (registeredInEnemiesInCombatList)
@@ -782,13 +798,14 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
             NavAgent.speed = speed;
         }
     }
-    protected void FireProjectile(Transform spawnPoint, Transform target, bool seeking = false)
+    protected void FireProjectile(Transform spawnPoint, Transform target, bool seeking = false, float speed = 8f)
     {
         GameObject projObj = Instantiate(projectilePrefab, spawnPoint.position, Quaternion.identity);
         Projectile proj = projObj.GetComponent<Projectile>();
 
         proj.Parent = gameObject;
         proj.Damage = ProjectileDamage;
+        proj.Speed = speed;
 
         if (seeking)
         {
@@ -813,8 +830,11 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
 
         if (NavAgent != null)
         {
-            NavAgent.isStopped = true;      // stop pathing
-            NavAgent.updateRotation = false;
+            if (NavAgent.isOnNavMesh)
+            {
+                NavAgent.isStopped = true;      // stop pathing
+                NavAgent.updateRotation = false;
+            }
         }
     }
     void HandlePushback()
@@ -841,9 +861,10 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
 
     public void Stun(float duration)
     {
-        if (NavAgent == null)
+        if (NavAgent == null || Stunned || Dead)
             return;
 
+        StopAllCoroutines();
         StartCoroutine(StunRoutine(duration));
     }
     private IEnumerator StunRoutine(float duration)
@@ -853,10 +874,17 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
         if (_animator != null)
         {
             _animator.SetBool("Stunned", true);
+            if (!Dead)
+            {
+                _animator.Play("Stun");
+            }
+            _animator.Update(0f);
 
             yield return null;
             _animator.SetBool("AnyStateLock", true);
         }
+
+        OnStunStart();
 
         yield return new WaitForSeconds(duration);
 
@@ -867,6 +895,17 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
             _animator.SetBool("Stunned", false);
             _animator.SetBool("AnyStateLock", false);
         }
+
+        OnStunEnd();
+    }
+
+    protected virtual void OnStunStart()
+    {
+
+    }
+    protected virtual void OnStunEnd()
+    {
+
     }
 
     /// <summary>
@@ -879,6 +918,12 @@ public abstract class Enemy : MonoBehaviourID, IHurtbox, IPushbackReceiver
         player.GiveEnergy();
 
         ParticleSpawner.SpawnEnergy(Center, true, middlePosDistance);
+    }
+
+    public void DeleteSaveData()
+    {
+        player.EnemiesInCombat.Remove(this);
+        SessionSaveData.Instance.RemoveEnemyDeathData(ID);
     }
 }
 

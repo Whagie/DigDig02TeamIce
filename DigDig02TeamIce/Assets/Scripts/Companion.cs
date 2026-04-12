@@ -37,7 +37,7 @@ public class Companion : MonoBehaviour
     public Animator _animator;
     public float ActionInterval = 5f;
     private float idleAnimTimer;
-    private bool playingIdleAnim = false;
+    public bool playingIdleAnim = false;
 
     public Enemy.EnemyAction[] IdleActions;
 
@@ -120,7 +120,7 @@ public class Companion : MonoBehaviour
 
     private Transform grabPosition;
     public GameObject heldObject;
-    private int heldObjectPrevLayer;
+    public int heldObjectPrevLayer;
     public float? carriedObjectExtentsY;
     private float carryOffsetDistance = 1.35f;
     private float prevCarryOffsetDistance;
@@ -130,6 +130,9 @@ public class Companion : MonoBehaviour
     [HideInInspector] public float agentAccelerationBeforeGrab = 24f;
     [HideInInspector] public float carryBobTime = 0f;
     [HideInInspector] public bool disableAgentOnReachTarget = false;
+    [HideInInspector] public string carriedObjectID = string.Empty;
+
+    public OrbKey GhostOrbKey;
 
     [SerializeField] private bool drawGhostProbesGizmo = false;
     [HideInInspector] public bool isPlayingEntranceAnim = false;
@@ -1224,7 +1227,7 @@ public class Companion : MonoBehaviour
         return false;
     }
 
-    private void ResetAnimValues()
+    public void ResetAnimValues()
     {
         overrideCirclingSpeed = null;
         shouldMove = true;
@@ -1303,7 +1306,9 @@ public class Companion : MonoBehaviour
 
         if (BlobShadow != null)
         {
-            StartCoroutine(FadeAwayBlobShadow());
+            //StartCoroutine(FadeAwayBlobShadow());
+            prevBlobShadowHeight = BlobShadow.maxAirHeight;
+            BlobShadow.gameObject.SetActive(false);
         }
 
         if (runePuzzle)
@@ -1333,7 +1338,7 @@ public class Companion : MonoBehaviour
             if (TryGetMesh(target, out Mesh mesh))
             {
                 Debug.Log("Got mesh!");
-                carriedObjectExtentsY = Mathf.Abs(mesh.bounds.min.y) * transform.lossyScale.y;
+                carriedObjectExtentsY = Mathf.Abs(mesh.bounds.min.y) * target.transform.lossyScale.y;
                 print($"{carriedObjectExtentsY}");
             }
         }
@@ -1502,7 +1507,8 @@ public class Companion : MonoBehaviour
 
             if (BlobShadow != null && prevBlobShadowHeight.HasValue)
             {
-                StartCoroutine(FadeBackBlobShadow());
+                //StartCoroutine(FadeBackBlobShadow());
+                BlobShadow.gameObject.SetActive(true);
             }
         }
         else
@@ -1686,6 +1692,7 @@ public class Companion : MonoBehaviour
                 string sceneName = SceneManager.GetSceneAt(i).name;
                 if (sceneName != "DeathScene" && sceneName != "MainMenu")
                 {
+                    carriedObjectID = string.Empty;
                     heldObject.transform.SetParent(null);
                     SceneManager.MoveGameObjectToScene(heldObject, SceneManager.GetSceneAt(i));
                     break;
@@ -1698,10 +1705,11 @@ public class Companion : MonoBehaviour
 
         if (isStation)
         {
-            target.ReceiveKey(heldObject.transform);
+            target.ReceiveKey(heldObject.transform, GhostOrbKey.ID);
         }
 
         heldObject = null;
+        carriedObjectID = string.Empty;
 
         //float startHeight2 = agent.baseOffset;
         //float endHeight2 = 3.5f;
@@ -1744,7 +1752,8 @@ public class Companion : MonoBehaviour
 
         if (BlobShadow != null && prevBlobShadowHeight.HasValue)
         {
-            StartCoroutine(FadeBackBlobShadow());
+            //StartCoroutine(FadeBackBlobShadow());
+            BlobShadow.gameObject.SetActive(true);
         }
 
         PutDownRoutine = null;
@@ -1777,7 +1786,7 @@ public class Companion : MonoBehaviour
         return false;
     }
 
-    private IEnumerator FadeAwayBlobShadow()
+    public IEnumerator FadeAwayBlobShadow()
     {
         prevBlobShadowHeight = BlobShadow.maxAirHeight;
 
@@ -1798,7 +1807,7 @@ public class Companion : MonoBehaviour
             yield return null;
         }
     }
-    private IEnumerator FadeBackBlobShadow()
+    public IEnumerator FadeBackBlobShadow()
     {
         float startHeight = BlobShadow.maxAirHeight;
         float fadeDuration = 0.3f;
@@ -1821,7 +1830,7 @@ public class Companion : MonoBehaviour
 
     public void SpearAttack()
     {
-        if (UserInput.SpearAttackPressed && canAttack && !lockSpearAttack)
+        if (UserInput.SpearAttackPressed && canAttack && !lockSpearAttack && !player.Dead)
         {
             if (TryAttack(2))
             {
@@ -1851,7 +1860,7 @@ public class Companion : MonoBehaviour
 
     public void SlamAttack()
     {
-        if (UserInput.SlamAttackPressed && canAttack && !lockSlamAttack && !movementOverride && !SlamAttacking && !player.Parrying && !player.Pushing && player.Grounded && !SceneSwapManager.LoadFromDoor)
+        if (UserInput.SlamAttackPressed && canAttack && !lockSlamAttack && !movementOverride && !SlamAttacking && !player.Parrying && !player.Dead && !player.Pushing && player.Grounded && !SceneSwapManager.LoadFromDoor)
         {
             if (TryAttack(2))
             {
@@ -1942,6 +1951,8 @@ public class Companion : MonoBehaviour
 
         player.animator.SetBool("SlamAttacking", true);
         _animator.SetBool("Looking", false);
+
+        SoundFXManager.instance.PlaySoundFXClip(FX.FX_construct_slam, player.transform, 1f);
 
         movementOverride = true;
         agent.enabled = false;

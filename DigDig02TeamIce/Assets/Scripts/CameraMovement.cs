@@ -59,7 +59,15 @@ public class CameraMovement : MonoBehaviour
             player.OnPlayerDie += OnPlayerDie;
             //player.OnPlayerResurrect += OnPlayerResurrect;
         }
+
+        SceneManager.sceneLoaded += SceneManager_sceneLoaded;
     }
+
+    private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
+    {
+        CacheOriginalState();
+    }
+
     private void OnDisable()
     {
         if (player != null)
@@ -67,6 +75,8 @@ public class CameraMovement : MonoBehaviour
             player.OnPlayerDie -= OnPlayerDie;
             //player.OnPlayerResurrect -= OnPlayerResurrect;
         }
+
+        SceneManager.sceneLoaded -= SceneManager_sceneLoaded;
     }
 
     private void Awake()
@@ -77,7 +87,7 @@ public class CameraMovement : MonoBehaviour
         }
         Actions = _camera.GetComponent<CameraActions>();
 
-        audioListener = _camera.GetComponent<AudioListener>();
+        audioListener = GetComponent<AudioListener>();
         if (SceneManager.GetActiveScene().name == "MainMenu")
         {
             audioListener.enabled = false;
@@ -248,7 +258,6 @@ public class CameraMovement : MonoBehaviour
     {
         if (!playingDeathAnim)
         {
-            CacheOriginalState();
             StartCoroutine(DeathCam());
             playingDeathAnim = true;
         }
@@ -313,6 +322,7 @@ public class CameraMovement : MonoBehaviour
             clockwiseDelta += 360f;
 
         bool constructStartedAnim = false;
+        bool playedSoundFx = false;
 
         float timer = 0f;
         float constructAnimTimer = 0f;
@@ -381,6 +391,12 @@ public class CameraMovement : MonoBehaviour
                 }
             }
 
+            if (t >= 0.125f && !playedSoundFx)
+            {
+                SoundFXManager.instance.PlaySoundFXClip(FX.FX_GameOver, transform, 1f);
+                playedSoundFx = true;
+            }
+
             if (t >= 0.92f)
                 player.Companion._animator.SetLayerWeight(1, 1f - t3);
 
@@ -443,6 +459,7 @@ public class CameraMovement : MonoBehaviour
         if (cancelDeathCam)
         {
             playingDeathAnim = false;
+            AmountThroughDeathAnim = 0f;
             OnResurrectionRespawn?.Invoke();
         }
     }
@@ -452,6 +469,20 @@ public class CameraMovement : MonoBehaviour
         originalRotation = transform.rotation;
         originalParentLocalPos = transform.localPosition;
         originalChildLocalPos = transform.GetChild(0).localPosition;
+    }
+
+    public void RestoreToOriginal()
+    {
+        StopAllCoroutines();
+
+        transform.rotation = originalRotation;
+        transform.localPosition = originalParentLocalPos;
+        Transform child = transform.GetChild(0);
+        child.localPosition = originalChildLocalPos;
+        player.Companion.CrystalBallMaterial.SetColor("_EmissionColor", player.Companion.OrigCrystalColor);
+
+        playingDeathAnim = false;
+        AmountThroughDeathAnim = 0f;
     }
 
     public void ZoomIn(float desiredDistanceZ, float duration)

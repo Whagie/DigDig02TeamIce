@@ -125,6 +125,9 @@
         },
         {
             "m_Id": "7cc99b6c1e5f4231bfb7f21aba8336a7"
+        },
+        {
+            "m_Id": "a12a2ed16fcd4b2aae5ea52669af1d99"
         }
     ],
     "m_GroupDatas": [],
@@ -156,20 +159,6 @@
                     "m_Id": "d8bb711f55834059868d88578ad02206"
                 },
                 "m_SlotId": 2
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
-                    "m_Id": "0963cecc27754dd298e6514c2f3f8dec"
-                },
-                "m_SlotId": 0
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "b551168a322949bb8b9773f6dfac89cd"
-                },
-                "m_SlotId": 0
             }
         },
         {
@@ -392,6 +381,20 @@
             "m_InputSlot": {
                 "m_Node": {
                     "m_Id": "c9fe888ffb0347bb92377cafc297137b"
+                },
+                "m_SlotId": 0
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "a12a2ed16fcd4b2aae5ea52669af1d99"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "b551168a322949bb8b9773f6dfac89cd"
                 },
                 "m_SlotId": 0
             }
@@ -782,7 +785,7 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "Y",
     "m_StageCapability": 3,
-    "m_Value": 0.0,
+    "m_Value": 0.25,
     "m_DefaultValue": 0.0,
     "m_Labels": [
         "Y"
@@ -1096,6 +1099,31 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
+    "m_ObjectId": "199b38566f1f4fd8951622bd90f71027",
+    "m_Id": 0,
+    "m_DisplayName": "Out",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0,
+        "w": 1.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_Labels": []
 }
 
 {
@@ -2859,6 +2887,39 @@
     "useTilingAndOffset": false,
     "m_Modifiable": true,
     "m_DefaultType": 0
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.VertexColorNode",
+    "m_ObjectId": "a12a2ed16fcd4b2aae5ea52669af1d99",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Vertex Color",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": 1241.5999755859375,
+            "y": -304.79998779296877,
+            "width": 118.4000244140625,
+            "height": 93.60000610351563
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "199b38566f1f4fd8951622bd90f71027"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": false,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 2,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    }
 }
 
 {

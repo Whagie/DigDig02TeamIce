@@ -1,12 +1,14 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using static UnityEngine.EventSystems.EventTrigger;
 
 public class SceneSwapManager : MonoBehaviour
 {
     public static SceneSwapManager instance;
 
     public static bool LoadFromDoor { get; private set; }
+    public static bool LoadFromDeathScene { get; set; } = false;
 
     public event System.Action OnStartSceneSwap;
 
@@ -56,25 +58,38 @@ public class SceneSwapManager : MonoBehaviour
         LoadFromDoor = true;
         instance.StartCoroutine(instance.FadeOutThenChangeScene(myScene, doorToSpawnAt, fromDoor));
     }
+    public static void EnterSceneThroughSaveData()
+    {
+        LoadFromDoor = true;
+        instance.StartCoroutine(instance.LoadSceneThroughSaveDataRoutine());
+    }
     public static void UnloadDeathScene(string myScene, GameObject[] respawnObject, Vector3[] spawnPos)
     {
         LoadFromDoor = false;
         instance.StartCoroutine(instance.DeathResurrectSceneSwap(myScene, respawnObject, spawnPos));
     }
-
+    public static void UnloadDeathSceneDoorVersion(string myScene, DoorTriggerInteraction.DoorToSpawnAt doorToSpawnAt)
+    {
+        LoadFromDoor = true;
+        LoadFromDeathScene = true;
+        instance.StartCoroutine(instance.FadeOutThenChangeScene(null, doorToSpawnAt, DoorTriggerInteraction.DoorToSpawnAt.None, myScene));
+    }
     public static void LoadDeathScene()
     {
         instance.StartCoroutine(instance.FreezeAndLoadDeathSceneRoutine(true));
     }
 
-    private IEnumerator FadeOutThenChangeScene(SceneField myScene, DoorTriggerInteraction.DoorToSpawnAt doorToSpawnAt = DoorTriggerInteraction.DoorToSpawnAt.None, DoorTriggerInteraction.DoorToSpawnAt fromDoor = DoorTriggerInteraction.DoorToSpawnAt.None)
+    private IEnumerator FadeOutThenChangeScene(SceneField myScene, DoorTriggerInteraction.DoorToSpawnAt doorToSpawnAt = DoorTriggerInteraction.DoorToSpawnAt.None, DoorTriggerInteraction.DoorToSpawnAt fromDoor = DoorTriggerInteraction.DoorToSpawnAt.None, string sceneToLoad = null)
     {
-        OnStartSceneSwap?.Invoke();
-
         FindDoor(fromDoor);
-        Vector3 dir = _doorSpawnPos.position - _constructDoorTargetPos.position;
-        dir.Normalize();
-        dir.y = 0f;
+        Vector3 dir = Vector3.forward;
+
+        if (_doorSpawnPos != null && _constructDoorTargetPos != null)
+        {
+            dir = _doorSpawnPos.position - _constructDoorTargetPos.position;
+            dir.Normalize();
+            dir.y = 0f;
+        }
 
         _player.MovementOverride = true;
         _player.animator.SetLayerWeight(2, 0f);
@@ -87,26 +102,35 @@ public class SceneSwapManager : MonoBehaviour
         _player.animator.SetBool("FollowUp", false);
         _player.animator.SetBool("SlamAttacking", false);
         _player.animator.SetBool("Pushing", false);
+        _player.animator.ResetTrigger("GotHit");
         _player.wrenchAttack.Deactivate();
 
         float speed;
-        if (_player.Sprinting)
+        if (!LoadFromDeathScene)
         {
-            _player.animator.SetBool("Sprinting", true);
-            if (!_player.animator.GetCurrentAnimatorStateInfo(0).IsName("RunTree"))
+            if (_player.Sprinting)
             {
-                _player.animator.Play("RunTree");
+                _player.animator.SetBool("Sprinting", true);
+                if (!_player.animator.GetCurrentAnimatorStateInfo(0).IsName("RunTree"))
+                {
+                    _player.animator.Play("RunTree");
+                }
+                speed = _player.sprintSpeed;
+                playerSprinted = true;
             }
-            speed = _player.sprintSpeed;
-            playerSprinted = true;
+            else
+            {
+                _player.animator.SetBool("Sprinting", false);
+                if (!_player.animator.GetCurrentAnimatorStateInfo(0).IsName("WalkTree"))
+                {
+                    _player.animator.Play("WalkTree");
+                }
+                speed = _player.walkSpeed;
+                playerSprinted = false;
+            }
         }
         else
         {
-            _player.animator.SetBool("Sprinting", false);
-            if (!_player.animator.GetCurrentAnimatorStateInfo(0).IsName("WalkTree"))
-            {
-                _player.animator.Play("WalkTree");
-            }
             speed = _player.walkSpeed;
             playerSprinted = false;
         }
@@ -119,23 +143,54 @@ public class SceneSwapManager : MonoBehaviour
         SceneFadeManager.instance.StartFadeOut();
         while (SceneFadeManager.instance.IsFadingOut)
         {
-            float delta = Vector3.Distance(_player.transform.position, startPos);
-            if (delta < 6f)
+            if (!LoadFromDeathScene)
             {
-                float t = delta / 4f;
-                Vector3 finalMove = (dir * speed) + downForce;
-                _player.controller.Move(finalMove * Time.deltaTime);
-                _player.transform.rotation = Quaternion.Lerp(startRot, targetRot, t);
-                _player.animator.SetFloat("Move", _player.controller.velocity.magnitude);
-            }
-            else
-            {
-                _player.animator.speed = 0f;
+                float delta = Vector3.Distance(_player.transform.position, startPos);
+                if (delta < 6f)
+                {
+                    float t = delta / 4f;
+                    Vector3 finalMove = (dir * speed) + downForce;
+                    Vector3 localMove = transform.InverseTransformDirection(finalMove);
+                    Vector2 animDir = new Vector2(localMove.x, localMove.z).normalized;
+
+                    _player.animator.SetFloat("MoveX", 0f);
+                    _player.animator.SetFloat("MoveZ", 1f);
+                    _player.animator.SetFloat("Move", _player.controller.velocity.magnitude);
+                    _player.controller.Move(finalMove * Time.deltaTime);
+                    _player.transform.rotation = Quaternion.Lerp(startRot, targetRot, t);
+                }
+                else
+                {
+                    _player.animator.speed = 0f;
+                }
             }
 
             yield return null;
         }
+        _player.animator.SetFloat("MoveX", 0f);
+        _player.animator.SetFloat("MoveZ", 0f);
+        _player.animator.SetFloat("Move", 0f);
         _player.animator.speed = 0f;
+
+        if (LoadFromDeathScene)
+        {
+            _construct._animator.SetBool("Died", false);
+            _construct._animator.SetLayerWeight(1, 1f);
+            _player.animator.updateMode = AnimatorUpdateMode.Normal;
+            _player.animator.Play("WalkTree");
+            _player.animator.Update(0f);
+            _player.animator.SetBool("Dead", false);
+            _player.animator.Update(0f);
+
+            if (_player.Dead)
+            {
+                foreach (Light light in DeathSceneManager.DirLights)
+                {
+                    light.gameObject.SetActive(true);
+                }
+                DeathSceneManager.DirLights = null;
+            }
+        }
 
         if (_construct.PickUpRoutine != null)
         {
@@ -205,12 +260,70 @@ public class SceneSwapManager : MonoBehaviour
         }
         yield return null;
 
+        _construct.previousSpears.Clear();
+
         _doorToSpawnTo = doorToSpawnAt;
-        SceneManager.LoadScene(myScene);
+        _player.lastExitedDoor = doorToSpawnAt;
+
+        if (LoadFromDeathScene)
+        {
+            int deadEnemyCount = 0;
+            foreach (var enemy in _player.EnemiesInRoom)
+            {
+                if (enemy.Dead)
+                {
+                    deadEnemyCount++;
+                }
+            }
+
+            if (deadEnemyCount < _player.EnemiesInRoom.Count)
+            {
+                Debug.Log($"{deadEnemyCount}, {_player.EnemiesInRoom.Count}");
+
+                foreach (var enemy in _player.EnemiesInRoom)
+                {
+                    enemy.DeleteSaveData();
+                }
+
+                OnStartSceneSwap?.Invoke();
+            }
+        }
+
+        foreach (var proj in _player.ProjectilesInRoom)
+        {
+            Destroy(proj.BlobShadow);
+            Destroy(proj);
+        }
+
+        _player.EnemiesInCombat.Clear();
+        _player.EnemiesInRoom.Clear();
+
+        if (!LoadFromDeathScene || !_player.Dead)
+        {
+            SceneManager.LoadScene(myScene);
+        }
+        else
+        {
+            _player.Resurrect();
+            cameraObject.RestoreToOriginal();
+            Freezer.ForceCancelAll();
+
+            var op = SceneManager.UnloadSceneAsync(SceneManager.GetSceneByName(_player.sceneAtDeath));
+            while (!op.isDone)
+            {
+                yield return null;
+            }
+
+            SceneManager.LoadScene(sceneToLoad);
+        }
     }
 
     private IEnumerator DeathResurrectSceneSwap(string myScene, GameObject[] respawnObject, Vector3[] spawnPositions)
     {
+        _player.animator.SetFloat("MoveX", 0f);
+        _player.animator.SetFloat("MoveZ", 0f);
+        _player.animator.SetFloat("Move", 0f);
+
         _construct._animator.SetBool("Died", false);
         _construct._animator.SetLayerWeight(1, 1f);
 
@@ -276,29 +389,47 @@ public class SceneSwapManager : MonoBehaviour
     {
         if (cameraObject.audioListener == null)
         {
-            cameraObject.audioListener = cameraObject._camera.GetComponent<AudioListener>();
+            cameraObject.audioListener = cameraObject.GetComponent<AudioListener>();
         }
-        if (scene.name == "MainMenu")
+        if (scene.name == "MainMenu" || scene.name == "Credits")
         {
             cameraObject.audioListener.enabled = false;
         }
         else
         {
             cameraObject.audioListener.enabled = true;
-        }
 
-        if (scene.name != "DeathScene" && !LoadFromDoor)
-        {
-            GameObject spawnPoint = GameObject.FindGameObjectWithTag("Respawn");
-            if (spawnPoint != null)
+            // Editor logic only! Creates data if you don't start from main menu
+            if (SaveSystem.Data == null)
             {
-                _player.transform.position = spawnPoint.transform.position;
-                cameraObject.transform.position = spawnPoint.transform.position;
-                _construct.transform.position = _player.transform.position + _construct.Offset;
+                SaveSystem.Load();
+
+                SaveSystem.Data.currentRoom = SceneManager.GetActiveScene().name;
+                SaveSystem.Data.lastExitedDoor = 0;
+                SaveSystem.Data.energy = _player.Energy;
+                SaveSystem.Data.cameraRotationY = cameraRotY;
+                SaveSystem.Data.cameraChildLocalPosition = cameraObject.transform.localPosition;
+                SaveSystem.Data.constructCarriedItem = _construct.carriedObjectID;
             }
         }
 
-        SceneFadeManager.instance.StartFadeIn(true, 0.25f);
+        if (scene.name != "DeathScene")
+        {
+            if (!LoadFromDoor)
+            {
+                GameObject spawnPoint = GameObject.FindGameObjectWithTag("Respawn");
+                if (spawnPoint != null)
+                {
+                    _player.transform.position = spawnPoint.transform.position;
+                    cameraObject.transform.position = spawnPoint.transform.position;
+                    _construct.transform.position = _player.transform.position + _construct.Offset;
+                }
+            }
+
+            SceneFadeManager.instance._fadeOutStartColor.a = 1f;
+            SceneFadeManager.instance._fadeOutImage.color = SceneFadeManager.instance._fadeOutStartColor;
+            SceneFadeManager.instance.StartFadeIn(true, 0.25f);
+        }
 
         if (LoadFromDoor)
         {
@@ -357,7 +488,29 @@ public class SceneSwapManager : MonoBehaviour
 
     private IEnumerator PlayerDoorPositioning()
     {
-        FindDoor(_doorToSpawnTo);
+        bool noDoor = false;
+
+        if (_doorToSpawnTo != 0)
+        {
+            FindDoor(_doorToSpawnTo);
+        }
+        else
+        {
+            noDoor = true;
+
+            GameObject spawnPoint = GameObject.FindGameObjectWithTag("Respawn");
+            if (spawnPoint != null)
+            {
+                _playerSpawnPosition = spawnPoint.transform.position;
+                _constructDoorTargetPos = spawnPoint.transform;
+                _constructDoorTargetSpinPos = spawnPoint.transform;
+                amountToWalk = 0f;
+                cameraRotY = spawnPoint.transform.eulerAngles.y;
+                cameraDistanceZ = -85f;
+                allowSpinEntrance = false;
+                forceSpinEntrance = false;
+            }
+        }
 
         _player.Tail.enabled = false;
         _player.Tail.gameObject.SetActive(false);
@@ -375,19 +528,47 @@ public class SceneSwapManager : MonoBehaviour
 
         Vector3 pos = _playerSpawnPosition + (Vector3.up * 2f);
 
-        bool doSpin = Random.value < 0.33f;
-        if (!allowSpinEntrance && !forceSpinEntrance)
-            doSpin = false;
+        string current = SceneManager.GetActiveScene().name;
 
-        Vector3 dir;
-        Vector3 targetPos;
-        if (doSpin || forceSpinEntrance)
+        if (current != "MainMenu" && current != "DeathScene")
         {
-            if (!_construct.isCarrying)
+            SaveSystem.Data.currentRoom = current;
+            SaveSystem.Data.lastExitedDoor = (int)_player.lastExitedDoor;
+            SaveSystem.Data.cameraRotationY = cameraRotY;
+            SaveSystem.Data.cameraChildLocalPosition = cameraObject.transform.localPosition;
+            SaveSystem.Data.constructCarriedItem = _construct.carriedObjectID;
+            SaveSystem.Data.energy = _player.Energy;
+
+            MenuManager.instance.CanPause = true;
+        }
+
+        SaveSystem.Save();
+
+        Debug.Log(SaveSystem.Data.currentRoom);
+
+        if (!noDoor)
+        {
+            bool doSpin = Random.value < 0.33f;
+            if (!allowSpinEntrance && !forceSpinEntrance)
+                doSpin = false;
+
+            Vector3 dir;
+            Vector3 targetPos;
+            if (doSpin || forceSpinEntrance)
             {
-                doSpin = true;
-                dir = _constructDoorTargetSpinPos.position - _doorSpawnPos.position;
-                targetPos = _constructDoorTargetSpinPos.position;
+                if (!_construct.isCarrying)
+                {
+                    doSpin = true;
+                    dir = _constructDoorTargetSpinPos.position - _doorSpawnPos.position;
+                    targetPos = _constructDoorTargetSpinPos.position;
+                }
+                else
+                {
+                    doSpin = false;
+                    dir = _constructDoorTargetPos.position - _doorSpawnPos.position;
+                    targetPos = _constructDoorTargetPos.position;
+                    pos += Vector3.up * 0.75f;
+                }
             }
             else
             {
@@ -396,72 +577,66 @@ public class SceneSwapManager : MonoBehaviour
                 targetPos = _constructDoorTargetPos.position;
                 pos += Vector3.up * 0.75f;
             }
-        }
-        else
-        {
-            doSpin = false;
-            dir = _constructDoorTargetPos.position - _doorSpawnPos.position;
-            targetPos = _constructDoorTargetPos.position;
-            pos += Vector3.up * 0.75f;
-        }
 
-        dir.y = 0f;
+            dir.y = 0f;
 
-        if (_construct.DoorEntranceAnimRoutine != null)
-            StopCoroutine(_construct.DoorEntranceAnimRoutine);
+            if (_construct.DoorEntranceAnimRoutine != null)
+                StopCoroutine(_construct.DoorEntranceAnimRoutine);
 
-        _construct.DoorEntranceAnimRoutine = StartCoroutine(_construct.DoorEntranceAnimation(pos, targetPos, dir.normalized, doSpin));
+            _construct.DoorEntranceAnimRoutine = StartCoroutine(_construct.DoorEntranceAnimation(pos, targetPos, dir.normalized, doSpin));
 
-        Vector3 playerDir = _doorSpawnPos.position - _constructDoorTargetPos.position;
-        dir.Normalize();
-        dir.y = 0f;
+            Vector3 playerDir = _doorSpawnPos.position - _constructDoorTargetPos.position;
+            dir.Normalize();
+            dir.y = 0f;
 
-        Vector3 playerStartPos = _player.transform.position;
-        _player.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
-        float speed = playerSprinted ? _player.sprintSpeed : _player.walkSpeed;
-        Vector3 downForce = new Vector3(0f, playerSprinted ? -4f : -2f, 0f);
+            Vector3 playerStartPos = _player.transform.position;
+            _player.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+            float speed = playerSprinted ? _player.sprintSpeed : _player.walkSpeed;
+            Vector3 downForce = new Vector3(0f, playerSprinted ? -4f : -2f, 0f);
 
-        yield return new WaitForSeconds(0.25f);
+            yield return new WaitForSeconds(0.25f);
 
-        _player.animator.speed = 1f;
+            _player.animator.speed = 1f;
 
-        Vector3 lastPos = _player.transform.position;
-        float stuckTimer = 0f;
-        float stuckThreshold = 0.08f; // ~80 ms tolerance
+            if (Physics.SphereCast(_player.Center.position, 0.5f, dir, out RaycastHit hit, amountToWalk + 2f, LayerMask.GetMask("Default", "Pushable", "LightReflector", "NoAO"), QueryTriggerInteraction.Ignore))
+            {
+                float distance = Vector3.Distance(hit.point, playerStartPos);
+                if (distance < amountToWalk)
+                {
+                    amountToWalk = distance - 1f;
+                }
+            }
 
-        while (true)
-        {
-            float delta = Vector3.Distance(_player.transform.position, playerStartPos);
-            if (delta >= amountToWalk)
-                break;
+            while (true)
+            {
+                float delta = Vector3.Distance(_player.transform.position, playerStartPos);
+                if (delta >= amountToWalk)
+                    break;
 
-            Vector3 finalMove = dir * speed + downForce;
-            _player.controller.Move(finalMove * Time.deltaTime);
+                Vector3 finalMove = dir * speed + downForce;
+                _player.controller.Move(finalMove * Time.deltaTime);
 
-            float moved = Vector3.Distance(_player.transform.position, lastPos);
+                Vector3 localMove = transform.InverseTransformDirection(finalMove);
+                Vector2 animDir = new Vector2(localMove.x, localMove.z).normalized;
 
-            if (moved < 0.005f)
-                stuckTimer += Time.deltaTime;
-            else
-                stuckTimer = 0f;
+                _player.animator.SetFloat("MoveX", 0f);
+                _player.animator.SetFloat("MoveZ", 1f);
 
-            if (stuckTimer >= stuckThreshold)
-                break;
+                _player.animator.SetFloat("Move", _player.controller.velocity.magnitude);
 
-            lastPos = _player.transform.position;
+                yield return null;
+            }
 
             _player.animator.SetFloat("Move", _player.controller.velocity.magnitude);
-
-            yield return null;
         }
 
-        _player.animator.SetFloat("Move", _player.controller.velocity.magnitude);
         _player.animator.speed = 1f;
         _player.animator.SetLayerWeight(2, 1f);
         _player.MovementOverride = false;
 
         yield return null;
         LoadFromDoor = false;
+        LoadFromDeathScene = false;
     }
 
     private void CalculateSpawnPosition()
@@ -469,7 +644,7 @@ public class SceneSwapManager : MonoBehaviour
         float colliderHeight = _player.MainCollider.bounds.extents.y;
         Vector3 spawnPos;
 
-        if (Physics.Raycast(_doorSpawnPos.position, Vector3.down, out RaycastHit info, 15f, LayerMask.GetMask("Default")))
+        if (Physics.Raycast(_doorSpawnPos.position, Vector3.down, out RaycastHit info, 15f, LayerMask.GetMask("Default", "Pushable", "NoAO")))
         {
             //spawnPos = info.point + new Vector3(0f, colliderHeight, 0f);
             spawnPos = info.point;
@@ -479,5 +654,98 @@ public class SceneSwapManager : MonoBehaviour
             spawnPos = _doorSpawnPos.position;
         }
         _playerSpawnPosition = spawnPos;
+    }
+
+    private IEnumerator LoadSceneThroughSaveDataRoutine()
+    {
+        var data = SaveSystem.Data;
+
+        _player.MovementOverride = true;
+        _player.animator.SetLayerWeight(2, 0f);
+        _player.Parrying = false;
+        _player.Attacking = false;
+        _player.AllowFollowUpAttack = false;
+        _player.AttackBuffered = false;
+        _player.animator.SetBool("Blocked", false);
+        _player.animator.SetBool("Attack", false);
+        _player.animator.SetBool("FollowUp", false);
+        _player.animator.SetBool("SlamAttacking", false);
+        _player.animator.SetBool("Pushing", false);
+        _player.animator.ResetTrigger("GotHit");
+        _player.wrenchAttack.Deactivate();
+
+        SceneFadeManager.instance.StartFadeOut();
+        while (SceneFadeManager.instance.IsFadingOut)
+        {
+            yield return null;
+        }
+
+        _player.Energy = SaveSystem.Data.energy;
+
+        if (string.IsNullOrEmpty(data.constructCarriedItem))
+        {
+
+        }
+        else
+        {
+            _construct.EnterNavMove(_player.transform.position);
+            _construct.isCarrying = true;
+
+            if (_construct.playingIdleAnim)
+            {
+                _construct._animator.SetBool("Looking", true);
+                _construct.ResetAnimValues();
+                yield return null;
+                _construct._animator.SetBool("Looking", false);
+                _construct.playingIdleAnim = false;
+            }
+
+            _construct.carriedObjectExtentsY = 0.4798695f;
+
+            _construct._animator.SetBool("Grabbing", true);
+
+            _construct.GhostOrbKey.gameObject.SetActive(true);
+            _construct.GhostOrbKey.ID = data.constructCarriedItem;
+            _construct.heldObject = _construct.GhostOrbKey.gameObject;
+            _construct.heldObjectPrevLayer = _construct.heldObject.layer;
+            _construct.heldObject.layer = LayerMask.NameToLayer("Player");
+
+            _player.CurrentOrbKey = _construct.GhostOrbKey;
+            _player.CurrentOrbKey.FadeTo(_player.CurrentOrbKey.InputBubble, _player.CurrentOrbKey.InteractBubble, 0.25f, true);
+            _player.CurrentOrbKey.IsCarried = true;
+
+            _construct.isPlayingGrabAnim = false;
+            _construct.movementOverride = false;
+            _construct.agent.enabled = true;
+            _construct.agent.isStopped = false;
+
+            _construct.agentSpeedBeforeGrab = _construct.agent.speed;
+            _construct.agentAccelerationBeforeGrab = _construct.agent.acceleration;
+
+            _construct.agent.stoppingDistance = 3f;
+            _construct.agent.speed = 12f;
+            _construct.agent.acceleration = 12f;
+            _construct.carryBobTime = 0f;
+        }
+
+        MenuManager.instance.RunesAquired = data.runesFound;
+        MenuManager.instance.TurnOnRuneUI();
+
+        yield return null;
+
+        _construct.previousSpears.Clear();
+
+        _doorToSpawnTo = (DoorTriggerInteraction.DoorToSpawnAt)data.lastExitedDoor;
+        _player.lastExitedDoor = (DoorTriggerInteraction.DoorToSpawnAt)data.lastExitedDoor;
+
+        MusicManager.instance.Play(FX.Music_NoCombat, true);
+        MusicManager.instance.AudioSourceA.time = 0f;
+        MusicManager.instance.FadeOutPrimary(2f, 1f);
+        SceneManager.LoadScene(data.currentRoom);
+    }
+
+    public static void CallSceneSwapEvent()
+    {
+        instance.OnStartSceneSwap?.Invoke();
     }
 }

@@ -23,6 +23,7 @@ public class SceneFadeManager : MonoBehaviour
         }
 
         _fadeOutStartColor.a = 1f;
+        _fadeOutImage.color = _fadeOutStartColor;
     }
 
     private void Update()

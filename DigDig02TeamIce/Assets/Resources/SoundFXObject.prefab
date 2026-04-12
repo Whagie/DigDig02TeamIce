@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8599830523126582572}
   - component: {fileID: 3847660836712742507}
+  - component: {fileID: 7010244799134138358}
   m_Layer: 0
   m_Name: SoundFXObject
   m_TagString: Untagged
@@ -128,3 +129,18 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &7010244799134138358
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8150928840376069688}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b393138fa3dbf74ca8128d470ede178, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  audioSource: {fileID: 3847660836712742507}
+  UIMixerGroup: {fileID: -1936457798412141367, guid: 208997ce3dc4d1842a480802234a24a0, type: 2}
+  DurationBeforeDestroy: 0

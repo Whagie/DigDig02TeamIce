@@ -9,6 +9,7 @@ public class LightPassThrough : MonoBehaviourID
     public bool ReceivingLight = false;
 
     public GameObject Crystal;
+    public GameObject Pole;
     private Material crystalMaterial;
     private Material glowMaterial;
     public Color origBaseColor;
@@ -20,14 +21,13 @@ public class LightPassThrough : MonoBehaviourID
     private Color depletedGlowColor;
 
     public float StartGlowDuration = 0.4f;
-    public float DropDuration = 0.75f;
 
     public bool Glowing = false;
 
     private Coroutine startGlowRoutine;
     private Coroutine stopGlowRoutine;
 
-    private SessionSaveData.LightPuzzleGeneralData lightObjectData;
+    private LightPuzzleGeneralData lightObjectData;
 
     private void OnEnable()
     {
@@ -43,9 +43,12 @@ public class LightPassThrough : MonoBehaviourID
         Renderer renderer1 = Crystal.GetComponent<Renderer>();
         Material[] mats1 = renderer1.materials;
         int matIndex1 = Array.FindIndex(mats1, m => m.name.Contains("ReflectorCrystal"));
-        int matIndex2 = Array.FindIndex(mats1, m => m.name.Contains("Glow"));
         crystalMaterial = mats1[matIndex1];
-        glowMaterial = mats1[matIndex2];
+
+        Renderer renderer2 = Pole.GetComponent<Renderer>();
+        Material[] mats2 = renderer2.materials;
+        int matIndex2 = Array.FindIndex(mats2, m => m.name.Contains("Glow"));
+        glowMaterial = mats2[matIndex2];
         glowMaterial.EnableKeyword("_EMISSION");
 
         origBaseColor = crystalMaterial.GetColor("_BaseColor");

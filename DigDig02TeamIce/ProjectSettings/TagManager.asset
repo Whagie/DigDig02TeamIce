@@ -6,7 +6,6 @@ TagManager:
   tags:
   - Projectile
   - Minecart
-  - MinecartCollision
   - LightReceiver
   - Shrouder
   - PlayerUI
@@ -14,6 +13,7 @@ TagManager:
   - ConstructSpawn
   - Fog
   - LightPassThrough
+  - MeleeBlocker
   layers:
   - Default
   - TransparentFX

@@ -23,11 +23,24 @@ public class FX : MonoBehaviour
     public static AudioClip FX_player_parry { get; private set; }
     public static AudioClip FX_rotate_stone { get; private set; }
     public static AudioClip FX_stab { get; private set; }
+    public static AudioClip FX_swing { get; private set; }
+    public static AudioClip FX_player_swing { get; private set; }
     public static AudioClip FX_intro_metal_hits { get; private set; }
     public static AudioClip FX_construct_flap { get; private set; }
+    public static AudioClip FX_construct_slam { get; private set; }
+    public static AudioClip FX_GameOver { get; private set; }
+    public static AudioClip FX_StoneSlide { get; private set; }
+    public static AudioClip FX_Gears { get; private set; }
+    public static AudioClip FX_DoorDrop { get; private set; }
+    public static AudioClip FX_UI_Pause { get; private set; }
+    public static AudioClip FX_UI_Unpause { get; private set; }
+    public static AudioClip FX_UI_Select { get; private set; }
+    public static AudioClip FX_UI_Return { get; private set; }
     public static AudioClip Music_Combat { get; private set; }
     public static AudioClip Music_NoCombat { get; private set; }
-    public static AudioClip Music_MainMenu { get; private set; }
+    public static AudioClip Music_IntroCutscene { get; private set; }
+    public static AudioClip Music_Credits { get; private set; }
+    public static AudioClip Music_MainTheme { get; private set; }
 
     static FX()
     {
@@ -58,11 +71,24 @@ public class FX : MonoBehaviour
                 case nameof(FX_player_parry): FX_player_parry = prefab; break;
                 case nameof(FX_rotate_stone): FX_rotate_stone = prefab; break;
                 case nameof(FX_stab): FX_stab = prefab; break;
+                case nameof(FX_swing): FX_swing = prefab; break;
+                case nameof(FX_player_swing): FX_player_swing = prefab; break;
                 case nameof(FX_intro_metal_hits): FX_intro_metal_hits = prefab; break;
                 case nameof(FX_construct_flap): FX_construct_flap = prefab; break;
+                case nameof(FX_construct_slam): FX_construct_slam = prefab; break;
+                case nameof(FX_GameOver): FX_GameOver = prefab; break;
+                case nameof(FX_StoneSlide): FX_StoneSlide = prefab; break;
+                case nameof(FX_DoorDrop): FX_DoorDrop = prefab; break;
+                case nameof(FX_Gears): FX_Gears = prefab; break;
+                case nameof(FX_UI_Pause): FX_UI_Pause = prefab; break;
+                case nameof(FX_UI_Unpause): FX_UI_Unpause = prefab; break;
+                case nameof(FX_UI_Select): FX_UI_Select = prefab; break;
+                case nameof(FX_UI_Return): FX_UI_Return = prefab; break;
                 case nameof(Music_Combat): Music_Combat = prefab; break;
                 case nameof(Music_NoCombat): Music_NoCombat = prefab; break;
-                case nameof(Music_MainMenu): Music_MainMenu = prefab; break;
+                case nameof(Music_IntroCutscene): Music_IntroCutscene = prefab; break;
+                case nameof(Music_Credits): Music_Credits = prefab; break;
+                case nameof(Music_MainTheme): Music_MainTheme = prefab; break;
             }
         }
     }

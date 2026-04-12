@@ -23,6 +23,10 @@ public class EvilCube : Enemy
 
 
     [SerializeField] private float shootInterval = 2.5f;
+    [SerializeField] private float projectileSpeed = 8f;
+    [SerializeField] private float shootDelayOffset = 0f;
+
+    private bool shootWasOffset = false;
 
     protected override void Awake()
     {
@@ -67,13 +71,23 @@ public class EvilCube : Enemy
     private IEnumerator ChargeAndShoot()
     {
         PauseIntervalTimer = true;
+
+        float randomDelay = Random.Range(-0.2f, 0.6f);
+        yield return new WaitForSeconds(randomDelay);
+
+        if (!shootWasOffset)
+        {
+            shootWasOffset = true;
+            yield return new WaitForSeconds(shootDelayOffset);
+        }
+
         chargeUpVFX = Object.Instantiate(Particles.P_EvilBallCharge, Center.position, CrystalBall.transform.rotation);
         SoundFXManager.instance.PlaySoundFXClip(FX.FX_baneful_ball_charge_up, transform, 1f);
 
         yield return new WaitForSeconds(1f);
 
         chargeUpVFX.transform.rotation = CrystalBall.transform.rotation;
-        FireProjectile(Center, player.Center.transform);
+        FireProjectile(Center, player.Center.transform, false, projectileSpeed);
         PauseIntervalTimer = false;
         SoundFXManager.instance.PlaySoundFXClip(FX.FX_baneful_ball_shoot, transform, 0.9f, 1.1f, 1f);
     }
@@ -115,6 +129,7 @@ public class EvilCube : Enemy
         shouldRotate = false;
         Destroy(chargeUpVFX);
         StopAllCoroutines();
+        StartCoroutine(WaitAndDisableCollider());
         Explode();
     }
 
@@ -164,5 +179,12 @@ public class EvilCube : Enemy
         }
 
         obj.localScale = Vector3.zero;
+    }
+
+    private IEnumerator WaitAndDisableCollider()
+    {
+        yield return new WaitForSeconds(0.1f);
+
+        MainCollider.enabled = false;
     }
 }

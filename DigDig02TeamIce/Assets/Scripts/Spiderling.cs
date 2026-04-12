@@ -40,7 +40,7 @@ public class Spiderling : Enemy
             {
                 TriggerName = "Lunge",
                 Weight = 0.8f,
-                CanUse = () => SeeingPlayer && DistanceToPlayer >= 3.5f && DistanceToPlayer <= 7f,
+                CanUse = () => SeeingPlayer && DistanceToPlayer >= 2f && DistanceToPlayer <= 7f,
                 Modifier = new ActionModifier()
                     .ChangeSpeed(0f)
             }
@@ -66,27 +66,6 @@ public class Spiderling : Enemy
         lunge.LayerMask = LayerMask.GetMask("Player");
 
         BiteCollider.enabled = false;
-    }
-
-    protected override void Update()
-    {
-        base.Update();
-        
-        //for (int i = 0; i < Actions.Length; i++)
-        //{
-        //    Color textColor2;
-        //    if (Actions[i].CanUse == null || Actions[i].CanUse())
-        //    {
-        //        textColor2 = Color.white;
-        //    }
-        //    else
-        //    {
-        //        textColor2 = Color.gray;
-        //    }
-        //    DrawUI.Draw(Actions[i].TriggerName, new Vector2(Screen.width * 0.9f, Screen.height * (0.05f + (0.05f * i))), textColor2, 10);
-        //}
-
-        //DrawUI.Draw($"Can rotate: {NavAgent.updateRotation}", new Vector2(Screen.width * 0.8f, Screen.height * 0.3f), Color.white, 8);
     }
 
     public override void HandleParried(IHurtbox by)

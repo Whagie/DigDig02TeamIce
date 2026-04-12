@@ -39,7 +39,9 @@ public class LightReceiver : MonoBehaviourID
 
     public LightReceiverEvent OnReceiveLight;
 
-    private SessionSaveData.LightPuzzleGeneralData lightObjectData;
+    public LightBeam EmitterToDeactivate = null;
+
+    private LightPuzzleGeneralData lightObjectData;
 
     private void OnEnable()
     {
@@ -87,6 +89,25 @@ public class LightReceiver : MonoBehaviourID
             crystalMaterial.SetColor("_BaseColor", depletedBaseColor);
             crystalMaterial.SetColor("_TopColor", depletedTopColor);
             glowMaterial.SetColor("_EmissionColor", depletedGlowColor);
+        }
+
+        if (Activated)
+        {
+            if (EmitterToDeactivate != null)
+            {
+                EmitterToDeactivate.DestroyBeamRecursive();
+                EmitterToDeactivate.gameObject.SetActive(false);
+                EmitterToDeactivate = null;
+
+                foreach (var reflector in Reflectors)
+                {
+                    if (reflector == null)
+                        return;
+
+                    if (reflector.Glowing)
+                        reflector.StopGlow();
+                }
+            }
         }
     }
     private void Update()
@@ -219,6 +240,7 @@ public class LightReceiver : MonoBehaviourID
         OnReceiveLight?.Invoke();
         Activated = true;
         SoundFXManager.instance.PlaySoundFXClip(FX.FX_light_puzzle_receive_light, transform, 1f);
+        SessionSaveData.Instance.AddOrUpdateData(ID, Glowing, Activated);
 
         foreach (var obj in destroyOnRecieve)
         {
@@ -238,11 +260,23 @@ public class LightReceiver : MonoBehaviourID
         {
             passThrough.SaveData();
         }
+
+        if (EmitterToDeactivate != null)
+        {
+            EmitterToDeactivate.DestroyBeamRecursive();
+            EmitterToDeactivate.gameObject.SetActive(false);
+            EmitterToDeactivate = null;
+
+            foreach (var reflector in Reflectors)
+            {
+                reflector.StopGlow();
+            }
+        }
     }
 
     private void SaveData()
     {
-        SessionSaveData.Instance.AddOrUpdateData(ID, Glowing, Activated);
+        //SessionSaveData.Instance.AddOrUpdateData(ID, Glowing, Activated);
     }
 }
 

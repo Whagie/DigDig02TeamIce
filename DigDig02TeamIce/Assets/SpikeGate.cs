@@ -4,12 +4,12 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class SpikeGate : MonoBehaviourID
+public class SpikeGate : MonoBehaviour
 {
     public List<GameObject> Stakes = new();
     public List<Collider> StakeColliders = new();
 
-    private SessionSaveData.SingleBoolData spikeGateStateData;
+    private SingleBoolData spikeGateStateData;
 
     public float RaiseHeight = 4f;
 
@@ -19,14 +19,21 @@ public class SpikeGate : MonoBehaviourID
     public bool Raised = true;
 
     public bool MoveCameraOnDrop = false;
+    public float DurationBeforeCameraReset = 0.325f;
+
+    public float DelayBeforeCameraMove = 0f;
 
     private Coroutine raiseRoutine;
     private Coroutine dropRoutine;
 
     private CameraMovement cameraMovement;
 
+    [SerializeField] private MonoBehaviourID emptyID;
+
     private void Start()
     {
+        emptyID = GetComponentInChildren<MonoBehaviourID>();
+
         if (Stakes.Count <= 0)
         {
             foreach (Transform t in transform.GetComponentsInChildren<Transform>())
@@ -41,13 +48,16 @@ public class SpikeGate : MonoBehaviourID
             }
         }
 
-        if (SessionSaveData.Instance.TryGet(ID, out spikeGateStateData))
+        if (emptyID != null)
         {
-            Raised = spikeGateStateData.IsTrue;
-        }
-        else
-        {
-            SessionSaveData.Instance.AddOrUpdateData(ID, Raised);
+            if (SessionSaveData.Instance.TryGet(emptyID.ID, out spikeGateStateData))
+            {
+                Raised = spikeGateStateData.IsTrue;
+            }
+            else
+            {
+                SessionSaveData.Instance.AddOrUpdateData(emptyID.ID, Raised);
+            }
         }
 
         foreach (GameObject stake in Stakes)
@@ -76,6 +86,23 @@ public class SpikeGate : MonoBehaviourID
         cameraMovement = Camera.main.GetComponentInParent<CameraMovement>();
     }
 
+    private void OnEnable()
+    {
+        SceneSwapManager.instance.OnStartSceneSwap += Instance_OnStartSceneSwap;
+    }
+    private void OnDisable()
+    {
+        SceneSwapManager.instance.OnStartSceneSwap -= Instance_OnStartSceneSwap;
+    }
+
+    private void Instance_OnStartSceneSwap()
+    {
+        if (SceneSwapManager.LoadFromDeathScene && emptyID != null)
+        {
+            SessionSaveData.Instance.RemoveSingleBoolData(emptyID.ID);
+        }
+    }
+
     public void RaiseGates()
     {
         if (raiseRoutine != null)
@@ -98,20 +125,15 @@ public class SpikeGate : MonoBehaviourID
             StopCoroutine(raiseRoutine);
 
         dropRoutine = StartCoroutine(DropGatesRoutine(waitPeriod));
-
-        if (MoveCameraOnDrop)
-        {
-            if (cameraMovement == null)
-                return;
-
-            cameraMovement.SetOverrideTarget(this.transform, 1f);
-        }
     }
 
     private IEnumerator RaiseGatesRoutine()
     {
         Raised = true;
-        SessionSaveData.Instance.AddOrUpdateData(ID, Raised);
+        if (emptyID != null)
+        {
+            SessionSaveData.Instance.AddOrUpdateData(emptyID.ID, Raised);
+        }
 
         foreach (Collider col in StakeColliders)
         {
@@ -152,7 +174,19 @@ public class SpikeGate : MonoBehaviourID
     private IEnumerator DropGatesRoutine(float waitPeriod = 0f)
     {
         Raised = false;
-        SessionSaveData.Instance.AddOrUpdateData(ID, Raised);
+        if (emptyID != null)
+        {
+            SessionSaveData.Instance.AddOrUpdateData(emptyID.ID, Raised);
+        }
+
+        if (MoveCameraOnDrop)
+        {
+            yield return new WaitForSeconds(DelayBeforeCameraMove);
+            if (cameraMovement != null)
+            {
+                cameraMovement.SetOverrideTarget(this.transform, 1f);
+            }
+        }
 
         yield return new WaitForSeconds(waitPeriod);
 
@@ -199,7 +233,7 @@ public class SpikeGate : MonoBehaviourID
 
         if (MoveCameraOnDrop && cameraMovement != null)
         {
-            yield return new WaitForSeconds(waitPeriod * 0.5f);
+            yield return new WaitForSeconds(DurationBeforeCameraReset);
             cameraMovement.ClearOverrideTarget();
         }
 

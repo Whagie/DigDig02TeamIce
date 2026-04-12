@@ -9,11 +9,10 @@ Shader "Custom/PureBlack"
             "RenderPipeline"="UniversalRenderPipeline"
         }
 
-        // ----------- Visible pass (pure black) -----------
         Pass
         {
             Name "ForwardUnlit"
-            Tags { "LightMode"="UniversalForward" }
+            Tags { "LightMode"="SRPDefaultUnlit" }
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -44,7 +43,6 @@ Shader "Custom/PureBlack"
             ENDHLSL
         }
 
-        // ----------- Shadow caster pass -----------
         Pass
         {
             Name "ShadowCaster"
@@ -58,8 +56,8 @@ Shader "Custom/PureBlack"
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
-            // This include is the important one
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
 
             ENDHLSL

@@ -29,7 +29,6 @@ public class LightPuzzleReflector : MonoBehaviourID
     private Color depletedGlowColor;
 
     public float StartGlowDuration = 0.4f;
-    public float DropDuration = 0.75f;
 
     private int activeCrystalHits = 0;
     public bool ReceivingLight => activeCrystalHits > 0;
@@ -43,7 +42,7 @@ public class LightPuzzleReflector : MonoBehaviourID
     private Coroutine startGlowRoutine;
     private Coroutine stopGlowRoutine;
 
-    private SessionSaveData.LightReflectorData reflectorData;
+    private LightReflectorData reflectorData;
 
     public PushableObject Pushable;
 
@@ -125,6 +124,23 @@ public class LightPuzzleReflector : MonoBehaviourID
         }
 
         if (!inRadius)
+            return;
+
+        float distance = Vector3.Distance(transform.position, player.transform.position);
+        bool closest = true;
+
+        foreach (var reflector in player.NearbyLightReflectors)
+        {
+            float otherDistance = Vector3.Distance(reflector.position, player.transform.position);
+
+            if (otherDistance < distance)
+            {
+                closest = false;
+                break;
+            }
+        }
+
+        if (!closest)
             return;
 
         if (!allowForInputs)
@@ -300,6 +316,8 @@ public class LightPuzzleReflector : MonoBehaviourID
         {
             player = p;
             inRadius = true;
+
+            player.NearbyLightReflectors.Add(this.transform);
         }
     }
 
@@ -310,6 +328,8 @@ public class LightPuzzleReflector : MonoBehaviourID
         if (p != null && p == player)
         {
             inRadius = false;
+
+            player.NearbyLightReflectors.Remove(this.transform);
         }
     }
 

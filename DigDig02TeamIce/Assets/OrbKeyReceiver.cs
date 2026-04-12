@@ -46,7 +46,9 @@ public class OrbKeyReceiver : MonoBehaviourID
 
     private Coroutine receiveKeyRoutine;
 
-    private SessionSaveData.SingleBoolData receivedOrbData;
+    private SingleBoolData receivedOrbData;
+
+    [SerializeField] private MonoBehaviourID emptyID;
 
     private void Start()
     {
@@ -164,10 +166,15 @@ public class OrbKeyReceiver : MonoBehaviourID
         }
     }
 
-    public void ReceiveKey(Transform key)
+    public void ReceiveKey(Transform key, string id)
     {
         if (Activated)
             return;
+
+        //if (id != string.Empty)
+        //{
+        //    emptyID.ID = id;
+        //}
 
         if (receiveKeyRoutine != null)
             StopCoroutine(receiveKeyRoutine);

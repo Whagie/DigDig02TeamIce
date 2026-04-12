@@ -82,7 +82,7 @@ ParticleSystemForceField:
     m_DirectionCurveX:
       serializedVersion: 2
       minMaxState: 0
-      scalar: -1.8555284
+      scalar: -0.4271798
       minScalar: 0
       maxCurve:
         serializedVersion: 2
@@ -135,7 +135,7 @@ ParticleSystemForceField:
     m_DirectionCurveY:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 25.000002
+      scalar: 25.000004
       minScalar: 0
       maxCurve:
         serializedVersion: 2
@@ -188,7 +188,7 @@ ParticleSystemForceField:
     m_DirectionCurveZ:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0.20802116
+      scalar: -0.51231384
       minScalar: 0
       maxCurve:
         serializedVersion: 2
